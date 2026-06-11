@@ -1,0 +1,30 @@
+{
+  "project_info": {
+    "project_number": "971935809948",
+    "firebase_url": "https://vanishlink-app-default-rtdb.asia-southeast1.firebasedatabase.app",
+    "project_id": "vanishlink-app",
+    "storage_bucket": "vanishlink-app.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:971935809948:android:57c771e4f7426ec2bec859",
+        "android_client_info": {
+          "package_name": "com.example.vanish_link"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyC7ZGUQEeZnTsmoffoH-DeEg-t5Ctet8Yw"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
