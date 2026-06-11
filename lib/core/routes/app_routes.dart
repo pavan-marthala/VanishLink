@@ -3,8 +3,9 @@ class AppRoutes {
   static const chats = '/chats';
   static const request = '/request';
   static const profile = '/profile';
+  static const profileEdit = '/profile/edit';
   static const discover = '/discover';
-  static const chatDetails = '/chats/chat-details';
+  static const chatDetails = '/chats/:chatId';
   static const signIn = '/sign-in';
   static const signUp = '/sign-up';
 }

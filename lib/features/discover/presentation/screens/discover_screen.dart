@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:go_router/go_router.dart';
 import 'package:skeletonizer/skeletonizer.dart';
 import 'package:vanish_link/core/di/injection.dart';
 import 'package:vanish_link/core/theme/app_theme.dart';
@@ -310,7 +309,7 @@ class _SearchFieldState extends State<_SearchField> {
                 color: colors.textPrimary,
                 fontWeight: FontWeight.w500,
               ),
-              keyboardType: .webSearch,
+              keyboardType: TextInputType.text,
               onTapOutside: (event) {
                 FocusScope.of(context).requestFocus(FocusNode());
               },
