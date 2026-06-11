@@ -6,6 +6,9 @@ import 'package:vanish_link/features/auth/domain/repositories/auth_repository.da
 import 'package:vanish_link/features/auth/presentation/bloc/auth_bloc.dart';
 import 'package:vanish_link/features/auth/presentation/bloc/sign_up/sign_up_bloc.dart';
 import 'package:vanish_link/features/auth/presentation/bloc/sign_in/sign_in_bloc.dart';
+import 'package:vanish_link/features/discover/domain/repositories/discover_repository.dart';
+import 'package:vanish_link/features/discover/data/repositories/discover_repository_impl.dart';
+import 'package:vanish_link/features/discover/presentation/bloc/discover_bloc.dart';
 
 final getIt = GetIt.instance;
 
@@ -23,6 +26,10 @@ Future<void> configureDependencies() async {
     () => AuthRepositoryImpl(getIt<AuthRemoteDataSource>()),
   );
 
+  getIt.registerLazySingleton<DiscoverRepository>(
+    () => DiscoverRepositoryImpl(),
+  );
+
   // Blocs
   getIt.registerLazySingleton<AuthBloc>(
     () => AuthBloc(authRepository: getIt<AuthRepository>()),
@@ -34,5 +41,9 @@ Future<void> configureDependencies() async {
 
   getIt.registerFactory<SignInBloc>(
     () => SignInBloc(authRepository: getIt<AuthRepository>()),
+  );
+
+  getIt.registerFactory<DiscoverBloc>(
+    () => DiscoverBloc(discoverRepository: getIt<DiscoverRepository>()),
   );
 }

@@ -15,6 +15,7 @@ import 'package:vanish_link/features/chat/presentation/screens/chat_screen.dart'
 import 'package:vanish_link/features/home/presentation/screens/home_screen.dart';
 import 'package:vanish_link/features/profile/presentation/screens/profile_screen.dart';
 import 'package:vanish_link/features/request/presentation/screens/request_screen.dart';
+import 'package:vanish_link/features/discover/presentation/screens/discover_screen.dart';
 import 'package:vanish_link/firebase_options.dart';
 
 final GlobalKey<NavigatorState> rootNavigatorKey = GlobalKey<NavigatorState>(
@@ -120,6 +121,10 @@ class _MyAppState extends State<MyApp> {
           path: AppRoutes.signUp,
           builder: (context, state) => const SignUpScreen(),
         ),
+        GoRoute(
+          path: AppRoutes.discover,
+          builder: (context, state) => const DiscoverScreen(),
+        ),
         StatefulShellRoute.indexedStack(
           builder: (context, state, navigationShell) =>
               HomeScreen(navigationShell: navigationShell),
@@ -134,7 +139,7 @@ class _MyAppState extends State<MyApp> {
                       NoTransitionPage(child: ChatScreen()),
                   routes: [
                     GoRoute(
-                      path: AppRoutes.chatDetails,
+                      path: 'chat-details',
                       builder: (context, state) => const ChatDetailsScreen(),
                     ),
                   ],

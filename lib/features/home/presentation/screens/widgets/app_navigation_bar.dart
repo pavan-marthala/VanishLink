@@ -2,7 +2,8 @@ import 'dart:ui';
 
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
-
+import 'package:go_router/go_router.dart';
+import 'package:vanish_link/core/routes/app_routes.dart';
 import 'package:vanish_link/core/theme/app_colors.dart';
 import 'package:vanish_link/core/theme/app_theme.dart';
 
@@ -61,39 +62,44 @@ class AppNavigationBar extends StatelessWidget {
                     onTabSelected: onTabSelected,
                     size: size,
                   ),
-                  Container(
-                    margin: const EdgeInsets.only(
-                      right: 24,
-                      left: 8,
-                      bottom: 8,
-                      top: 8,
-                    ),
-                    decoration: BoxDecoration(
-                      shape: BoxShape.circle,
-                      boxShadow: [
-                        BoxShadow(
-                          color: colors.textPrimary.withValues(alpha: 0.05),
-                          blurRadius: 10,
-                          offset: const Offset(0, 4),
-                        ),
-                      ],
-                    ),
-                    child: ClipOval(
-                      child: BackdropFilter(
-                        filter: ImageFilter.blur(sigmaX: 20, sigmaY: 20),
-                        child: Container(
-                          padding: const EdgeInsets.all(18),
-                          decoration: BoxDecoration(
-                            color: colors.background.withValues(alpha: 0.75),
-                            shape: BoxShape.circle,
-                            border: Border.all(
-                              color: colors.textPrimary.withValues(alpha: 0.1),
-                            ),
+                  GestureDetector(
+                    onTap: () {
+                      context.push(AppRoutes.discover);
+                    },
+                    child: Container(
+                      margin: const EdgeInsets.only(
+                        right: 24,
+                        left: 8,
+                        bottom: 8,
+                        top: 8,
+                      ),
+                      decoration: BoxDecoration(
+                        shape: BoxShape.circle,
+                        boxShadow: [
+                          BoxShadow(
+                            color: colors.textPrimary.withValues(alpha: 0.05),
+                            blurRadius: 10,
+                            offset: const Offset(0, 4),
                           ),
-                          child: Icon(
-                            CupertinoIcons.search,
-                            color: colors.textPrimary,
-                            size: 24,
+                        ],
+                      ),
+                      child: ClipOval(
+                        child: BackdropFilter(
+                          filter: ImageFilter.blur(sigmaX: 20, sigmaY: 20),
+                          child: Container(
+                            padding: const EdgeInsets.all(18),
+                            decoration: BoxDecoration(
+                              color: colors.background.withValues(alpha: 0.75),
+                              shape: BoxShape.circle,
+                              border: Border.all(
+                                color: colors.textPrimary.withValues(alpha: 0.1),
+                              ),
+                            ),
+                            child: Icon(
+                              CupertinoIcons.search,
+                              color: colors.textPrimary,
+                              size: 24,
+                            ),
                           ),
                         ),
                       ),
