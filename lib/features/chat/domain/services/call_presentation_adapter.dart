@@ -44,7 +44,7 @@ class AndroidCallAdapter implements CallPresentationAdapter {
       android: AndroidParams(
         isCustomNotification: true,
         isShowLogo: false,
-        ringtonePath: 'system_ringtone_default',
+        ringtonePath: 'ringtone',
         backgroundColor: '#090A0F',
         actionColor: '#4CAF50',
         textAccept: 'Accept',
@@ -103,7 +103,7 @@ class IOSCallAdapter implements CallPresentationAdapter {
         supportsHolding: true,
         supportsGrouping: false,
         supportsUngrouping: false,
-        ringtonePath: 'system_ringtone_default',
+        ringtonePath: 'ringtone.mp3',
       ),
     );
     await FlutterCallkitIncoming.showCallkitIncoming(params);
