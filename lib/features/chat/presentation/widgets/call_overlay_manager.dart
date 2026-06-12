@@ -414,7 +414,7 @@ class IncomingCallOverlay extends StatelessWidget {
 
     // Desktop: Compact FaceTime-style floating card in the top-right
     // Mobile: Fully responsive width respecting borders
-    final double cardWidth = screenWidth > 380.0 ? 340.0 : screenWidth - 32.0;
+    final double cardWidth = !context.isMobile ? 340.0 : screenWidth - 32;
 
     return Positioned(
       top: isDesktop ? 20.0 : topSpacing,

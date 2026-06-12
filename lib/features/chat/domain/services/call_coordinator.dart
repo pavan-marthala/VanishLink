@@ -90,16 +90,18 @@ class CallCoordinator {
           if (_appLifecycleState == AppLifecycleState.resumed) {
             await _ringtoneService.play(CallAudioType.incomingRingtone);
           } else {
+            // Verify microphone permission is granted before showing native CallKit UI
+            final micGranted = await Permission.microphone.isGranted;
+            if (!micGranted) {
+              debugPrint('Microphone permission not granted. Declining incoming call background presentation.');
+              getIt<CallBloc>().add(const CallEvent.declineCall());
+              return;
+            }
+
             final callerProfile = await _fetchUserProfile(call.callerId);
             final callerName = callerProfile?.displayName ?? callerProfile?.username ?? 'VanishLink User';
             
             await _callKitAdapter.showIncomingCall(
-              callId: call.callId,
-              callerName: callerName,
-              type: call.type,
-            );
-            
-            await _notificationService.showIncomingCallNotification(
               callId: call.callId,
               callerName: callerName,
               type: call.type,
@@ -158,7 +160,14 @@ class CallCoordinator {
     if (event == null) return;
     switch (event) {
       case ck.CallEventActionCallAccept():
-        getIt<CallBloc>().add(const CallEvent.acceptCall());
+        Permission.microphone.isGranted.then((granted) {
+          if (granted) {
+            getIt<CallBloc>().add(const CallEvent.acceptCall());
+          } else {
+            debugPrint('Microphone permission not granted at accept event. Declining.');
+            getIt<CallBloc>().add(const CallEvent.declineCall());
+          }
+        });
         break;
       case ck.CallEventActionCallDecline():
         getIt<CallBloc>().add(const CallEvent.declineCall());
