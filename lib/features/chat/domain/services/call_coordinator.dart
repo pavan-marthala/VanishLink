@@ -151,15 +151,9 @@ class CallCoordinator {
   void _handleCallKitEvent(ck.CallEvent? event) {
     if (event == null) return;
     switch (event) {
-      case ck.CallEventActionCallAccept():
-        final body = event.body as Map<dynamic, dynamic>?;
-        final callId = body?['id'] as String?;
-        if (callId != null) {
-          getIt<CallBloc>().add(CallEvent.listenToCall(callId));
-          getIt<CallBloc>().add(CallEvent.acceptCall(callId: callId));
-        } else {
-          getIt<CallBloc>().add(const CallEvent.acceptCall());
-        }
+      case ck.CallEventActionCallAccept(:final id):
+        getIt<CallBloc>().add(CallEvent.listenToCall(id));
+        getIt<CallBloc>().add(CallEvent.acceptCall(callId: id));
         break;
       case ck.CallEventActionCallDecline():
         getIt<CallBloc>().add(const CallEvent.declineCall());
