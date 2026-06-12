@@ -478,8 +478,8 @@ class _ConversationRowState extends State<_ConversationRow> {
 
           return StreamBuilder<Message?>(
             stream: getIt<MessageRepository>().watchLastMessage(chatId),
-            builder: (context, snapshot) {
-              final lastMessage = snapshot.data;
+            builder: (context, lastMsgSnapshot) {
+              final lastMessage = lastMsgSnapshot.data;
               final lastMsg = lastMessage != null
                   ? lastMessage.content
                   : 'No messages yet';
@@ -487,185 +487,229 @@ class _ConversationRowState extends State<_ConversationRow> {
                   ? formatCompactTimestamp(lastMessage.createdAt)
                   : '';
               final isTyping = isOnline;
-              final unreadCount = 0;
 
-              final Color backgroundColor = widget.isSelected
-                  ? colors.primary.withValues(alpha: 0.12)
-                  : _isHovered
-                  ? colors.surfaceDark.withValues(alpha: 0.35)
-                  : Colors.transparent;
+              return StreamBuilder<int>(
+                stream: getIt<MessageRepository>().watchUnreadCount(
+                  chatId: chatId,
+                  userId: currentUserId ?? '',
+                ),
+                builder: (context, unreadSnapshot) {
+                  final unreadCount = unreadSnapshot.data ?? 0;
+                  final hasUnreads = unreadCount > 0;
+                  final unreadText = unreadCount > 99 ? '99+' : '$unreadCount';
 
-              return MouseRegion(
-                onEnter: (_) => setState(() => _isHovered = true),
-                onExit: (_) => setState(() => _isHovered = false),
-                child: AnimatedContainer(
-                  duration: const Duration(milliseconds: 150),
-                  curve: Curves.easeInOut,
-                  decoration: BoxDecoration(
-                    color: backgroundColor,
-                    borderRadius: BorderRadius.circular(16),
-                    border: Border.all(
-                      color: widget.isSelected
-                          ? colors.primary.withValues(alpha: 0.25)
-                          : Colors.transparent,
-                      width: 1,
-                    ),
-                  ),
-                  child: ClipRRect(
-                    borderRadius: BorderRadius.circular(16),
-                    child: InkWell(
-                      onTap: () {
-                        HapticFeedback.lightImpact();
-                        widget.onTap();
-                      },
-                      child: Padding(
-                        padding: const EdgeInsets.symmetric(
-                          horizontal: 14,
-                          vertical: 10,
+                  final Color backgroundColor = widget.isSelected
+                      ? colors.primary.withValues(alpha: 0.12)
+                      : _isHovered
+                      ? colors.surfaceDark.withValues(alpha: 0.35)
+                      : Colors.transparent;
+
+                  // Render delivery checkmarks if last message is from current user
+                  Widget? statusIcon;
+                  if (lastMessage != null && lastMessage.senderId == currentUserId) {
+                    final isRead = lastMessage.status == 'read';
+                    final isDelivered = lastMessage.status == 'delivered' || isRead;
+                    final isFailed = lastMessage.status == 'failed';
+
+                    statusIcon = Icon(
+                      isFailed
+                          ? Icons.error_outline_rounded
+                          : (isDelivered ? Icons.done_all : Icons.check),
+                      size: 14,
+                      color: isFailed
+                          ? colors.error
+                          : (isRead ? colors.primary : colors.textTertiary),
+                    );
+                  }
+
+                  return MouseRegion(
+                    onEnter: (_) => setState(() => _isHovered = true),
+                    onExit: (_) => setState(() => _isHovered = false),
+                    child: AnimatedContainer(
+                      duration: const Duration(milliseconds: 150),
+                      curve: Curves.easeInOut,
+                      decoration: BoxDecoration(
+                        color: backgroundColor,
+                        borderRadius: BorderRadius.circular(16),
+                        border: Border.all(
+                          color: widget.isSelected
+                              ? colors.primary.withValues(alpha: 0.25)
+                              : Colors.transparent,
+                          width: 1,
                         ),
-                        child: Row(
-                          children: [
-                            Stack(
+                      ),
+                      child: ClipRRect(
+                        borderRadius: BorderRadius.circular(16),
+                        child: InkWell(
+                          onTap: () {
+                            HapticFeedback.lightImpact();
+                            widget.onTap();
+                          },
+                          child: Padding(
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 14,
+                              vertical: 10,
+                            ),
+                            child: Row(
                               children: [
-                                Container(
-                                  decoration: BoxDecoration(
-                                    shape: BoxShape.circle,
-                                    border: Border.all(
-                                      color: colors.primary.withValues(
-                                        alpha: 0.1,
+                                Stack(
+                                  children: [
+                                    Container(
+                                      decoration: BoxDecoration(
+                                        shape: BoxShape.circle,
+                                        border: Border.all(
+                                          color: colors.primary.withValues(
+                                            alpha: 0.1,
+                                          ),
+                                          width: 2,
+                                        ),
                                       ),
-                                      width: 2,
+                                      child: CircleAvatar(
+                                        radius: 24,
+                                        backgroundImage:
+                                            widget.contact.photoUrl.isNotEmpty
+                                            ? NetworkImage(widget.contact.photoUrl)
+                                            : null,
+                                        backgroundColor: colors.primary.withValues(
+                                          alpha: 0.08,
+                                        ),
+                                        child: widget.contact.photoUrl.isEmpty
+                                            ? Icon(
+                                                Icons.person_rounded,
+                                                color: colors.primary,
+                                                size: 24,
+                                              )
+                                            : null,
+                                      ),
                                     ),
-                                  ),
-                                  child: CircleAvatar(
-                                    radius: 24,
-                                    backgroundImage:
-                                        widget.contact.photoUrl.isNotEmpty
-                                        ? NetworkImage(widget.contact.photoUrl)
-                                        : null,
-                                    backgroundColor: colors.primary.withValues(
-                                      alpha: 0.08,
+                                    Positioned(
+                                      right: 0,
+                                      bottom: 0,
+                                      child: PresenceIndicator(
+                                        isOnline: isOnline,
+                                        size: 11,
+                                      ),
                                     ),
-                                    child: widget.contact.photoUrl.isEmpty
-                                        ? Icon(
-                                            Icons.person_rounded,
-                                            color: colors.primary,
-                                            size: 24,
-                                          )
-                                        : null,
-                                  ),
+                                  ],
                                 ),
-                                Positioned(
-                                  right: 0,
-                                  bottom: 0,
-                                  child: PresenceIndicator(
-                                    isOnline: isOnline,
-                                    size: 11,
+                                const SizedBox(width: 12),
+
+                                Expanded(
+                                  child: Column(
+                                    crossAxisAlignment: CrossAxisAlignment.start,
+                                    children: [
+                                      Row(
+                                        mainAxisAlignment:
+                                            MainAxisAlignment.spaceBetween,
+                                        children: [
+                                          Expanded(
+                                            child: Text(
+                                              widget.contact.displayName,
+                                              style: typography.bodyLarge.copyWith(
+                                                fontWeight: hasUnreads
+                                                    ? FontWeight.w900
+                                                    : FontWeight.bold,
+                                                color: colors.textPrimary,
+                                                fontSize: 14,
+                                              ),
+                                              maxLines: 1,
+                                              overflow: TextOverflow.ellipsis,
+                                            ),
+                                          ),
+                                          if (timestamp.isNotEmpty)
+                                            Text(
+                                              timestamp,
+                                              style: typography.bodySmall.copyWith(
+                                                color: isTyping
+                                                    ? colors.primary
+                                                    : (hasUnreads ? colors.textPrimary : colors.textTertiary),
+                                                fontSize: 10,
+                                                fontWeight: (isTyping || hasUnreads)
+                                                    ? FontWeight.bold
+                                                    : FontWeight.w500,
+                                              ),
+                                            ),
+                                        ],
+                                      ),
+                                      const SizedBox(height: 2),
+                                      Text(
+                                        '@${widget.contact.username}',
+                                        style: typography.bodySmall.copyWith(
+                                          color: colors.textSecondary,
+                                          fontSize: 11,
+                                        ),
+                                        maxLines: 1,
+                                        overflow: TextOverflow.ellipsis,
+                                      ),
+                                      const SizedBox(height: 4),
+                                      Row(
+                                        mainAxisAlignment:
+                                            MainAxisAlignment.spaceBetween,
+                                        children: [
+                                          Expanded(
+                                            child: Row(
+                                              children: [
+                                                if (statusIcon != null) ...[
+                                                  statusIcon,
+                                                  const SizedBox(width: 4),
+                                                ],
+                                                Expanded(
+                                                  child: Text(
+                                                    lastMsg,
+                                                    style: typography.bodyMedium.copyWith(
+                                                      color: isTyping
+                                                          ? colors.primary
+                                                          : (hasUnreads ? colors.textPrimary : colors.textTertiary),
+                                                      fontSize: 12,
+                                                      fontWeight: isTyping
+                                                          ? FontWeight.w600
+                                                          : (hasUnreads ? FontWeight.bold : FontWeight.normal),
+                                                      fontStyle: isTyping
+                                                          ? FontStyle.italic
+                                                          : FontStyle.normal,
+                                                    ),
+                                                    maxLines: 1,
+                                                    overflow: TextOverflow.ellipsis,
+                                                  ),
+                                                ),
+                                              ],
+                                            ),
+                                          ),
+                                          const SizedBox(width: 8),
+                                          if (hasUnreads)
+                                            Container(
+                                              padding: const EdgeInsets.symmetric(
+                                                horizontal: 6,
+                                                vertical: 2,
+                                              ),
+                                              decoration: BoxDecoration(
+                                                gradient:
+                                                    context.appGradients.primary,
+                                                borderRadius: BorderRadius.circular(10),
+                                              ),
+                                              child: Text(
+                                                unreadText,
+                                                style: typography.bodySmall
+                                                    .copyWith(
+                                                      color: Colors.white,
+                                                      fontWeight: FontWeight.bold,
+                                                      fontSize: 9,
+                                                    ),
+                                              ),
+                                            ),
+                                        ],
+                                      ),
+                                    ],
                                   ),
                                 ),
                               ],
                             ),
-                            const SizedBox(width: 12),
-
-                            Expanded(
-                              child: Column(
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                children: [
-                                  Row(
-                                    mainAxisAlignment:
-                                        MainAxisAlignment.spaceBetween,
-                                    children: [
-                                      Expanded(
-                                        child: Text(
-                                          widget.contact.displayName,
-                                          style: typography.bodyLarge.copyWith(
-                                            fontWeight: FontWeight.bold,
-                                            color: colors.textPrimary,
-                                            fontSize: 14,
-                                          ),
-                                          maxLines: 1,
-                                          overflow: TextOverflow.ellipsis,
-                                        ),
-                                      ),
-                                      if (timestamp.isNotEmpty)
-                                        Text(
-                                          timestamp,
-                                          style: typography.bodySmall.copyWith(
-                                            color: isTyping
-                                                ? colors.primary
-                                                : colors.textTertiary,
-                                            fontSize: 10,
-                                            fontWeight: isTyping
-                                                ? FontWeight.bold
-                                                : FontWeight.w500,
-                                          ),
-                                        ),
-                                    ],
-                                  ),
-                                  const SizedBox(height: 2),
-                                  Text(
-                                    '@${widget.contact.username}',
-                                    style: typography.bodySmall.copyWith(
-                                      color: colors.textSecondary,
-                                      fontSize: 11,
-                                    ),
-                                    maxLines: 1,
-                                    overflow: TextOverflow.ellipsis,
-                                  ),
-                                  const SizedBox(height: 4),
-                                  Row(
-                                    mainAxisAlignment:
-                                        MainAxisAlignment.spaceBetween,
-                                    children: [
-                                      Expanded(
-                                        child: Text(
-                                          lastMsg,
-                                          style: typography.bodyMedium.copyWith(
-                                            color: isTyping
-                                                ? colors.primary
-                                                : colors.textTertiary,
-                                            fontSize: 12,
-                                            fontWeight: isTyping
-                                                ? FontWeight.w600
-                                                : FontWeight.normal,
-                                            fontStyle: isTyping
-                                                ? FontStyle.italic
-                                                : FontStyle.normal,
-                                          ),
-                                          maxLines: 1,
-                                          overflow: TextOverflow.ellipsis,
-                                        ),
-                                      ),
-                                      const SizedBox(width: 8),
-                                      if (unreadCount > 0)
-                                        Container(
-                                          padding: const EdgeInsets.all(6),
-                                          decoration: BoxDecoration(
-                                            gradient:
-                                                context.appGradients.primary,
-                                            shape: BoxShape.circle,
-                                          ),
-                                          child: Text(
-                                            '$unreadCount',
-                                            style: typography.bodySmall
-                                                .copyWith(
-                                                  color: Colors.white,
-                                                  fontWeight: FontWeight.bold,
-                                                  fontSize: 8,
-                                                ),
-                                          ),
-                                        ),
-                                    ],
-                                  ),
-                                ],
-                              ),
-                            ),
-                          ],
+                          ),
                         ),
                       ),
                     ),
-                  ),
-                ),
+                  );
+                },
               );
             },
           );

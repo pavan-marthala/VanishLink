@@ -8,9 +8,18 @@ import 'package:vanish_link/features/chat/presentation/bloc/message/message_bloc
 class FakeMessageRepository implements MessageRepository {
   final StreamController<List<Message>> _messagesController = StreamController<List<Message>>.broadcast();
   final StreamController<Message?> _lastMessageController = StreamController<Message?>.broadcast();
+  final StreamController<List<String>> _typingController = StreamController<List<String>>.broadcast();
 
   final List<Map<String, dynamic>> sentMessages = [];
   final List<Map<String, dynamic>> statusUpdates = [];
+  final List<Map<String, dynamic>> readChats = [];
+  final List<Map<String, dynamic>> readMessages = [];
+  final List<Map<String, dynamic>> retriedMessages = [];
+  final List<Map<String, dynamic>> editedMessages = [];
+  final List<Map<String, dynamic>> deletedForEveryone = [];
+  final List<Map<String, dynamic>> deletedForMe = [];
+  final List<Map<String, dynamic>> reactionUpdates = [];
+  final List<Map<String, dynamic>> typingUpdates = [];
 
   void emitMessages(List<Message> messages) {
     _messagesController.add(messages);
@@ -20,18 +29,28 @@ class FakeMessageRepository implements MessageRepository {
     _lastMessageController.add(message);
   }
 
+  void emitTypingUsers(List<String> users) {
+    _typingController.add(users);
+  }
+
   @override
   Future<void> sendMessage({
     required String chatId,
     required String senderId,
     required String receiverId,
     required String content,
+    String? replyToMessageId,
+    String? replyToSenderId,
+    String? replyToPreview,
   }) async {
     sentMessages.add({
       'chatId': chatId,
       'senderId': senderId,
       'receiverId': receiverId,
       'content': content,
+      'replyToMessageId': replyToMessageId,
+      'replyToSenderId': replyToSenderId,
+      'replyToPreview': replyToPreview,
     });
   }
 
@@ -58,9 +77,120 @@ class FakeMessageRepository implements MessageRepository {
     return _lastMessageController.stream;
   }
 
+  @override
+  Future<void> markChatAsRead({
+    required String chatId,
+    required String userId,
+  }) async {
+    readChats.add({'chatId': chatId, 'userId': userId});
+  }
+
+  @override
+  Future<void> markMessagesAsRead({
+    required String chatId,
+    required String currentUserId,
+  }) async {
+    readMessages.add({'chatId': chatId, 'currentUserId': currentUserId});
+  }
+
+  @override
+  Stream<Map<String, int>> watchAllUnreadCounts(String userId) {
+    return Stream.value({});
+  }
+
+  @override
+  Stream<int> watchUnreadCount({
+    required String chatId,
+    required String userId,
+  }) {
+    return Stream.value(0);
+  }
+
+  @override
+  Future<void> retryMessage({
+    required String chatId,
+    required Message message,
+  }) async {
+    retriedMessages.add({'chatId': chatId, 'message': message});
+  }
+
+  @override
+  Future<void> editMessage({
+    required String chatId,
+    required String messageId,
+    required String newContent,
+  }) async {
+    editedMessages.add({
+      'chatId': chatId,
+      'messageId': messageId,
+      'newContent': newContent,
+    });
+  }
+
+  @override
+  Future<void> deleteMessageForEveryone({
+    required String chatId,
+    required String messageId,
+  }) async {
+    deletedForEveryone.add({
+      'chatId': chatId,
+      'messageId': messageId,
+    });
+  }
+
+  @override
+  Future<void> deleteMessageForMe({
+    required String chatId,
+    required String messageId,
+    required String userId,
+  }) async {
+    deletedForMe.add({
+      'chatId': chatId,
+      'messageId': messageId,
+      'userId': userId,
+    });
+  }
+
+  @override
+  Future<void> updateReaction({
+    required String chatId,
+    required String messageId,
+    required String userId,
+    required String? reaction,
+  }) async {
+    reactionUpdates.add({
+      'chatId': chatId,
+      'messageId': messageId,
+      'userId': userId,
+      'reaction': reaction,
+    });
+  }
+
+  @override
+  Future<void> setTypingStatus({
+    required String chatId,
+    required String userId,
+    required bool isTyping,
+  }) async {
+    typingUpdates.add({
+      'chatId': chatId,
+      'userId': userId,
+      'isTyping': isTyping,
+    });
+  }
+
+  @override
+  Stream<List<String>> watchTypingUsers({
+    required String chatId,
+    required String currentUserId,
+  }) {
+    return _typingController.stream;
+  }
+
   void dispose() {
     _messagesController.close();
     _lastMessageController.close();
+    _typingController.close();
   }
 }
 
@@ -148,31 +278,6 @@ void main() {
       expect(fakeRepository.sentMessages.first['receiverId'], 'user_other');
     });
 
-    test('Automatic delivery receipt update when receiving new sent messages', () async {
-      messageBloc.add(const MessageEvent.loadMessages('user_me_user_other'));
-      await Future.delayed(Duration.zero);
-
-      final msg = Message(
-        messageId: 'msg_1',
-        chatId: 'user_me_user_other',
-        senderId: 'user_other',
-        receiverId: 'user_me',
-        type: 'text',
-        content: 'Hello',
-        createdAt: DateTime.now(),
-        expiresAt: DateTime.now().add(const Duration(hours: 6)),
-        status: 'sent',
-      );
-
-      fakeRepository.emitMessages([msg]);
-      await Future.delayed(Duration.zero);
-
-      // Verify repository was called to update status of msg_1 to 'delivered'
-      expect(fakeRepository.statusUpdates.length, 1);
-      expect(fakeRepository.statusUpdates.first['messageId'], 'msg_1');
-      expect(fakeRepository.statusUpdates.first['status'], 'delivered');
-    });
-
     test('No automatic update for outgoing messages', () async {
       messageBloc.add(const MessageEvent.loadMessages('user_me_user_other'));
       await Future.delayed(Duration.zero);
@@ -194,6 +299,67 @@ void main() {
 
       // Verify no status updates was triggered for sender message
       expect(fakeRepository.statusUpdates, isEmpty);
+    });
+
+    test('LoadMessages triggers markChatAsRead and markMessagesAsRead', () async {
+      messageBloc.add(const MessageEvent.loadMessages('user_me_user_other'));
+      await Future.delayed(Duration.zero);
+
+      expect(fakeRepository.readChats.length, 1);
+      expect(fakeRepository.readChats.first['chatId'], 'user_me_user_other');
+      expect(fakeRepository.readChats.first['userId'], 'user_me');
+
+      expect(fakeRepository.readMessages.length, 1);
+      expect(fakeRepository.readMessages.first['chatId'], 'user_me_user_other');
+      expect(fakeRepository.readMessages.first['currentUserId'], 'user_me');
+    });
+
+    test('Automatic update of incoming messages to read when chat is open', () async {
+      messageBloc.add(const MessageEvent.loadMessages('user_me_user_other'));
+      await Future.delayed(Duration.zero);
+
+      final msg = Message(
+        messageId: 'msg_1',
+        chatId: 'user_me_user_other',
+        senderId: 'user_other',
+        receiverId: 'user_me',
+        type: 'text',
+        content: 'Hello',
+        createdAt: DateTime.now(),
+        expiresAt: DateTime.now().add(const Duration(hours: 6)),
+        status: 'sent',
+      );
+
+      fakeRepository.emitMessages([msg]);
+      await Future.delayed(Duration.zero);
+
+      expect(fakeRepository.statusUpdates.length, 1);
+      expect(fakeRepository.statusUpdates.first['messageId'], 'msg_1');
+      expect(fakeRepository.statusUpdates.first['status'], 'read');
+    });
+
+    test('RetryMessage invokes repository retryMessage', () async {
+      final msg = Message(
+        messageId: 'failed_123',
+        chatId: 'user_me_user_other',
+        senderId: 'user_me',
+        receiverId: 'user_other',
+        type: 'text',
+        content: 'Hello failed',
+        createdAt: DateTime.now(),
+        expiresAt: DateTime.now().add(const Duration(hours: 6)),
+        status: 'failed',
+      );
+
+      messageBloc.add(const MessageEvent.loadMessages('user_me_user_other'));
+      await Future.delayed(Duration.zero);
+
+      messageBloc.add(MessageEvent.retryMessage(msg));
+      await Future.delayed(Duration.zero);
+
+      expect(fakeRepository.retriedMessages.length, 1);
+      expect(fakeRepository.retriedMessages.first['chatId'], 'user_me_user_other');
+      expect(fakeRepository.retriedMessages.first['message'].messageId, 'failed_123');
     });
   });
 }

@@ -1,0 +1,66 @@
+import 'dart:async';
+import 'package:firebase_auth/firebase_auth.dart';
+import 'package:vanish_link/features/chat/domain/repositories/call_repository.dart';
+import 'package:vanish_link/features/chat/domain/entities/call_model.dart';
+import 'package:vanish_link/features/chat/presentation/bloc/call/call_bloc.dart';
+import 'package:vanish_link/features/chat/presentation/bloc/call/call_event.dart';
+import 'package:vanish_link/core/di/injection.dart';
+
+class CallListenerService {
+  final CallRepository _callRepository;
+  final FirebaseAuth _auth;
+  StreamSubscription<User?>? _authSubscription;
+  StreamSubscription<CallModel?>? _callSubscription;
+
+  CallListenerService({
+    required CallRepository callRepository,
+    FirebaseAuth? auth,
+  })  : _callRepository = callRepository,
+        _auth = auth ?? FirebaseAuth.instance;
+
+  void startMonitoring() {
+    _authSubscription = _auth.authStateChanges().listen((user) {
+      if (user != null) {
+        _listenForIncomingCalls(user.uid);
+      } else {
+        _stopListening();
+      }
+    });
+  }
+
+  void _listenForIncomingCalls(String userId) {
+    _callSubscription?.cancel();
+    _callSubscription = _callRepository.watchIncomingCalls(userId).listen((call) {
+      if (call != null) {
+        final callBloc = getIt<CallBloc>();
+        final hasActive = callBloc.state.maybeMap(
+          calling: (_) => true,
+          incomingCall: (_) => true,
+          connected: (_) => true,
+          orElse: () => false,
+        );
+        if (hasActive) {
+          // Decline the call because we are already in another call
+          _callRepository.updateCallStatus(call.callId, 'declined');
+          return;
+        }
+        // Update CallBloc status to start listening
+        getIt<CallBloc>().add(CallEvent.listenToCall(call.callId));
+        // If status is 'calling', change to 'ringing' to signal to the caller we are ringing
+        if (call.status == 'calling') {
+          _callRepository.updateCallStatus(call.callId, 'ringing');
+        }
+      }
+    });
+  }
+
+  void _stopListening() {
+    _callSubscription?.cancel();
+    _callSubscription = null;
+  }
+
+  void stopMonitoring() {
+    _authSubscription?.cancel();
+    _stopListening();
+  }
+}

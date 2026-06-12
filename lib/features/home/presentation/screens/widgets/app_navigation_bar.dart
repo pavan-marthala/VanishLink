@@ -11,10 +11,12 @@ class AppNavigationBar extends StatelessWidget {
   const AppNavigationBar({
     super.key,
     required this.selectedIndex,
+    required this.unreadCount,
     required this.onTabSelected,
   });
 
   final int selectedIndex;
+  final int unreadCount;
   final Function(int index) onTabSelected;
 
   @override
@@ -23,6 +25,7 @@ class AppNavigationBar extends StatelessWidget {
     final items = [
       NavigationItem(
         title: 'Chats',
+        unreadCount: unreadCount,
         icon: Icon(
           CupertinoIcons.chat_bubble_2,
           color: colors.textPrimary,
@@ -31,16 +34,14 @@ class AppNavigationBar extends StatelessWidget {
       ),
       NavigationItem(
         title: 'Request',
+        unreadCount: 0,
         icon: Icon(Icons.inbox, color: colors.textPrimary, size: 24),
       ),
       NavigationItem(
         title: 'Profile',
+        unreadCount: 0,
         icon: Icon(CupertinoIcons.person, color: colors.textPrimary, size: 24),
       ),
-      // NavigationItem(
-      //   title: 'Search',
-      //   icon: Icon(CupertinoIcons.search, color: colors.textPrimary, size: 24),
-      // ),
     ];
     final screenWidth = MediaQuery.of(context).size.width;
     final bool isMobile = screenWidth < 600;
@@ -209,7 +210,7 @@ class NavBarItem extends StatelessWidget {
         width: double.infinity,
         height: 48,
         margin: const EdgeInsets.symmetric(vertical: 6, horizontal: 6),
-        padding: EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+        padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
         decoration: BoxDecoration(
           color: isSelected ? colors.primary : Colors.transparent,
           shape: BoxShape.rectangle,
@@ -218,12 +219,37 @@ class NavBarItem extends StatelessWidget {
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            ColorFiltered(
-              colorFilter: ColorFilter.mode(
-                isSelected ? colors.white : colors.textPrimary,
-                BlendMode.srcIn,
-              ),
-              child: item.icon,
+            Stack(
+              clipBehavior: Clip.none,
+              children: [
+                ColorFiltered(
+                  colorFilter: ColorFilter.mode(
+                    isSelected ? colors.white : colors.textPrimary,
+                    BlendMode.srcIn,
+                  ),
+                  child: item.icon,
+                ),
+                if (item.unreadCount > 0)
+                  Positioned(
+                    top: -4,
+                    right: -4,
+                    child: Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 5, vertical: 1.5),
+                      decoration: BoxDecoration(
+                        color: colors.error,
+                        borderRadius: BorderRadius.circular(10),
+                      ),
+                      child: Text(
+                        item.unreadCount > 99 ? '99+' : '${item.unreadCount}',
+                        style: context.theme.appTypography.bodySmall.copyWith(
+                          color: Colors.white,
+                          fontSize: 8,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                    ),
+                  ),
+              ],
             ),
             Expanded(
               child: Text(
@@ -244,6 +270,11 @@ class NavBarItem extends StatelessWidget {
 class NavigationItem {
   String title;
   Widget icon;
+  int unreadCount;
 
-  NavigationItem({required this.title, required this.icon});
+  NavigationItem({
+    required this.title,
+    required this.icon,
+    this.unreadCount = 0,
+  });
 }

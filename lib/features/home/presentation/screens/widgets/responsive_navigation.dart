@@ -1,10 +1,11 @@
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
+import 'package:vanish_link/core/di/injection.dart';
 import 'package:vanish_link/core/routes/app_routes.dart';
 import 'package:vanish_link/core/theme/app_theme.dart';
-import 'package:vanish_link/core/utils/dimens.dart';
 import 'package:vanish_link/core/utils/sized_context.dart';
+import 'package:vanish_link/features/chat/domain/services/unread_service.dart';
 import 'package:vanish_link/features/home/presentation/screens/widgets/app_navigation_bar.dart';
 
 class ResponsiveNavigation extends StatelessWidget {
@@ -14,57 +15,68 @@ class ResponsiveNavigation extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    if (context.isDesktop) {
-      return Scaffold(
-        backgroundColor: context.theme.appColors.background,
-        body: Row(
-          children: [
-            _DesktopSidebar(
-              selectedIndex: navigationShell.currentIndex,
-              onTabSelected: (index) {
-                navigationShell.goBranch(index);
-              },
+    return StreamBuilder<int>(
+      stream: getIt<UnreadService>().globalUnreadCount,
+      builder: (context, snapshot) {
+        final unreadCount = snapshot.data ?? 0;
+
+        if (context.isDesktop) {
+          return Scaffold(
+            backgroundColor: context.theme.appColors.background,
+            body: Row(
+              children: [
+                _DesktopSidebar(
+                  selectedIndex: navigationShell.currentIndex,
+                  unreadCount: unreadCount,
+                  onTabSelected: (index) {
+                    navigationShell.goBranch(index);
+                  },
+                ),
+                VerticalDivider(
+                  width: 1,
+                  thickness: 1,
+                  color: context.theme.appColors.border.withValues(alpha: 0.5),
+                ),
+                Expanded(child: navigationShell),
+              ],
             ),
-            VerticalDivider(
-              width: 1,
-              thickness: 1,
-              color: context.theme.appColors.border.withValues(alpha: 0.5),
+          );
+        } else {
+          // Mobile & Tablet: Glassmorphic Bottom Navigation
+          return Scaffold(
+            backgroundColor: context.theme.appColors.background,
+            extendBodyBehindAppBar: true,
+            body: Stack(
+              alignment: Alignment.bottomCenter,
+              children: [
+                navigationShell,
+                Positioned(
+                  bottom: 0,
+                  child: AppNavigationBar(
+                    selectedIndex: navigationShell.currentIndex,
+                    unreadCount: unreadCount,
+                    onTabSelected: (index) {
+                      navigationShell.goBranch(index);
+                    },
+                  ),
+                ),
+              ],
             ),
-            Expanded(child: navigationShell),
-          ],
-        ),
-      );
-    } else {
-      // Mobile & Tablet: Glassmorphic Bottom Navigation
-      return Scaffold(
-        backgroundColor: context.theme.appColors.background,
-        extendBodyBehindAppBar: true,
-        body: Stack(
-          alignment: Alignment.bottomCenter,
-          children: [
-            navigationShell,
-            Positioned(
-              bottom: 0,
-              child: AppNavigationBar(
-                selectedIndex: navigationShell.currentIndex,
-                onTabSelected: (index) {
-                  navigationShell.goBranch(index);
-                },
-              ),
-            ),
-          ],
-        ),
-      );
-    }
+          );
+        }
+      },
+    );
   }
 }
 
 class _DesktopSidebar extends StatelessWidget {
   final int selectedIndex;
+  final int unreadCount;
   final Function(int index) onTabSelected;
 
   const _DesktopSidebar({
     required this.selectedIndex,
+    required this.unreadCount,
     required this.onTabSelected,
   });
 
@@ -134,6 +146,7 @@ class _DesktopSidebar extends StatelessWidget {
                         icon: isSelected ? item.activeIcon : item.icon,
                         title: item.title,
                         isSelected: isSelected,
+                        badgeCount: index == 0 ? unreadCount : 0,
                         onTap: () => onTabSelected(index),
                       ),
                     );
@@ -173,12 +186,14 @@ class _SidebarItem extends StatefulWidget {
   final IconData icon;
   final String title;
   final bool isSelected;
+  final int badgeCount;
   final VoidCallback onTap;
 
   const _SidebarItem({
     required this.icon,
     required this.title,
     required this.isSelected,
+    this.badgeCount = 0,
     required this.onTap,
   });
 
@@ -207,6 +222,7 @@ class _SidebarItemState extends State<_SidebarItem> {
             children: [
               Stack(
                 alignment: Alignment.center,
+                clipBehavior: Clip.none,
                 children: [
                   // Active bar indicator on the left side
                   if (widget.isSelected)
@@ -247,6 +263,26 @@ class _SidebarItemState extends State<_SidebarItem> {
                       size: 24,
                     ),
                   ),
+                  if (widget.badgeCount > 0)
+                    Positioned(
+                      top: -4,
+                      right: -4,
+                      child: Container(
+                        padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                        decoration: BoxDecoration(
+                          color: colors.error,
+                          borderRadius: BorderRadius.circular(10),
+                        ),
+                        child: Text(
+                          widget.badgeCount > 99 ? '99+' : '${widget.badgeCount}',
+                          style: typography.bodySmall.copyWith(
+                            color: Colors.white,
+                            fontSize: 8,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                      ),
+                    ),
                 ],
               ),
               const SizedBox(height: 4),

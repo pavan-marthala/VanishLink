@@ -1,0 +1,127 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_database/firebase_database.dart';
+import 'package:vanish_link/features/chat/domain/entities/call_model.dart';
+import 'package:vanish_link/features/chat/domain/repositories/call_repository.dart';
+
+class CallRepositoryImpl implements CallRepository {
+  final FirebaseDatabase _database;
+  final FirebaseFirestore _firestore;
+
+  CallRepositoryImpl({
+    FirebaseDatabase? database,
+    FirebaseFirestore? firestore,
+  })  : _database = database ?? FirebaseDatabase.instance,
+        _firestore = firestore ?? FirebaseFirestore.instance;
+
+  @override
+  Future<CallModel> createCall({
+    required String callerId,
+    required String receiverId,
+    required String type,
+  }) async {
+    final ref = _database.ref('calls').push();
+    final callId = ref.key!;
+    final now = DateTime.now().millisecondsSinceEpoch;
+
+    final call = CallModel(
+      callId: callId,
+      callerId: callerId,
+      receiverId: receiverId,
+      type: type,
+      status: 'calling',
+      createdAt: now,
+    );
+
+    await ref.set(call.toJson());
+    return call;
+  }
+
+  @override
+  Future<void> acceptCall(String callId) async {
+    final now = DateTime.now().millisecondsSinceEpoch;
+    await _database.ref('calls/$callId').update({
+      'status': 'accepted',
+      'acceptedAt': now,
+    });
+  }
+
+  @override
+  Future<void> declineCall(String callId) async {
+    final now = DateTime.now().millisecondsSinceEpoch;
+    await _database.ref('calls/$callId').update({
+      'status': 'declined',
+      'endedAt': now,
+    });
+  }
+
+  @override
+  Future<void> cancelCall(String callId) async {
+    final now = DateTime.now().millisecondsSinceEpoch;
+    await _database.ref('calls/$callId').update({
+      'status': 'cancelled',
+      'endedAt': now,
+    });
+  }
+
+  @override
+  Future<void> endCall(String callId, int duration) async {
+    final now = DateTime.now().millisecondsSinceEpoch;
+    await _database.ref('calls/$callId').update({
+      'status': 'ended',
+      'endedAt': now,
+      'duration': duration,
+    });
+  }
+
+  @override
+  Future<void> updateCallStatus(String callId, String status) async {
+    await _database.ref('calls/$callId').update({
+      'status': status,
+    });
+  }
+
+  @override
+  Stream<CallModel?> watchCall(String callId) {
+    if (callId.isEmpty) return Stream.value(null);
+    return _database.ref('calls/$callId').onValue.map((event) {
+      final snapshot = event.snapshot;
+      if (!snapshot.exists || snapshot.value == null) return null;
+      try {
+        final map = Map<String, dynamic>.from(snapshot.value as Map);
+        return CallModel.fromJson(map);
+      } catch (_) {
+        return null;
+      }
+    });
+  }
+
+  @override
+  Stream<CallModel?> watchIncomingCalls(String userId) {
+    if (userId.isEmpty) return Stream.value(null);
+    return _database
+        .ref('calls')
+        .orderByChild('receiverId')
+        .equalTo(userId)
+        .onValue
+        .map((event) {
+      final snapshot = event.snapshot;
+      if (!snapshot.exists || snapshot.value == null) return null;
+      try {
+        final map = Map<dynamic, dynamic>.from(snapshot.value as Map);
+        for (final entry in map.values) {
+          final callMap = Map<String, dynamic>.from(entry as Map);
+          final status = callMap['status'] as String? ?? '';
+          if (status == 'calling' || status == 'ringing') {
+            return CallModel.fromJson(callMap);
+          }
+        }
+      } catch (_) {}
+      return null;
+    });
+  }
+
+  @override
+  Future<void> storeCallHistory(CallModel call) async {
+    await _firestore.collection('callHistory').doc(call.callId).set(call.toJson());
+  }
+}

@@ -6,6 +6,7 @@ class AppRoutes {
   static const profileEdit = '/profile/edit';
   static const discover = '/discover';
   static const chatDetails = '/chats/:chatId';
+  static const call = '/call/:callId';
   static const signIn = '/sign-in';
   static const signUp = '/sign-up';
 }

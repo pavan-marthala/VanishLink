@@ -32,6 +32,7 @@ class FakePresenceRepository implements PresenceRepository {
 class FakeMessageRepository implements MessageRepository {
   final StreamController<List<Message>> _messagesController = StreamController<List<Message>>.broadcast();
   final StreamController<Message?> _lastMessageController = StreamController<Message?>.broadcast();
+  final StreamController<List<String>> _typingController = StreamController<List<String>>.broadcast();
 
   final List<String> sentContents = [];
 
@@ -45,6 +46,9 @@ class FakeMessageRepository implements MessageRepository {
     required String senderId,
     required String receiverId,
     required String content,
+    String? replyToMessageId,
+    String? replyToSenderId,
+    String? replyToPreview,
   }) async {
     sentContents.add(content);
   }
@@ -66,9 +70,84 @@ class FakeMessageRepository implements MessageRepository {
     return _lastMessageController.stream;
   }
 
+  @override
+  Future<void> markChatAsRead({
+    required String chatId,
+    required String userId,
+  }) async {}
+
+  @override
+  Future<void> markMessagesAsRead({
+    required String chatId,
+    required String currentUserId,
+  }) async {}
+
+  @override
+  Stream<Map<String, int>> watchAllUnreadCounts(String userId) {
+    return Stream.value({});
+  }
+
+  @override
+  Stream<int> watchUnreadCount({
+    required String chatId,
+    required String userId,
+  }) {
+    return Stream.value(0);
+  }
+
+  @override
+  Future<void> retryMessage({
+    required String chatId,
+    required Message message,
+  }) async {}
+
+  @override
+  Future<void> editMessage({
+    required String chatId,
+    required String messageId,
+    required String newContent,
+  }) async {}
+
+  @override
+  Future<void> deleteMessageForEveryone({
+    required String chatId,
+    required String messageId,
+  }) async {}
+
+  @override
+  Future<void> deleteMessageForMe({
+    required String chatId,
+    required String messageId,
+    required String userId,
+  }) async {}
+
+  @override
+  Future<void> updateReaction({
+    required String chatId,
+    required String messageId,
+    required String userId,
+    required String? reaction,
+  }) async {}
+
+  @override
+  Future<void> setTypingStatus({
+    required String chatId,
+    required String userId,
+    required bool isTyping,
+  }) async {}
+
+  @override
+  Stream<List<String>> watchTypingUsers({
+    required String chatId,
+    required String currentUserId,
+  }) {
+    return _typingController.stream;
+  }
+
   void dispose() {
     _messagesController.close();
     _lastMessageController.close();
+    _typingController.close();
   }
 }
 

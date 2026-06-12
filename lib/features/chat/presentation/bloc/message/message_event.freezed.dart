@@ -19,28 +19,56 @@ mixin _$MessageEvent {
   @optionalTypeArgs
   TResult when<TResult extends Object?>({
     required TResult Function(String chatId) loadMessages,
-    required TResult Function(String content) sendMessage,
+    required TResult Function(String content, String? replyToMessageId,
+            String? replyToSenderId, String? replyToPreview)
+        sendMessage,
     required TResult Function(List<Message> messages) messagesUpdated,
     required TResult Function(String messageId) messageDelivered,
     required TResult Function(String messageId) messageRead,
+    required TResult Function() markAsRead,
+    required TResult Function(Message message) retryMessage,
+    required TResult Function(String messageId, String newContent) editMessage,
+    required TResult Function(String messageId, bool forEveryone) deleteMessage,
+    required TResult Function(String messageId, String? reaction)
+        updateReaction,
+    required TResult Function(bool isTyping) setTyping,
+    required TResult Function(List<String> typingUsers) typingUsersUpdated,
   }) =>
       throw _privateConstructorUsedError;
   @optionalTypeArgs
   TResult? whenOrNull<TResult extends Object?>({
     TResult? Function(String chatId)? loadMessages,
-    TResult? Function(String content)? sendMessage,
+    TResult? Function(String content, String? replyToMessageId,
+            String? replyToSenderId, String? replyToPreview)?
+        sendMessage,
     TResult? Function(List<Message> messages)? messagesUpdated,
     TResult? Function(String messageId)? messageDelivered,
     TResult? Function(String messageId)? messageRead,
+    TResult? Function()? markAsRead,
+    TResult? Function(Message message)? retryMessage,
+    TResult? Function(String messageId, String newContent)? editMessage,
+    TResult? Function(String messageId, bool forEveryone)? deleteMessage,
+    TResult? Function(String messageId, String? reaction)? updateReaction,
+    TResult? Function(bool isTyping)? setTyping,
+    TResult? Function(List<String> typingUsers)? typingUsersUpdated,
   }) =>
       throw _privateConstructorUsedError;
   @optionalTypeArgs
   TResult maybeWhen<TResult extends Object?>({
     TResult Function(String chatId)? loadMessages,
-    TResult Function(String content)? sendMessage,
+    TResult Function(String content, String? replyToMessageId,
+            String? replyToSenderId, String? replyToPreview)?
+        sendMessage,
     TResult Function(List<Message> messages)? messagesUpdated,
     TResult Function(String messageId)? messageDelivered,
     TResult Function(String messageId)? messageRead,
+    TResult Function()? markAsRead,
+    TResult Function(Message message)? retryMessage,
+    TResult Function(String messageId, String newContent)? editMessage,
+    TResult Function(String messageId, bool forEveryone)? deleteMessage,
+    TResult Function(String messageId, String? reaction)? updateReaction,
+    TResult Function(bool isTyping)? setTyping,
+    TResult Function(List<String> typingUsers)? typingUsersUpdated,
     required TResult orElse(),
   }) =>
       throw _privateConstructorUsedError;
@@ -51,6 +79,13 @@ mixin _$MessageEvent {
     required TResult Function(MessagesUpdated value) messagesUpdated,
     required TResult Function(MessageDelivered value) messageDelivered,
     required TResult Function(MessageRead value) messageRead,
+    required TResult Function(MarkAsRead value) markAsRead,
+    required TResult Function(RetryMessage value) retryMessage,
+    required TResult Function(EditMessage value) editMessage,
+    required TResult Function(DeleteMessage value) deleteMessage,
+    required TResult Function(UpdateReaction value) updateReaction,
+    required TResult Function(SetTyping value) setTyping,
+    required TResult Function(TypingUsersUpdated value) typingUsersUpdated,
   }) =>
       throw _privateConstructorUsedError;
   @optionalTypeArgs
@@ -60,6 +95,13 @@ mixin _$MessageEvent {
     TResult? Function(MessagesUpdated value)? messagesUpdated,
     TResult? Function(MessageDelivered value)? messageDelivered,
     TResult? Function(MessageRead value)? messageRead,
+    TResult? Function(MarkAsRead value)? markAsRead,
+    TResult? Function(RetryMessage value)? retryMessage,
+    TResult? Function(EditMessage value)? editMessage,
+    TResult? Function(DeleteMessage value)? deleteMessage,
+    TResult? Function(UpdateReaction value)? updateReaction,
+    TResult? Function(SetTyping value)? setTyping,
+    TResult? Function(TypingUsersUpdated value)? typingUsersUpdated,
   }) =>
       throw _privateConstructorUsedError;
   @optionalTypeArgs
@@ -69,6 +111,13 @@ mixin _$MessageEvent {
     TResult Function(MessagesUpdated value)? messagesUpdated,
     TResult Function(MessageDelivered value)? messageDelivered,
     TResult Function(MessageRead value)? messageRead,
+    TResult Function(MarkAsRead value)? markAsRead,
+    TResult Function(RetryMessage value)? retryMessage,
+    TResult Function(EditMessage value)? editMessage,
+    TResult Function(DeleteMessage value)? deleteMessage,
+    TResult Function(UpdateReaction value)? updateReaction,
+    TResult Function(SetTyping value)? setTyping,
+    TResult Function(TypingUsersUpdated value)? typingUsersUpdated,
     required TResult orElse(),
   }) =>
       throw _privateConstructorUsedError;
@@ -157,10 +206,20 @@ class _$LoadMessagesImpl implements LoadMessages {
   @optionalTypeArgs
   TResult when<TResult extends Object?>({
     required TResult Function(String chatId) loadMessages,
-    required TResult Function(String content) sendMessage,
+    required TResult Function(String content, String? replyToMessageId,
+            String? replyToSenderId, String? replyToPreview)
+        sendMessage,
     required TResult Function(List<Message> messages) messagesUpdated,
     required TResult Function(String messageId) messageDelivered,
     required TResult Function(String messageId) messageRead,
+    required TResult Function() markAsRead,
+    required TResult Function(Message message) retryMessage,
+    required TResult Function(String messageId, String newContent) editMessage,
+    required TResult Function(String messageId, bool forEveryone) deleteMessage,
+    required TResult Function(String messageId, String? reaction)
+        updateReaction,
+    required TResult Function(bool isTyping) setTyping,
+    required TResult Function(List<String> typingUsers) typingUsersUpdated,
   }) {
     return loadMessages(chatId);
   }
@@ -169,10 +228,19 @@ class _$LoadMessagesImpl implements LoadMessages {
   @optionalTypeArgs
   TResult? whenOrNull<TResult extends Object?>({
     TResult? Function(String chatId)? loadMessages,
-    TResult? Function(String content)? sendMessage,
+    TResult? Function(String content, String? replyToMessageId,
+            String? replyToSenderId, String? replyToPreview)?
+        sendMessage,
     TResult? Function(List<Message> messages)? messagesUpdated,
     TResult? Function(String messageId)? messageDelivered,
     TResult? Function(String messageId)? messageRead,
+    TResult? Function()? markAsRead,
+    TResult? Function(Message message)? retryMessage,
+    TResult? Function(String messageId, String newContent)? editMessage,
+    TResult? Function(String messageId, bool forEveryone)? deleteMessage,
+    TResult? Function(String messageId, String? reaction)? updateReaction,
+    TResult? Function(bool isTyping)? setTyping,
+    TResult? Function(List<String> typingUsers)? typingUsersUpdated,
   }) {
     return loadMessages?.call(chatId);
   }
@@ -181,10 +249,19 @@ class _$LoadMessagesImpl implements LoadMessages {
   @optionalTypeArgs
   TResult maybeWhen<TResult extends Object?>({
     TResult Function(String chatId)? loadMessages,
-    TResult Function(String content)? sendMessage,
+    TResult Function(String content, String? replyToMessageId,
+            String? replyToSenderId, String? replyToPreview)?
+        sendMessage,
     TResult Function(List<Message> messages)? messagesUpdated,
     TResult Function(String messageId)? messageDelivered,
     TResult Function(String messageId)? messageRead,
+    TResult Function()? markAsRead,
+    TResult Function(Message message)? retryMessage,
+    TResult Function(String messageId, String newContent)? editMessage,
+    TResult Function(String messageId, bool forEveryone)? deleteMessage,
+    TResult Function(String messageId, String? reaction)? updateReaction,
+    TResult Function(bool isTyping)? setTyping,
+    TResult Function(List<String> typingUsers)? typingUsersUpdated,
     required TResult orElse(),
   }) {
     if (loadMessages != null) {
@@ -201,6 +278,13 @@ class _$LoadMessagesImpl implements LoadMessages {
     required TResult Function(MessagesUpdated value) messagesUpdated,
     required TResult Function(MessageDelivered value) messageDelivered,
     required TResult Function(MessageRead value) messageRead,
+    required TResult Function(MarkAsRead value) markAsRead,
+    required TResult Function(RetryMessage value) retryMessage,
+    required TResult Function(EditMessage value) editMessage,
+    required TResult Function(DeleteMessage value) deleteMessage,
+    required TResult Function(UpdateReaction value) updateReaction,
+    required TResult Function(SetTyping value) setTyping,
+    required TResult Function(TypingUsersUpdated value) typingUsersUpdated,
   }) {
     return loadMessages(this);
   }
@@ -213,6 +297,13 @@ class _$LoadMessagesImpl implements LoadMessages {
     TResult? Function(MessagesUpdated value)? messagesUpdated,
     TResult? Function(MessageDelivered value)? messageDelivered,
     TResult? Function(MessageRead value)? messageRead,
+    TResult? Function(MarkAsRead value)? markAsRead,
+    TResult? Function(RetryMessage value)? retryMessage,
+    TResult? Function(EditMessage value)? editMessage,
+    TResult? Function(DeleteMessage value)? deleteMessage,
+    TResult? Function(UpdateReaction value)? updateReaction,
+    TResult? Function(SetTyping value)? setTyping,
+    TResult? Function(TypingUsersUpdated value)? typingUsersUpdated,
   }) {
     return loadMessages?.call(this);
   }
@@ -225,6 +316,13 @@ class _$LoadMessagesImpl implements LoadMessages {
     TResult Function(MessagesUpdated value)? messagesUpdated,
     TResult Function(MessageDelivered value)? messageDelivered,
     TResult Function(MessageRead value)? messageRead,
+    TResult Function(MarkAsRead value)? markAsRead,
+    TResult Function(RetryMessage value)? retryMessage,
+    TResult Function(EditMessage value)? editMessage,
+    TResult Function(DeleteMessage value)? deleteMessage,
+    TResult Function(UpdateReaction value)? updateReaction,
+    TResult Function(SetTyping value)? setTyping,
+    TResult Function(TypingUsersUpdated value)? typingUsersUpdated,
     required TResult orElse(),
   }) {
     if (loadMessages != null) {
@@ -249,7 +347,11 @@ abstract class _$$SendMessageImplCopyWith<$Res> {
           _$SendMessageImpl value, $Res Function(_$SendMessageImpl) then) =
       __$$SendMessageImplCopyWithImpl<$Res>;
   @useResult
-  $Res call({String content});
+  $Res call(
+      {String content,
+      String? replyToMessageId,
+      String? replyToSenderId,
+      String? replyToPreview});
 }
 
 /// @nodoc
@@ -264,12 +366,27 @@ class __$$SendMessageImplCopyWithImpl<$Res>
   @override
   $Res call({
     Object? content = null,
+    Object? replyToMessageId = freezed,
+    Object? replyToSenderId = freezed,
+    Object? replyToPreview = freezed,
   }) {
     return _then(_$SendMessageImpl(
       content: null == content
           ? _value.content
           : content // ignore: cast_nullable_to_non_nullable
               as String,
+      replyToMessageId: freezed == replyToMessageId
+          ? _value.replyToMessageId
+          : replyToMessageId // ignore: cast_nullable_to_non_nullable
+              as String?,
+      replyToSenderId: freezed == replyToSenderId
+          ? _value.replyToSenderId
+          : replyToSenderId // ignore: cast_nullable_to_non_nullable
+              as String?,
+      replyToPreview: freezed == replyToPreview
+          ? _value.replyToPreview
+          : replyToPreview // ignore: cast_nullable_to_non_nullable
+              as String?,
     ));
   }
 }
@@ -277,14 +394,24 @@ class __$$SendMessageImplCopyWithImpl<$Res>
 /// @nodoc
 
 class _$SendMessageImpl implements SendMessage {
-  const _$SendMessageImpl({required this.content});
+  const _$SendMessageImpl(
+      {required this.content,
+      this.replyToMessageId,
+      this.replyToSenderId,
+      this.replyToPreview});
 
   @override
   final String content;
+  @override
+  final String? replyToMessageId;
+  @override
+  final String? replyToSenderId;
+  @override
+  final String? replyToPreview;
 
   @override
   String toString() {
-    return 'MessageEvent.sendMessage(content: $content)';
+    return 'MessageEvent.sendMessage(content: $content, replyToMessageId: $replyToMessageId, replyToSenderId: $replyToSenderId, replyToPreview: $replyToPreview)';
   }
 
   @override
@@ -292,11 +419,18 @@ class _$SendMessageImpl implements SendMessage {
     return identical(this, other) ||
         (other.runtimeType == runtimeType &&
             other is _$SendMessageImpl &&
-            (identical(other.content, content) || other.content == content));
+            (identical(other.content, content) || other.content == content) &&
+            (identical(other.replyToMessageId, replyToMessageId) ||
+                other.replyToMessageId == replyToMessageId) &&
+            (identical(other.replyToSenderId, replyToSenderId) ||
+                other.replyToSenderId == replyToSenderId) &&
+            (identical(other.replyToPreview, replyToPreview) ||
+                other.replyToPreview == replyToPreview));
   }
 
   @override
-  int get hashCode => Object.hash(runtimeType, content);
+  int get hashCode => Object.hash(
+      runtimeType, content, replyToMessageId, replyToSenderId, replyToPreview);
 
   @JsonKey(ignore: true)
   @override
@@ -308,38 +442,69 @@ class _$SendMessageImpl implements SendMessage {
   @optionalTypeArgs
   TResult when<TResult extends Object?>({
     required TResult Function(String chatId) loadMessages,
-    required TResult Function(String content) sendMessage,
+    required TResult Function(String content, String? replyToMessageId,
+            String? replyToSenderId, String? replyToPreview)
+        sendMessage,
     required TResult Function(List<Message> messages) messagesUpdated,
     required TResult Function(String messageId) messageDelivered,
     required TResult Function(String messageId) messageRead,
+    required TResult Function() markAsRead,
+    required TResult Function(Message message) retryMessage,
+    required TResult Function(String messageId, String newContent) editMessage,
+    required TResult Function(String messageId, bool forEveryone) deleteMessage,
+    required TResult Function(String messageId, String? reaction)
+        updateReaction,
+    required TResult Function(bool isTyping) setTyping,
+    required TResult Function(List<String> typingUsers) typingUsersUpdated,
   }) {
-    return sendMessage(content);
+    return sendMessage(
+        content, replyToMessageId, replyToSenderId, replyToPreview);
   }
 
   @override
   @optionalTypeArgs
   TResult? whenOrNull<TResult extends Object?>({
     TResult? Function(String chatId)? loadMessages,
-    TResult? Function(String content)? sendMessage,
+    TResult? Function(String content, String? replyToMessageId,
+            String? replyToSenderId, String? replyToPreview)?
+        sendMessage,
     TResult? Function(List<Message> messages)? messagesUpdated,
     TResult? Function(String messageId)? messageDelivered,
     TResult? Function(String messageId)? messageRead,
+    TResult? Function()? markAsRead,
+    TResult? Function(Message message)? retryMessage,
+    TResult? Function(String messageId, String newContent)? editMessage,
+    TResult? Function(String messageId, bool forEveryone)? deleteMessage,
+    TResult? Function(String messageId, String? reaction)? updateReaction,
+    TResult? Function(bool isTyping)? setTyping,
+    TResult? Function(List<String> typingUsers)? typingUsersUpdated,
   }) {
-    return sendMessage?.call(content);
+    return sendMessage?.call(
+        content, replyToMessageId, replyToSenderId, replyToPreview);
   }
 
   @override
   @optionalTypeArgs
   TResult maybeWhen<TResult extends Object?>({
     TResult Function(String chatId)? loadMessages,
-    TResult Function(String content)? sendMessage,
+    TResult Function(String content, String? replyToMessageId,
+            String? replyToSenderId, String? replyToPreview)?
+        sendMessage,
     TResult Function(List<Message> messages)? messagesUpdated,
     TResult Function(String messageId)? messageDelivered,
     TResult Function(String messageId)? messageRead,
+    TResult Function()? markAsRead,
+    TResult Function(Message message)? retryMessage,
+    TResult Function(String messageId, String newContent)? editMessage,
+    TResult Function(String messageId, bool forEveryone)? deleteMessage,
+    TResult Function(String messageId, String? reaction)? updateReaction,
+    TResult Function(bool isTyping)? setTyping,
+    TResult Function(List<String> typingUsers)? typingUsersUpdated,
     required TResult orElse(),
   }) {
     if (sendMessage != null) {
-      return sendMessage(content);
+      return sendMessage(
+          content, replyToMessageId, replyToSenderId, replyToPreview);
     }
     return orElse();
   }
@@ -352,6 +517,13 @@ class _$SendMessageImpl implements SendMessage {
     required TResult Function(MessagesUpdated value) messagesUpdated,
     required TResult Function(MessageDelivered value) messageDelivered,
     required TResult Function(MessageRead value) messageRead,
+    required TResult Function(MarkAsRead value) markAsRead,
+    required TResult Function(RetryMessage value) retryMessage,
+    required TResult Function(EditMessage value) editMessage,
+    required TResult Function(DeleteMessage value) deleteMessage,
+    required TResult Function(UpdateReaction value) updateReaction,
+    required TResult Function(SetTyping value) setTyping,
+    required TResult Function(TypingUsersUpdated value) typingUsersUpdated,
   }) {
     return sendMessage(this);
   }
@@ -364,6 +536,13 @@ class _$SendMessageImpl implements SendMessage {
     TResult? Function(MessagesUpdated value)? messagesUpdated,
     TResult? Function(MessageDelivered value)? messageDelivered,
     TResult? Function(MessageRead value)? messageRead,
+    TResult? Function(MarkAsRead value)? markAsRead,
+    TResult? Function(RetryMessage value)? retryMessage,
+    TResult? Function(EditMessage value)? editMessage,
+    TResult? Function(DeleteMessage value)? deleteMessage,
+    TResult? Function(UpdateReaction value)? updateReaction,
+    TResult? Function(SetTyping value)? setTyping,
+    TResult? Function(TypingUsersUpdated value)? typingUsersUpdated,
   }) {
     return sendMessage?.call(this);
   }
@@ -376,6 +555,13 @@ class _$SendMessageImpl implements SendMessage {
     TResult Function(MessagesUpdated value)? messagesUpdated,
     TResult Function(MessageDelivered value)? messageDelivered,
     TResult Function(MessageRead value)? messageRead,
+    TResult Function(MarkAsRead value)? markAsRead,
+    TResult Function(RetryMessage value)? retryMessage,
+    TResult Function(EditMessage value)? editMessage,
+    TResult Function(DeleteMessage value)? deleteMessage,
+    TResult Function(UpdateReaction value)? updateReaction,
+    TResult Function(SetTyping value)? setTyping,
+    TResult Function(TypingUsersUpdated value)? typingUsersUpdated,
     required TResult orElse(),
   }) {
     if (sendMessage != null) {
@@ -386,10 +572,16 @@ class _$SendMessageImpl implements SendMessage {
 }
 
 abstract class SendMessage implements MessageEvent {
-  const factory SendMessage({required final String content}) =
-      _$SendMessageImpl;
+  const factory SendMessage(
+      {required final String content,
+      final String? replyToMessageId,
+      final String? replyToSenderId,
+      final String? replyToPreview}) = _$SendMessageImpl;
 
   String get content;
+  String? get replyToMessageId;
+  String? get replyToSenderId;
+  String? get replyToPreview;
   @JsonKey(ignore: true)
   _$$SendMessageImplCopyWith<_$SendMessageImpl> get copyWith =>
       throw _privateConstructorUsedError;
@@ -468,10 +660,20 @@ class _$MessagesUpdatedImpl implements MessagesUpdated {
   @optionalTypeArgs
   TResult when<TResult extends Object?>({
     required TResult Function(String chatId) loadMessages,
-    required TResult Function(String content) sendMessage,
+    required TResult Function(String content, String? replyToMessageId,
+            String? replyToSenderId, String? replyToPreview)
+        sendMessage,
     required TResult Function(List<Message> messages) messagesUpdated,
     required TResult Function(String messageId) messageDelivered,
     required TResult Function(String messageId) messageRead,
+    required TResult Function() markAsRead,
+    required TResult Function(Message message) retryMessage,
+    required TResult Function(String messageId, String newContent) editMessage,
+    required TResult Function(String messageId, bool forEveryone) deleteMessage,
+    required TResult Function(String messageId, String? reaction)
+        updateReaction,
+    required TResult Function(bool isTyping) setTyping,
+    required TResult Function(List<String> typingUsers) typingUsersUpdated,
   }) {
     return messagesUpdated(messages);
   }
@@ -480,10 +682,19 @@ class _$MessagesUpdatedImpl implements MessagesUpdated {
   @optionalTypeArgs
   TResult? whenOrNull<TResult extends Object?>({
     TResult? Function(String chatId)? loadMessages,
-    TResult? Function(String content)? sendMessage,
+    TResult? Function(String content, String? replyToMessageId,
+            String? replyToSenderId, String? replyToPreview)?
+        sendMessage,
     TResult? Function(List<Message> messages)? messagesUpdated,
     TResult? Function(String messageId)? messageDelivered,
     TResult? Function(String messageId)? messageRead,
+    TResult? Function()? markAsRead,
+    TResult? Function(Message message)? retryMessage,
+    TResult? Function(String messageId, String newContent)? editMessage,
+    TResult? Function(String messageId, bool forEveryone)? deleteMessage,
+    TResult? Function(String messageId, String? reaction)? updateReaction,
+    TResult? Function(bool isTyping)? setTyping,
+    TResult? Function(List<String> typingUsers)? typingUsersUpdated,
   }) {
     return messagesUpdated?.call(messages);
   }
@@ -492,10 +703,19 @@ class _$MessagesUpdatedImpl implements MessagesUpdated {
   @optionalTypeArgs
   TResult maybeWhen<TResult extends Object?>({
     TResult Function(String chatId)? loadMessages,
-    TResult Function(String content)? sendMessage,
+    TResult Function(String content, String? replyToMessageId,
+            String? replyToSenderId, String? replyToPreview)?
+        sendMessage,
     TResult Function(List<Message> messages)? messagesUpdated,
     TResult Function(String messageId)? messageDelivered,
     TResult Function(String messageId)? messageRead,
+    TResult Function()? markAsRead,
+    TResult Function(Message message)? retryMessage,
+    TResult Function(String messageId, String newContent)? editMessage,
+    TResult Function(String messageId, bool forEveryone)? deleteMessage,
+    TResult Function(String messageId, String? reaction)? updateReaction,
+    TResult Function(bool isTyping)? setTyping,
+    TResult Function(List<String> typingUsers)? typingUsersUpdated,
     required TResult orElse(),
   }) {
     if (messagesUpdated != null) {
@@ -512,6 +732,13 @@ class _$MessagesUpdatedImpl implements MessagesUpdated {
     required TResult Function(MessagesUpdated value) messagesUpdated,
     required TResult Function(MessageDelivered value) messageDelivered,
     required TResult Function(MessageRead value) messageRead,
+    required TResult Function(MarkAsRead value) markAsRead,
+    required TResult Function(RetryMessage value) retryMessage,
+    required TResult Function(EditMessage value) editMessage,
+    required TResult Function(DeleteMessage value) deleteMessage,
+    required TResult Function(UpdateReaction value) updateReaction,
+    required TResult Function(SetTyping value) setTyping,
+    required TResult Function(TypingUsersUpdated value) typingUsersUpdated,
   }) {
     return messagesUpdated(this);
   }
@@ -524,6 +751,13 @@ class _$MessagesUpdatedImpl implements MessagesUpdated {
     TResult? Function(MessagesUpdated value)? messagesUpdated,
     TResult? Function(MessageDelivered value)? messageDelivered,
     TResult? Function(MessageRead value)? messageRead,
+    TResult? Function(MarkAsRead value)? markAsRead,
+    TResult? Function(RetryMessage value)? retryMessage,
+    TResult? Function(EditMessage value)? editMessage,
+    TResult? Function(DeleteMessage value)? deleteMessage,
+    TResult? Function(UpdateReaction value)? updateReaction,
+    TResult? Function(SetTyping value)? setTyping,
+    TResult? Function(TypingUsersUpdated value)? typingUsersUpdated,
   }) {
     return messagesUpdated?.call(this);
   }
@@ -536,6 +770,13 @@ class _$MessagesUpdatedImpl implements MessagesUpdated {
     TResult Function(MessagesUpdated value)? messagesUpdated,
     TResult Function(MessageDelivered value)? messageDelivered,
     TResult Function(MessageRead value)? messageRead,
+    TResult Function(MarkAsRead value)? markAsRead,
+    TResult Function(RetryMessage value)? retryMessage,
+    TResult Function(EditMessage value)? editMessage,
+    TResult Function(DeleteMessage value)? deleteMessage,
+    TResult Function(UpdateReaction value)? updateReaction,
+    TResult Function(SetTyping value)? setTyping,
+    TResult Function(TypingUsersUpdated value)? typingUsersUpdated,
     required TResult orElse(),
   }) {
     if (messagesUpdated != null) {
@@ -622,10 +863,20 @@ class _$MessageDeliveredImpl implements MessageDelivered {
   @optionalTypeArgs
   TResult when<TResult extends Object?>({
     required TResult Function(String chatId) loadMessages,
-    required TResult Function(String content) sendMessage,
+    required TResult Function(String content, String? replyToMessageId,
+            String? replyToSenderId, String? replyToPreview)
+        sendMessage,
     required TResult Function(List<Message> messages) messagesUpdated,
     required TResult Function(String messageId) messageDelivered,
     required TResult Function(String messageId) messageRead,
+    required TResult Function() markAsRead,
+    required TResult Function(Message message) retryMessage,
+    required TResult Function(String messageId, String newContent) editMessage,
+    required TResult Function(String messageId, bool forEveryone) deleteMessage,
+    required TResult Function(String messageId, String? reaction)
+        updateReaction,
+    required TResult Function(bool isTyping) setTyping,
+    required TResult Function(List<String> typingUsers) typingUsersUpdated,
   }) {
     return messageDelivered(messageId);
   }
@@ -634,10 +885,19 @@ class _$MessageDeliveredImpl implements MessageDelivered {
   @optionalTypeArgs
   TResult? whenOrNull<TResult extends Object?>({
     TResult? Function(String chatId)? loadMessages,
-    TResult? Function(String content)? sendMessage,
+    TResult? Function(String content, String? replyToMessageId,
+            String? replyToSenderId, String? replyToPreview)?
+        sendMessage,
     TResult? Function(List<Message> messages)? messagesUpdated,
     TResult? Function(String messageId)? messageDelivered,
     TResult? Function(String messageId)? messageRead,
+    TResult? Function()? markAsRead,
+    TResult? Function(Message message)? retryMessage,
+    TResult? Function(String messageId, String newContent)? editMessage,
+    TResult? Function(String messageId, bool forEveryone)? deleteMessage,
+    TResult? Function(String messageId, String? reaction)? updateReaction,
+    TResult? Function(bool isTyping)? setTyping,
+    TResult? Function(List<String> typingUsers)? typingUsersUpdated,
   }) {
     return messageDelivered?.call(messageId);
   }
@@ -646,10 +906,19 @@ class _$MessageDeliveredImpl implements MessageDelivered {
   @optionalTypeArgs
   TResult maybeWhen<TResult extends Object?>({
     TResult Function(String chatId)? loadMessages,
-    TResult Function(String content)? sendMessage,
+    TResult Function(String content, String? replyToMessageId,
+            String? replyToSenderId, String? replyToPreview)?
+        sendMessage,
     TResult Function(List<Message> messages)? messagesUpdated,
     TResult Function(String messageId)? messageDelivered,
     TResult Function(String messageId)? messageRead,
+    TResult Function()? markAsRead,
+    TResult Function(Message message)? retryMessage,
+    TResult Function(String messageId, String newContent)? editMessage,
+    TResult Function(String messageId, bool forEveryone)? deleteMessage,
+    TResult Function(String messageId, String? reaction)? updateReaction,
+    TResult Function(bool isTyping)? setTyping,
+    TResult Function(List<String> typingUsers)? typingUsersUpdated,
     required TResult orElse(),
   }) {
     if (messageDelivered != null) {
@@ -666,6 +935,13 @@ class _$MessageDeliveredImpl implements MessageDelivered {
     required TResult Function(MessagesUpdated value) messagesUpdated,
     required TResult Function(MessageDelivered value) messageDelivered,
     required TResult Function(MessageRead value) messageRead,
+    required TResult Function(MarkAsRead value) markAsRead,
+    required TResult Function(RetryMessage value) retryMessage,
+    required TResult Function(EditMessage value) editMessage,
+    required TResult Function(DeleteMessage value) deleteMessage,
+    required TResult Function(UpdateReaction value) updateReaction,
+    required TResult Function(SetTyping value) setTyping,
+    required TResult Function(TypingUsersUpdated value) typingUsersUpdated,
   }) {
     return messageDelivered(this);
   }
@@ -678,6 +954,13 @@ class _$MessageDeliveredImpl implements MessageDelivered {
     TResult? Function(MessagesUpdated value)? messagesUpdated,
     TResult? Function(MessageDelivered value)? messageDelivered,
     TResult? Function(MessageRead value)? messageRead,
+    TResult? Function(MarkAsRead value)? markAsRead,
+    TResult? Function(RetryMessage value)? retryMessage,
+    TResult? Function(EditMessage value)? editMessage,
+    TResult? Function(DeleteMessage value)? deleteMessage,
+    TResult? Function(UpdateReaction value)? updateReaction,
+    TResult? Function(SetTyping value)? setTyping,
+    TResult? Function(TypingUsersUpdated value)? typingUsersUpdated,
   }) {
     return messageDelivered?.call(this);
   }
@@ -690,6 +973,13 @@ class _$MessageDeliveredImpl implements MessageDelivered {
     TResult Function(MessagesUpdated value)? messagesUpdated,
     TResult Function(MessageDelivered value)? messageDelivered,
     TResult Function(MessageRead value)? messageRead,
+    TResult Function(MarkAsRead value)? markAsRead,
+    TResult Function(RetryMessage value)? retryMessage,
+    TResult Function(EditMessage value)? editMessage,
+    TResult Function(DeleteMessage value)? deleteMessage,
+    TResult Function(UpdateReaction value)? updateReaction,
+    TResult Function(SetTyping value)? setTyping,
+    TResult Function(TypingUsersUpdated value)? typingUsersUpdated,
     required TResult orElse(),
   }) {
     if (messageDelivered != null) {
@@ -775,10 +1065,20 @@ class _$MessageReadImpl implements MessageRead {
   @optionalTypeArgs
   TResult when<TResult extends Object?>({
     required TResult Function(String chatId) loadMessages,
-    required TResult Function(String content) sendMessage,
+    required TResult Function(String content, String? replyToMessageId,
+            String? replyToSenderId, String? replyToPreview)
+        sendMessage,
     required TResult Function(List<Message> messages) messagesUpdated,
     required TResult Function(String messageId) messageDelivered,
     required TResult Function(String messageId) messageRead,
+    required TResult Function() markAsRead,
+    required TResult Function(Message message) retryMessage,
+    required TResult Function(String messageId, String newContent) editMessage,
+    required TResult Function(String messageId, bool forEveryone) deleteMessage,
+    required TResult Function(String messageId, String? reaction)
+        updateReaction,
+    required TResult Function(bool isTyping) setTyping,
+    required TResult Function(List<String> typingUsers) typingUsersUpdated,
   }) {
     return messageRead(messageId);
   }
@@ -787,10 +1087,19 @@ class _$MessageReadImpl implements MessageRead {
   @optionalTypeArgs
   TResult? whenOrNull<TResult extends Object?>({
     TResult? Function(String chatId)? loadMessages,
-    TResult? Function(String content)? sendMessage,
+    TResult? Function(String content, String? replyToMessageId,
+            String? replyToSenderId, String? replyToPreview)?
+        sendMessage,
     TResult? Function(List<Message> messages)? messagesUpdated,
     TResult? Function(String messageId)? messageDelivered,
     TResult? Function(String messageId)? messageRead,
+    TResult? Function()? markAsRead,
+    TResult? Function(Message message)? retryMessage,
+    TResult? Function(String messageId, String newContent)? editMessage,
+    TResult? Function(String messageId, bool forEveryone)? deleteMessage,
+    TResult? Function(String messageId, String? reaction)? updateReaction,
+    TResult? Function(bool isTyping)? setTyping,
+    TResult? Function(List<String> typingUsers)? typingUsersUpdated,
   }) {
     return messageRead?.call(messageId);
   }
@@ -799,10 +1108,19 @@ class _$MessageReadImpl implements MessageRead {
   @optionalTypeArgs
   TResult maybeWhen<TResult extends Object?>({
     TResult Function(String chatId)? loadMessages,
-    TResult Function(String content)? sendMessage,
+    TResult Function(String content, String? replyToMessageId,
+            String? replyToSenderId, String? replyToPreview)?
+        sendMessage,
     TResult Function(List<Message> messages)? messagesUpdated,
     TResult Function(String messageId)? messageDelivered,
     TResult Function(String messageId)? messageRead,
+    TResult Function()? markAsRead,
+    TResult Function(Message message)? retryMessage,
+    TResult Function(String messageId, String newContent)? editMessage,
+    TResult Function(String messageId, bool forEveryone)? deleteMessage,
+    TResult Function(String messageId, String? reaction)? updateReaction,
+    TResult Function(bool isTyping)? setTyping,
+    TResult Function(List<String> typingUsers)? typingUsersUpdated,
     required TResult orElse(),
   }) {
     if (messageRead != null) {
@@ -819,6 +1137,13 @@ class _$MessageReadImpl implements MessageRead {
     required TResult Function(MessagesUpdated value) messagesUpdated,
     required TResult Function(MessageDelivered value) messageDelivered,
     required TResult Function(MessageRead value) messageRead,
+    required TResult Function(MarkAsRead value) markAsRead,
+    required TResult Function(RetryMessage value) retryMessage,
+    required TResult Function(EditMessage value) editMessage,
+    required TResult Function(DeleteMessage value) deleteMessage,
+    required TResult Function(UpdateReaction value) updateReaction,
+    required TResult Function(SetTyping value) setTyping,
+    required TResult Function(TypingUsersUpdated value) typingUsersUpdated,
   }) {
     return messageRead(this);
   }
@@ -831,6 +1156,13 @@ class _$MessageReadImpl implements MessageRead {
     TResult? Function(MessagesUpdated value)? messagesUpdated,
     TResult? Function(MessageDelivered value)? messageDelivered,
     TResult? Function(MessageRead value)? messageRead,
+    TResult? Function(MarkAsRead value)? markAsRead,
+    TResult? Function(RetryMessage value)? retryMessage,
+    TResult? Function(EditMessage value)? editMessage,
+    TResult? Function(DeleteMessage value)? deleteMessage,
+    TResult? Function(UpdateReaction value)? updateReaction,
+    TResult? Function(SetTyping value)? setTyping,
+    TResult? Function(TypingUsersUpdated value)? typingUsersUpdated,
   }) {
     return messageRead?.call(this);
   }
@@ -843,6 +1175,13 @@ class _$MessageReadImpl implements MessageRead {
     TResult Function(MessagesUpdated value)? messagesUpdated,
     TResult Function(MessageDelivered value)? messageDelivered,
     TResult Function(MessageRead value)? messageRead,
+    TResult Function(MarkAsRead value)? markAsRead,
+    TResult Function(RetryMessage value)? retryMessage,
+    TResult Function(EditMessage value)? editMessage,
+    TResult Function(DeleteMessage value)? deleteMessage,
+    TResult Function(UpdateReaction value)? updateReaction,
+    TResult Function(SetTyping value)? setTyping,
+    TResult Function(TypingUsersUpdated value)? typingUsersUpdated,
     required TResult orElse(),
   }) {
     if (messageRead != null) {
@@ -858,5 +1197,1426 @@ abstract class MessageRead implements MessageEvent {
   String get messageId;
   @JsonKey(ignore: true)
   _$$MessageReadImplCopyWith<_$MessageReadImpl> get copyWith =>
+      throw _privateConstructorUsedError;
+}
+
+/// @nodoc
+abstract class _$$MarkAsReadImplCopyWith<$Res> {
+  factory _$$MarkAsReadImplCopyWith(
+          _$MarkAsReadImpl value, $Res Function(_$MarkAsReadImpl) then) =
+      __$$MarkAsReadImplCopyWithImpl<$Res>;
+}
+
+/// @nodoc
+class __$$MarkAsReadImplCopyWithImpl<$Res>
+    extends _$MessageEventCopyWithImpl<$Res, _$MarkAsReadImpl>
+    implements _$$MarkAsReadImplCopyWith<$Res> {
+  __$$MarkAsReadImplCopyWithImpl(
+      _$MarkAsReadImpl _value, $Res Function(_$MarkAsReadImpl) _then)
+      : super(_value, _then);
+}
+
+/// @nodoc
+
+class _$MarkAsReadImpl implements MarkAsRead {
+  const _$MarkAsReadImpl();
+
+  @override
+  String toString() {
+    return 'MessageEvent.markAsRead()';
+  }
+
+  @override
+  bool operator ==(Object other) {
+    return identical(this, other) ||
+        (other.runtimeType == runtimeType && other is _$MarkAsReadImpl);
+  }
+
+  @override
+  int get hashCode => runtimeType.hashCode;
+
+  @override
+  @optionalTypeArgs
+  TResult when<TResult extends Object?>({
+    required TResult Function(String chatId) loadMessages,
+    required TResult Function(String content, String? replyToMessageId,
+            String? replyToSenderId, String? replyToPreview)
+        sendMessage,
+    required TResult Function(List<Message> messages) messagesUpdated,
+    required TResult Function(String messageId) messageDelivered,
+    required TResult Function(String messageId) messageRead,
+    required TResult Function() markAsRead,
+    required TResult Function(Message message) retryMessage,
+    required TResult Function(String messageId, String newContent) editMessage,
+    required TResult Function(String messageId, bool forEveryone) deleteMessage,
+    required TResult Function(String messageId, String? reaction)
+        updateReaction,
+    required TResult Function(bool isTyping) setTyping,
+    required TResult Function(List<String> typingUsers) typingUsersUpdated,
+  }) {
+    return markAsRead();
+  }
+
+  @override
+  @optionalTypeArgs
+  TResult? whenOrNull<TResult extends Object?>({
+    TResult? Function(String chatId)? loadMessages,
+    TResult? Function(String content, String? replyToMessageId,
+            String? replyToSenderId, String? replyToPreview)?
+        sendMessage,
+    TResult? Function(List<Message> messages)? messagesUpdated,
+    TResult? Function(String messageId)? messageDelivered,
+    TResult? Function(String messageId)? messageRead,
+    TResult? Function()? markAsRead,
+    TResult? Function(Message message)? retryMessage,
+    TResult? Function(String messageId, String newContent)? editMessage,
+    TResult? Function(String messageId, bool forEveryone)? deleteMessage,
+    TResult? Function(String messageId, String? reaction)? updateReaction,
+    TResult? Function(bool isTyping)? setTyping,
+    TResult? Function(List<String> typingUsers)? typingUsersUpdated,
+  }) {
+    return markAsRead?.call();
+  }
+
+  @override
+  @optionalTypeArgs
+  TResult maybeWhen<TResult extends Object?>({
+    TResult Function(String chatId)? loadMessages,
+    TResult Function(String content, String? replyToMessageId,
+            String? replyToSenderId, String? replyToPreview)?
+        sendMessage,
+    TResult Function(List<Message> messages)? messagesUpdated,
+    TResult Function(String messageId)? messageDelivered,
+    TResult Function(String messageId)? messageRead,
+    TResult Function()? markAsRead,
+    TResult Function(Message message)? retryMessage,
+    TResult Function(String messageId, String newContent)? editMessage,
+    TResult Function(String messageId, bool forEveryone)? deleteMessage,
+    TResult Function(String messageId, String? reaction)? updateReaction,
+    TResult Function(bool isTyping)? setTyping,
+    TResult Function(List<String> typingUsers)? typingUsersUpdated,
+    required TResult orElse(),
+  }) {
+    if (markAsRead != null) {
+      return markAsRead();
+    }
+    return orElse();
+  }
+
+  @override
+  @optionalTypeArgs
+  TResult map<TResult extends Object?>({
+    required TResult Function(LoadMessages value) loadMessages,
+    required TResult Function(SendMessage value) sendMessage,
+    required TResult Function(MessagesUpdated value) messagesUpdated,
+    required TResult Function(MessageDelivered value) messageDelivered,
+    required TResult Function(MessageRead value) messageRead,
+    required TResult Function(MarkAsRead value) markAsRead,
+    required TResult Function(RetryMessage value) retryMessage,
+    required TResult Function(EditMessage value) editMessage,
+    required TResult Function(DeleteMessage value) deleteMessage,
+    required TResult Function(UpdateReaction value) updateReaction,
+    required TResult Function(SetTyping value) setTyping,
+    required TResult Function(TypingUsersUpdated value) typingUsersUpdated,
+  }) {
+    return markAsRead(this);
+  }
+
+  @override
+  @optionalTypeArgs
+  TResult? mapOrNull<TResult extends Object?>({
+    TResult? Function(LoadMessages value)? loadMessages,
+    TResult? Function(SendMessage value)? sendMessage,
+    TResult? Function(MessagesUpdated value)? messagesUpdated,
+    TResult? Function(MessageDelivered value)? messageDelivered,
+    TResult? Function(MessageRead value)? messageRead,
+    TResult? Function(MarkAsRead value)? markAsRead,
+    TResult? Function(RetryMessage value)? retryMessage,
+    TResult? Function(EditMessage value)? editMessage,
+    TResult? Function(DeleteMessage value)? deleteMessage,
+    TResult? Function(UpdateReaction value)? updateReaction,
+    TResult? Function(SetTyping value)? setTyping,
+    TResult? Function(TypingUsersUpdated value)? typingUsersUpdated,
+  }) {
+    return markAsRead?.call(this);
+  }
+
+  @override
+  @optionalTypeArgs
+  TResult maybeMap<TResult extends Object?>({
+    TResult Function(LoadMessages value)? loadMessages,
+    TResult Function(SendMessage value)? sendMessage,
+    TResult Function(MessagesUpdated value)? messagesUpdated,
+    TResult Function(MessageDelivered value)? messageDelivered,
+    TResult Function(MessageRead value)? messageRead,
+    TResult Function(MarkAsRead value)? markAsRead,
+    TResult Function(RetryMessage value)? retryMessage,
+    TResult Function(EditMessage value)? editMessage,
+    TResult Function(DeleteMessage value)? deleteMessage,
+    TResult Function(UpdateReaction value)? updateReaction,
+    TResult Function(SetTyping value)? setTyping,
+    TResult Function(TypingUsersUpdated value)? typingUsersUpdated,
+    required TResult orElse(),
+  }) {
+    if (markAsRead != null) {
+      return markAsRead(this);
+    }
+    return orElse();
+  }
+}
+
+abstract class MarkAsRead implements MessageEvent {
+  const factory MarkAsRead() = _$MarkAsReadImpl;
+}
+
+/// @nodoc
+abstract class _$$RetryMessageImplCopyWith<$Res> {
+  factory _$$RetryMessageImplCopyWith(
+          _$RetryMessageImpl value, $Res Function(_$RetryMessageImpl) then) =
+      __$$RetryMessageImplCopyWithImpl<$Res>;
+  @useResult
+  $Res call({Message message});
+}
+
+/// @nodoc
+class __$$RetryMessageImplCopyWithImpl<$Res>
+    extends _$MessageEventCopyWithImpl<$Res, _$RetryMessageImpl>
+    implements _$$RetryMessageImplCopyWith<$Res> {
+  __$$RetryMessageImplCopyWithImpl(
+      _$RetryMessageImpl _value, $Res Function(_$RetryMessageImpl) _then)
+      : super(_value, _then);
+
+  @pragma('vm:prefer-inline')
+  @override
+  $Res call({
+    Object? message = null,
+  }) {
+    return _then(_$RetryMessageImpl(
+      null == message
+          ? _value.message
+          : message // ignore: cast_nullable_to_non_nullable
+              as Message,
+    ));
+  }
+}
+
+/// @nodoc
+
+class _$RetryMessageImpl implements RetryMessage {
+  const _$RetryMessageImpl(this.message);
+
+  @override
+  final Message message;
+
+  @override
+  String toString() {
+    return 'MessageEvent.retryMessage(message: $message)';
+  }
+
+  @override
+  bool operator ==(Object other) {
+    return identical(this, other) ||
+        (other.runtimeType == runtimeType &&
+            other is _$RetryMessageImpl &&
+            (identical(other.message, message) || other.message == message));
+  }
+
+  @override
+  int get hashCode => Object.hash(runtimeType, message);
+
+  @JsonKey(ignore: true)
+  @override
+  @pragma('vm:prefer-inline')
+  _$$RetryMessageImplCopyWith<_$RetryMessageImpl> get copyWith =>
+      __$$RetryMessageImplCopyWithImpl<_$RetryMessageImpl>(this, _$identity);
+
+  @override
+  @optionalTypeArgs
+  TResult when<TResult extends Object?>({
+    required TResult Function(String chatId) loadMessages,
+    required TResult Function(String content, String? replyToMessageId,
+            String? replyToSenderId, String? replyToPreview)
+        sendMessage,
+    required TResult Function(List<Message> messages) messagesUpdated,
+    required TResult Function(String messageId) messageDelivered,
+    required TResult Function(String messageId) messageRead,
+    required TResult Function() markAsRead,
+    required TResult Function(Message message) retryMessage,
+    required TResult Function(String messageId, String newContent) editMessage,
+    required TResult Function(String messageId, bool forEveryone) deleteMessage,
+    required TResult Function(String messageId, String? reaction)
+        updateReaction,
+    required TResult Function(bool isTyping) setTyping,
+    required TResult Function(List<String> typingUsers) typingUsersUpdated,
+  }) {
+    return retryMessage(message);
+  }
+
+  @override
+  @optionalTypeArgs
+  TResult? whenOrNull<TResult extends Object?>({
+    TResult? Function(String chatId)? loadMessages,
+    TResult? Function(String content, String? replyToMessageId,
+            String? replyToSenderId, String? replyToPreview)?
+        sendMessage,
+    TResult? Function(List<Message> messages)? messagesUpdated,
+    TResult? Function(String messageId)? messageDelivered,
+    TResult? Function(String messageId)? messageRead,
+    TResult? Function()? markAsRead,
+    TResult? Function(Message message)? retryMessage,
+    TResult? Function(String messageId, String newContent)? editMessage,
+    TResult? Function(String messageId, bool forEveryone)? deleteMessage,
+    TResult? Function(String messageId, String? reaction)? updateReaction,
+    TResult? Function(bool isTyping)? setTyping,
+    TResult? Function(List<String> typingUsers)? typingUsersUpdated,
+  }) {
+    return retryMessage?.call(message);
+  }
+
+  @override
+  @optionalTypeArgs
+  TResult maybeWhen<TResult extends Object?>({
+    TResult Function(String chatId)? loadMessages,
+    TResult Function(String content, String? replyToMessageId,
+            String? replyToSenderId, String? replyToPreview)?
+        sendMessage,
+    TResult Function(List<Message> messages)? messagesUpdated,
+    TResult Function(String messageId)? messageDelivered,
+    TResult Function(String messageId)? messageRead,
+    TResult Function()? markAsRead,
+    TResult Function(Message message)? retryMessage,
+    TResult Function(String messageId, String newContent)? editMessage,
+    TResult Function(String messageId, bool forEveryone)? deleteMessage,
+    TResult Function(String messageId, String? reaction)? updateReaction,
+    TResult Function(bool isTyping)? setTyping,
+    TResult Function(List<String> typingUsers)? typingUsersUpdated,
+    required TResult orElse(),
+  }) {
+    if (retryMessage != null) {
+      return retryMessage(message);
+    }
+    return orElse();
+  }
+
+  @override
+  @optionalTypeArgs
+  TResult map<TResult extends Object?>({
+    required TResult Function(LoadMessages value) loadMessages,
+    required TResult Function(SendMessage value) sendMessage,
+    required TResult Function(MessagesUpdated value) messagesUpdated,
+    required TResult Function(MessageDelivered value) messageDelivered,
+    required TResult Function(MessageRead value) messageRead,
+    required TResult Function(MarkAsRead value) markAsRead,
+    required TResult Function(RetryMessage value) retryMessage,
+    required TResult Function(EditMessage value) editMessage,
+    required TResult Function(DeleteMessage value) deleteMessage,
+    required TResult Function(UpdateReaction value) updateReaction,
+    required TResult Function(SetTyping value) setTyping,
+    required TResult Function(TypingUsersUpdated value) typingUsersUpdated,
+  }) {
+    return retryMessage(this);
+  }
+
+  @override
+  @optionalTypeArgs
+  TResult? mapOrNull<TResult extends Object?>({
+    TResult? Function(LoadMessages value)? loadMessages,
+    TResult? Function(SendMessage value)? sendMessage,
+    TResult? Function(MessagesUpdated value)? messagesUpdated,
+    TResult? Function(MessageDelivered value)? messageDelivered,
+    TResult? Function(MessageRead value)? messageRead,
+    TResult? Function(MarkAsRead value)? markAsRead,
+    TResult? Function(RetryMessage value)? retryMessage,
+    TResult? Function(EditMessage value)? editMessage,
+    TResult? Function(DeleteMessage value)? deleteMessage,
+    TResult? Function(UpdateReaction value)? updateReaction,
+    TResult? Function(SetTyping value)? setTyping,
+    TResult? Function(TypingUsersUpdated value)? typingUsersUpdated,
+  }) {
+    return retryMessage?.call(this);
+  }
+
+  @override
+  @optionalTypeArgs
+  TResult maybeMap<TResult extends Object?>({
+    TResult Function(LoadMessages value)? loadMessages,
+    TResult Function(SendMessage value)? sendMessage,
+    TResult Function(MessagesUpdated value)? messagesUpdated,
+    TResult Function(MessageDelivered value)? messageDelivered,
+    TResult Function(MessageRead value)? messageRead,
+    TResult Function(MarkAsRead value)? markAsRead,
+    TResult Function(RetryMessage value)? retryMessage,
+    TResult Function(EditMessage value)? editMessage,
+    TResult Function(DeleteMessage value)? deleteMessage,
+    TResult Function(UpdateReaction value)? updateReaction,
+    TResult Function(SetTyping value)? setTyping,
+    TResult Function(TypingUsersUpdated value)? typingUsersUpdated,
+    required TResult orElse(),
+  }) {
+    if (retryMessage != null) {
+      return retryMessage(this);
+    }
+    return orElse();
+  }
+}
+
+abstract class RetryMessage implements MessageEvent {
+  const factory RetryMessage(final Message message) = _$RetryMessageImpl;
+
+  Message get message;
+  @JsonKey(ignore: true)
+  _$$RetryMessageImplCopyWith<_$RetryMessageImpl> get copyWith =>
+      throw _privateConstructorUsedError;
+}
+
+/// @nodoc
+abstract class _$$EditMessageImplCopyWith<$Res> {
+  factory _$$EditMessageImplCopyWith(
+          _$EditMessageImpl value, $Res Function(_$EditMessageImpl) then) =
+      __$$EditMessageImplCopyWithImpl<$Res>;
+  @useResult
+  $Res call({String messageId, String newContent});
+}
+
+/// @nodoc
+class __$$EditMessageImplCopyWithImpl<$Res>
+    extends _$MessageEventCopyWithImpl<$Res, _$EditMessageImpl>
+    implements _$$EditMessageImplCopyWith<$Res> {
+  __$$EditMessageImplCopyWithImpl(
+      _$EditMessageImpl _value, $Res Function(_$EditMessageImpl) _then)
+      : super(_value, _then);
+
+  @pragma('vm:prefer-inline')
+  @override
+  $Res call({
+    Object? messageId = null,
+    Object? newContent = null,
+  }) {
+    return _then(_$EditMessageImpl(
+      messageId: null == messageId
+          ? _value.messageId
+          : messageId // ignore: cast_nullable_to_non_nullable
+              as String,
+      newContent: null == newContent
+          ? _value.newContent
+          : newContent // ignore: cast_nullable_to_non_nullable
+              as String,
+    ));
+  }
+}
+
+/// @nodoc
+
+class _$EditMessageImpl implements EditMessage {
+  const _$EditMessageImpl({required this.messageId, required this.newContent});
+
+  @override
+  final String messageId;
+  @override
+  final String newContent;
+
+  @override
+  String toString() {
+    return 'MessageEvent.editMessage(messageId: $messageId, newContent: $newContent)';
+  }
+
+  @override
+  bool operator ==(Object other) {
+    return identical(this, other) ||
+        (other.runtimeType == runtimeType &&
+            other is _$EditMessageImpl &&
+            (identical(other.messageId, messageId) ||
+                other.messageId == messageId) &&
+            (identical(other.newContent, newContent) ||
+                other.newContent == newContent));
+  }
+
+  @override
+  int get hashCode => Object.hash(runtimeType, messageId, newContent);
+
+  @JsonKey(ignore: true)
+  @override
+  @pragma('vm:prefer-inline')
+  _$$EditMessageImplCopyWith<_$EditMessageImpl> get copyWith =>
+      __$$EditMessageImplCopyWithImpl<_$EditMessageImpl>(this, _$identity);
+
+  @override
+  @optionalTypeArgs
+  TResult when<TResult extends Object?>({
+    required TResult Function(String chatId) loadMessages,
+    required TResult Function(String content, String? replyToMessageId,
+            String? replyToSenderId, String? replyToPreview)
+        sendMessage,
+    required TResult Function(List<Message> messages) messagesUpdated,
+    required TResult Function(String messageId) messageDelivered,
+    required TResult Function(String messageId) messageRead,
+    required TResult Function() markAsRead,
+    required TResult Function(Message message) retryMessage,
+    required TResult Function(String messageId, String newContent) editMessage,
+    required TResult Function(String messageId, bool forEveryone) deleteMessage,
+    required TResult Function(String messageId, String? reaction)
+        updateReaction,
+    required TResult Function(bool isTyping) setTyping,
+    required TResult Function(List<String> typingUsers) typingUsersUpdated,
+  }) {
+    return editMessage(messageId, newContent);
+  }
+
+  @override
+  @optionalTypeArgs
+  TResult? whenOrNull<TResult extends Object?>({
+    TResult? Function(String chatId)? loadMessages,
+    TResult? Function(String content, String? replyToMessageId,
+            String? replyToSenderId, String? replyToPreview)?
+        sendMessage,
+    TResult? Function(List<Message> messages)? messagesUpdated,
+    TResult? Function(String messageId)? messageDelivered,
+    TResult? Function(String messageId)? messageRead,
+    TResult? Function()? markAsRead,
+    TResult? Function(Message message)? retryMessage,
+    TResult? Function(String messageId, String newContent)? editMessage,
+    TResult? Function(String messageId, bool forEveryone)? deleteMessage,
+    TResult? Function(String messageId, String? reaction)? updateReaction,
+    TResult? Function(bool isTyping)? setTyping,
+    TResult? Function(List<String> typingUsers)? typingUsersUpdated,
+  }) {
+    return editMessage?.call(messageId, newContent);
+  }
+
+  @override
+  @optionalTypeArgs
+  TResult maybeWhen<TResult extends Object?>({
+    TResult Function(String chatId)? loadMessages,
+    TResult Function(String content, String? replyToMessageId,
+            String? replyToSenderId, String? replyToPreview)?
+        sendMessage,
+    TResult Function(List<Message> messages)? messagesUpdated,
+    TResult Function(String messageId)? messageDelivered,
+    TResult Function(String messageId)? messageRead,
+    TResult Function()? markAsRead,
+    TResult Function(Message message)? retryMessage,
+    TResult Function(String messageId, String newContent)? editMessage,
+    TResult Function(String messageId, bool forEveryone)? deleteMessage,
+    TResult Function(String messageId, String? reaction)? updateReaction,
+    TResult Function(bool isTyping)? setTyping,
+    TResult Function(List<String> typingUsers)? typingUsersUpdated,
+    required TResult orElse(),
+  }) {
+    if (editMessage != null) {
+      return editMessage(messageId, newContent);
+    }
+    return orElse();
+  }
+
+  @override
+  @optionalTypeArgs
+  TResult map<TResult extends Object?>({
+    required TResult Function(LoadMessages value) loadMessages,
+    required TResult Function(SendMessage value) sendMessage,
+    required TResult Function(MessagesUpdated value) messagesUpdated,
+    required TResult Function(MessageDelivered value) messageDelivered,
+    required TResult Function(MessageRead value) messageRead,
+    required TResult Function(MarkAsRead value) markAsRead,
+    required TResult Function(RetryMessage value) retryMessage,
+    required TResult Function(EditMessage value) editMessage,
+    required TResult Function(DeleteMessage value) deleteMessage,
+    required TResult Function(UpdateReaction value) updateReaction,
+    required TResult Function(SetTyping value) setTyping,
+    required TResult Function(TypingUsersUpdated value) typingUsersUpdated,
+  }) {
+    return editMessage(this);
+  }
+
+  @override
+  @optionalTypeArgs
+  TResult? mapOrNull<TResult extends Object?>({
+    TResult? Function(LoadMessages value)? loadMessages,
+    TResult? Function(SendMessage value)? sendMessage,
+    TResult? Function(MessagesUpdated value)? messagesUpdated,
+    TResult? Function(MessageDelivered value)? messageDelivered,
+    TResult? Function(MessageRead value)? messageRead,
+    TResult? Function(MarkAsRead value)? markAsRead,
+    TResult? Function(RetryMessage value)? retryMessage,
+    TResult? Function(EditMessage value)? editMessage,
+    TResult? Function(DeleteMessage value)? deleteMessage,
+    TResult? Function(UpdateReaction value)? updateReaction,
+    TResult? Function(SetTyping value)? setTyping,
+    TResult? Function(TypingUsersUpdated value)? typingUsersUpdated,
+  }) {
+    return editMessage?.call(this);
+  }
+
+  @override
+  @optionalTypeArgs
+  TResult maybeMap<TResult extends Object?>({
+    TResult Function(LoadMessages value)? loadMessages,
+    TResult Function(SendMessage value)? sendMessage,
+    TResult Function(MessagesUpdated value)? messagesUpdated,
+    TResult Function(MessageDelivered value)? messageDelivered,
+    TResult Function(MessageRead value)? messageRead,
+    TResult Function(MarkAsRead value)? markAsRead,
+    TResult Function(RetryMessage value)? retryMessage,
+    TResult Function(EditMessage value)? editMessage,
+    TResult Function(DeleteMessage value)? deleteMessage,
+    TResult Function(UpdateReaction value)? updateReaction,
+    TResult Function(SetTyping value)? setTyping,
+    TResult Function(TypingUsersUpdated value)? typingUsersUpdated,
+    required TResult orElse(),
+  }) {
+    if (editMessage != null) {
+      return editMessage(this);
+    }
+    return orElse();
+  }
+}
+
+abstract class EditMessage implements MessageEvent {
+  const factory EditMessage(
+      {required final String messageId,
+      required final String newContent}) = _$EditMessageImpl;
+
+  String get messageId;
+  String get newContent;
+  @JsonKey(ignore: true)
+  _$$EditMessageImplCopyWith<_$EditMessageImpl> get copyWith =>
+      throw _privateConstructorUsedError;
+}
+
+/// @nodoc
+abstract class _$$DeleteMessageImplCopyWith<$Res> {
+  factory _$$DeleteMessageImplCopyWith(
+          _$DeleteMessageImpl value, $Res Function(_$DeleteMessageImpl) then) =
+      __$$DeleteMessageImplCopyWithImpl<$Res>;
+  @useResult
+  $Res call({String messageId, bool forEveryone});
+}
+
+/// @nodoc
+class __$$DeleteMessageImplCopyWithImpl<$Res>
+    extends _$MessageEventCopyWithImpl<$Res, _$DeleteMessageImpl>
+    implements _$$DeleteMessageImplCopyWith<$Res> {
+  __$$DeleteMessageImplCopyWithImpl(
+      _$DeleteMessageImpl _value, $Res Function(_$DeleteMessageImpl) _then)
+      : super(_value, _then);
+
+  @pragma('vm:prefer-inline')
+  @override
+  $Res call({
+    Object? messageId = null,
+    Object? forEveryone = null,
+  }) {
+    return _then(_$DeleteMessageImpl(
+      messageId: null == messageId
+          ? _value.messageId
+          : messageId // ignore: cast_nullable_to_non_nullable
+              as String,
+      forEveryone: null == forEveryone
+          ? _value.forEveryone
+          : forEveryone // ignore: cast_nullable_to_non_nullable
+              as bool,
+    ));
+  }
+}
+
+/// @nodoc
+
+class _$DeleteMessageImpl implements DeleteMessage {
+  const _$DeleteMessageImpl(
+      {required this.messageId, required this.forEveryone});
+
+  @override
+  final String messageId;
+  @override
+  final bool forEveryone;
+
+  @override
+  String toString() {
+    return 'MessageEvent.deleteMessage(messageId: $messageId, forEveryone: $forEveryone)';
+  }
+
+  @override
+  bool operator ==(Object other) {
+    return identical(this, other) ||
+        (other.runtimeType == runtimeType &&
+            other is _$DeleteMessageImpl &&
+            (identical(other.messageId, messageId) ||
+                other.messageId == messageId) &&
+            (identical(other.forEveryone, forEveryone) ||
+                other.forEveryone == forEveryone));
+  }
+
+  @override
+  int get hashCode => Object.hash(runtimeType, messageId, forEveryone);
+
+  @JsonKey(ignore: true)
+  @override
+  @pragma('vm:prefer-inline')
+  _$$DeleteMessageImplCopyWith<_$DeleteMessageImpl> get copyWith =>
+      __$$DeleteMessageImplCopyWithImpl<_$DeleteMessageImpl>(this, _$identity);
+
+  @override
+  @optionalTypeArgs
+  TResult when<TResult extends Object?>({
+    required TResult Function(String chatId) loadMessages,
+    required TResult Function(String content, String? replyToMessageId,
+            String? replyToSenderId, String? replyToPreview)
+        sendMessage,
+    required TResult Function(List<Message> messages) messagesUpdated,
+    required TResult Function(String messageId) messageDelivered,
+    required TResult Function(String messageId) messageRead,
+    required TResult Function() markAsRead,
+    required TResult Function(Message message) retryMessage,
+    required TResult Function(String messageId, String newContent) editMessage,
+    required TResult Function(String messageId, bool forEveryone) deleteMessage,
+    required TResult Function(String messageId, String? reaction)
+        updateReaction,
+    required TResult Function(bool isTyping) setTyping,
+    required TResult Function(List<String> typingUsers) typingUsersUpdated,
+  }) {
+    return deleteMessage(messageId, forEveryone);
+  }
+
+  @override
+  @optionalTypeArgs
+  TResult? whenOrNull<TResult extends Object?>({
+    TResult? Function(String chatId)? loadMessages,
+    TResult? Function(String content, String? replyToMessageId,
+            String? replyToSenderId, String? replyToPreview)?
+        sendMessage,
+    TResult? Function(List<Message> messages)? messagesUpdated,
+    TResult? Function(String messageId)? messageDelivered,
+    TResult? Function(String messageId)? messageRead,
+    TResult? Function()? markAsRead,
+    TResult? Function(Message message)? retryMessage,
+    TResult? Function(String messageId, String newContent)? editMessage,
+    TResult? Function(String messageId, bool forEveryone)? deleteMessage,
+    TResult? Function(String messageId, String? reaction)? updateReaction,
+    TResult? Function(bool isTyping)? setTyping,
+    TResult? Function(List<String> typingUsers)? typingUsersUpdated,
+  }) {
+    return deleteMessage?.call(messageId, forEveryone);
+  }
+
+  @override
+  @optionalTypeArgs
+  TResult maybeWhen<TResult extends Object?>({
+    TResult Function(String chatId)? loadMessages,
+    TResult Function(String content, String? replyToMessageId,
+            String? replyToSenderId, String? replyToPreview)?
+        sendMessage,
+    TResult Function(List<Message> messages)? messagesUpdated,
+    TResult Function(String messageId)? messageDelivered,
+    TResult Function(String messageId)? messageRead,
+    TResult Function()? markAsRead,
+    TResult Function(Message message)? retryMessage,
+    TResult Function(String messageId, String newContent)? editMessage,
+    TResult Function(String messageId, bool forEveryone)? deleteMessage,
+    TResult Function(String messageId, String? reaction)? updateReaction,
+    TResult Function(bool isTyping)? setTyping,
+    TResult Function(List<String> typingUsers)? typingUsersUpdated,
+    required TResult orElse(),
+  }) {
+    if (deleteMessage != null) {
+      return deleteMessage(messageId, forEveryone);
+    }
+    return orElse();
+  }
+
+  @override
+  @optionalTypeArgs
+  TResult map<TResult extends Object?>({
+    required TResult Function(LoadMessages value) loadMessages,
+    required TResult Function(SendMessage value) sendMessage,
+    required TResult Function(MessagesUpdated value) messagesUpdated,
+    required TResult Function(MessageDelivered value) messageDelivered,
+    required TResult Function(MessageRead value) messageRead,
+    required TResult Function(MarkAsRead value) markAsRead,
+    required TResult Function(RetryMessage value) retryMessage,
+    required TResult Function(EditMessage value) editMessage,
+    required TResult Function(DeleteMessage value) deleteMessage,
+    required TResult Function(UpdateReaction value) updateReaction,
+    required TResult Function(SetTyping value) setTyping,
+    required TResult Function(TypingUsersUpdated value) typingUsersUpdated,
+  }) {
+    return deleteMessage(this);
+  }
+
+  @override
+  @optionalTypeArgs
+  TResult? mapOrNull<TResult extends Object?>({
+    TResult? Function(LoadMessages value)? loadMessages,
+    TResult? Function(SendMessage value)? sendMessage,
+    TResult? Function(MessagesUpdated value)? messagesUpdated,
+    TResult? Function(MessageDelivered value)? messageDelivered,
+    TResult? Function(MessageRead value)? messageRead,
+    TResult? Function(MarkAsRead value)? markAsRead,
+    TResult? Function(RetryMessage value)? retryMessage,
+    TResult? Function(EditMessage value)? editMessage,
+    TResult? Function(DeleteMessage value)? deleteMessage,
+    TResult? Function(UpdateReaction value)? updateReaction,
+    TResult? Function(SetTyping value)? setTyping,
+    TResult? Function(TypingUsersUpdated value)? typingUsersUpdated,
+  }) {
+    return deleteMessage?.call(this);
+  }
+
+  @override
+  @optionalTypeArgs
+  TResult maybeMap<TResult extends Object?>({
+    TResult Function(LoadMessages value)? loadMessages,
+    TResult Function(SendMessage value)? sendMessage,
+    TResult Function(MessagesUpdated value)? messagesUpdated,
+    TResult Function(MessageDelivered value)? messageDelivered,
+    TResult Function(MessageRead value)? messageRead,
+    TResult Function(MarkAsRead value)? markAsRead,
+    TResult Function(RetryMessage value)? retryMessage,
+    TResult Function(EditMessage value)? editMessage,
+    TResult Function(DeleteMessage value)? deleteMessage,
+    TResult Function(UpdateReaction value)? updateReaction,
+    TResult Function(SetTyping value)? setTyping,
+    TResult Function(TypingUsersUpdated value)? typingUsersUpdated,
+    required TResult orElse(),
+  }) {
+    if (deleteMessage != null) {
+      return deleteMessage(this);
+    }
+    return orElse();
+  }
+}
+
+abstract class DeleteMessage implements MessageEvent {
+  const factory DeleteMessage(
+      {required final String messageId,
+      required final bool forEveryone}) = _$DeleteMessageImpl;
+
+  String get messageId;
+  bool get forEveryone;
+  @JsonKey(ignore: true)
+  _$$DeleteMessageImplCopyWith<_$DeleteMessageImpl> get copyWith =>
+      throw _privateConstructorUsedError;
+}
+
+/// @nodoc
+abstract class _$$UpdateReactionImplCopyWith<$Res> {
+  factory _$$UpdateReactionImplCopyWith(_$UpdateReactionImpl value,
+          $Res Function(_$UpdateReactionImpl) then) =
+      __$$UpdateReactionImplCopyWithImpl<$Res>;
+  @useResult
+  $Res call({String messageId, String? reaction});
+}
+
+/// @nodoc
+class __$$UpdateReactionImplCopyWithImpl<$Res>
+    extends _$MessageEventCopyWithImpl<$Res, _$UpdateReactionImpl>
+    implements _$$UpdateReactionImplCopyWith<$Res> {
+  __$$UpdateReactionImplCopyWithImpl(
+      _$UpdateReactionImpl _value, $Res Function(_$UpdateReactionImpl) _then)
+      : super(_value, _then);
+
+  @pragma('vm:prefer-inline')
+  @override
+  $Res call({
+    Object? messageId = null,
+    Object? reaction = freezed,
+  }) {
+    return _then(_$UpdateReactionImpl(
+      messageId: null == messageId
+          ? _value.messageId
+          : messageId // ignore: cast_nullable_to_non_nullable
+              as String,
+      reaction: freezed == reaction
+          ? _value.reaction
+          : reaction // ignore: cast_nullable_to_non_nullable
+              as String?,
+    ));
+  }
+}
+
+/// @nodoc
+
+class _$UpdateReactionImpl implements UpdateReaction {
+  const _$UpdateReactionImpl({required this.messageId, required this.reaction});
+
+  @override
+  final String messageId;
+  @override
+  final String? reaction;
+
+  @override
+  String toString() {
+    return 'MessageEvent.updateReaction(messageId: $messageId, reaction: $reaction)';
+  }
+
+  @override
+  bool operator ==(Object other) {
+    return identical(this, other) ||
+        (other.runtimeType == runtimeType &&
+            other is _$UpdateReactionImpl &&
+            (identical(other.messageId, messageId) ||
+                other.messageId == messageId) &&
+            (identical(other.reaction, reaction) ||
+                other.reaction == reaction));
+  }
+
+  @override
+  int get hashCode => Object.hash(runtimeType, messageId, reaction);
+
+  @JsonKey(ignore: true)
+  @override
+  @pragma('vm:prefer-inline')
+  _$$UpdateReactionImplCopyWith<_$UpdateReactionImpl> get copyWith =>
+      __$$UpdateReactionImplCopyWithImpl<_$UpdateReactionImpl>(
+          this, _$identity);
+
+  @override
+  @optionalTypeArgs
+  TResult when<TResult extends Object?>({
+    required TResult Function(String chatId) loadMessages,
+    required TResult Function(String content, String? replyToMessageId,
+            String? replyToSenderId, String? replyToPreview)
+        sendMessage,
+    required TResult Function(List<Message> messages) messagesUpdated,
+    required TResult Function(String messageId) messageDelivered,
+    required TResult Function(String messageId) messageRead,
+    required TResult Function() markAsRead,
+    required TResult Function(Message message) retryMessage,
+    required TResult Function(String messageId, String newContent) editMessage,
+    required TResult Function(String messageId, bool forEveryone) deleteMessage,
+    required TResult Function(String messageId, String? reaction)
+        updateReaction,
+    required TResult Function(bool isTyping) setTyping,
+    required TResult Function(List<String> typingUsers) typingUsersUpdated,
+  }) {
+    return updateReaction(messageId, reaction);
+  }
+
+  @override
+  @optionalTypeArgs
+  TResult? whenOrNull<TResult extends Object?>({
+    TResult? Function(String chatId)? loadMessages,
+    TResult? Function(String content, String? replyToMessageId,
+            String? replyToSenderId, String? replyToPreview)?
+        sendMessage,
+    TResult? Function(List<Message> messages)? messagesUpdated,
+    TResult? Function(String messageId)? messageDelivered,
+    TResult? Function(String messageId)? messageRead,
+    TResult? Function()? markAsRead,
+    TResult? Function(Message message)? retryMessage,
+    TResult? Function(String messageId, String newContent)? editMessage,
+    TResult? Function(String messageId, bool forEveryone)? deleteMessage,
+    TResult? Function(String messageId, String? reaction)? updateReaction,
+    TResult? Function(bool isTyping)? setTyping,
+    TResult? Function(List<String> typingUsers)? typingUsersUpdated,
+  }) {
+    return updateReaction?.call(messageId, reaction);
+  }
+
+  @override
+  @optionalTypeArgs
+  TResult maybeWhen<TResult extends Object?>({
+    TResult Function(String chatId)? loadMessages,
+    TResult Function(String content, String? replyToMessageId,
+            String? replyToSenderId, String? replyToPreview)?
+        sendMessage,
+    TResult Function(List<Message> messages)? messagesUpdated,
+    TResult Function(String messageId)? messageDelivered,
+    TResult Function(String messageId)? messageRead,
+    TResult Function()? markAsRead,
+    TResult Function(Message message)? retryMessage,
+    TResult Function(String messageId, String newContent)? editMessage,
+    TResult Function(String messageId, bool forEveryone)? deleteMessage,
+    TResult Function(String messageId, String? reaction)? updateReaction,
+    TResult Function(bool isTyping)? setTyping,
+    TResult Function(List<String> typingUsers)? typingUsersUpdated,
+    required TResult orElse(),
+  }) {
+    if (updateReaction != null) {
+      return updateReaction(messageId, reaction);
+    }
+    return orElse();
+  }
+
+  @override
+  @optionalTypeArgs
+  TResult map<TResult extends Object?>({
+    required TResult Function(LoadMessages value) loadMessages,
+    required TResult Function(SendMessage value) sendMessage,
+    required TResult Function(MessagesUpdated value) messagesUpdated,
+    required TResult Function(MessageDelivered value) messageDelivered,
+    required TResult Function(MessageRead value) messageRead,
+    required TResult Function(MarkAsRead value) markAsRead,
+    required TResult Function(RetryMessage value) retryMessage,
+    required TResult Function(EditMessage value) editMessage,
+    required TResult Function(DeleteMessage value) deleteMessage,
+    required TResult Function(UpdateReaction value) updateReaction,
+    required TResult Function(SetTyping value) setTyping,
+    required TResult Function(TypingUsersUpdated value) typingUsersUpdated,
+  }) {
+    return updateReaction(this);
+  }
+
+  @override
+  @optionalTypeArgs
+  TResult? mapOrNull<TResult extends Object?>({
+    TResult? Function(LoadMessages value)? loadMessages,
+    TResult? Function(SendMessage value)? sendMessage,
+    TResult? Function(MessagesUpdated value)? messagesUpdated,
+    TResult? Function(MessageDelivered value)? messageDelivered,
+    TResult? Function(MessageRead value)? messageRead,
+    TResult? Function(MarkAsRead value)? markAsRead,
+    TResult? Function(RetryMessage value)? retryMessage,
+    TResult? Function(EditMessage value)? editMessage,
+    TResult? Function(DeleteMessage value)? deleteMessage,
+    TResult? Function(UpdateReaction value)? updateReaction,
+    TResult? Function(SetTyping value)? setTyping,
+    TResult? Function(TypingUsersUpdated value)? typingUsersUpdated,
+  }) {
+    return updateReaction?.call(this);
+  }
+
+  @override
+  @optionalTypeArgs
+  TResult maybeMap<TResult extends Object?>({
+    TResult Function(LoadMessages value)? loadMessages,
+    TResult Function(SendMessage value)? sendMessage,
+    TResult Function(MessagesUpdated value)? messagesUpdated,
+    TResult Function(MessageDelivered value)? messageDelivered,
+    TResult Function(MessageRead value)? messageRead,
+    TResult Function(MarkAsRead value)? markAsRead,
+    TResult Function(RetryMessage value)? retryMessage,
+    TResult Function(EditMessage value)? editMessage,
+    TResult Function(DeleteMessage value)? deleteMessage,
+    TResult Function(UpdateReaction value)? updateReaction,
+    TResult Function(SetTyping value)? setTyping,
+    TResult Function(TypingUsersUpdated value)? typingUsersUpdated,
+    required TResult orElse(),
+  }) {
+    if (updateReaction != null) {
+      return updateReaction(this);
+    }
+    return orElse();
+  }
+}
+
+abstract class UpdateReaction implements MessageEvent {
+  const factory UpdateReaction(
+      {required final String messageId,
+      required final String? reaction}) = _$UpdateReactionImpl;
+
+  String get messageId;
+  String? get reaction;
+  @JsonKey(ignore: true)
+  _$$UpdateReactionImplCopyWith<_$UpdateReactionImpl> get copyWith =>
+      throw _privateConstructorUsedError;
+}
+
+/// @nodoc
+abstract class _$$SetTypingImplCopyWith<$Res> {
+  factory _$$SetTypingImplCopyWith(
+          _$SetTypingImpl value, $Res Function(_$SetTypingImpl) then) =
+      __$$SetTypingImplCopyWithImpl<$Res>;
+  @useResult
+  $Res call({bool isTyping});
+}
+
+/// @nodoc
+class __$$SetTypingImplCopyWithImpl<$Res>
+    extends _$MessageEventCopyWithImpl<$Res, _$SetTypingImpl>
+    implements _$$SetTypingImplCopyWith<$Res> {
+  __$$SetTypingImplCopyWithImpl(
+      _$SetTypingImpl _value, $Res Function(_$SetTypingImpl) _then)
+      : super(_value, _then);
+
+  @pragma('vm:prefer-inline')
+  @override
+  $Res call({
+    Object? isTyping = null,
+  }) {
+    return _then(_$SetTypingImpl(
+      isTyping: null == isTyping
+          ? _value.isTyping
+          : isTyping // ignore: cast_nullable_to_non_nullable
+              as bool,
+    ));
+  }
+}
+
+/// @nodoc
+
+class _$SetTypingImpl implements SetTyping {
+  const _$SetTypingImpl({required this.isTyping});
+
+  @override
+  final bool isTyping;
+
+  @override
+  String toString() {
+    return 'MessageEvent.setTyping(isTyping: $isTyping)';
+  }
+
+  @override
+  bool operator ==(Object other) {
+    return identical(this, other) ||
+        (other.runtimeType == runtimeType &&
+            other is _$SetTypingImpl &&
+            (identical(other.isTyping, isTyping) ||
+                other.isTyping == isTyping));
+  }
+
+  @override
+  int get hashCode => Object.hash(runtimeType, isTyping);
+
+  @JsonKey(ignore: true)
+  @override
+  @pragma('vm:prefer-inline')
+  _$$SetTypingImplCopyWith<_$SetTypingImpl> get copyWith =>
+      __$$SetTypingImplCopyWithImpl<_$SetTypingImpl>(this, _$identity);
+
+  @override
+  @optionalTypeArgs
+  TResult when<TResult extends Object?>({
+    required TResult Function(String chatId) loadMessages,
+    required TResult Function(String content, String? replyToMessageId,
+            String? replyToSenderId, String? replyToPreview)
+        sendMessage,
+    required TResult Function(List<Message> messages) messagesUpdated,
+    required TResult Function(String messageId) messageDelivered,
+    required TResult Function(String messageId) messageRead,
+    required TResult Function() markAsRead,
+    required TResult Function(Message message) retryMessage,
+    required TResult Function(String messageId, String newContent) editMessage,
+    required TResult Function(String messageId, bool forEveryone) deleteMessage,
+    required TResult Function(String messageId, String? reaction)
+        updateReaction,
+    required TResult Function(bool isTyping) setTyping,
+    required TResult Function(List<String> typingUsers) typingUsersUpdated,
+  }) {
+    return setTyping(isTyping);
+  }
+
+  @override
+  @optionalTypeArgs
+  TResult? whenOrNull<TResult extends Object?>({
+    TResult? Function(String chatId)? loadMessages,
+    TResult? Function(String content, String? replyToMessageId,
+            String? replyToSenderId, String? replyToPreview)?
+        sendMessage,
+    TResult? Function(List<Message> messages)? messagesUpdated,
+    TResult? Function(String messageId)? messageDelivered,
+    TResult? Function(String messageId)? messageRead,
+    TResult? Function()? markAsRead,
+    TResult? Function(Message message)? retryMessage,
+    TResult? Function(String messageId, String newContent)? editMessage,
+    TResult? Function(String messageId, bool forEveryone)? deleteMessage,
+    TResult? Function(String messageId, String? reaction)? updateReaction,
+    TResult? Function(bool isTyping)? setTyping,
+    TResult? Function(List<String> typingUsers)? typingUsersUpdated,
+  }) {
+    return setTyping?.call(isTyping);
+  }
+
+  @override
+  @optionalTypeArgs
+  TResult maybeWhen<TResult extends Object?>({
+    TResult Function(String chatId)? loadMessages,
+    TResult Function(String content, String? replyToMessageId,
+            String? replyToSenderId, String? replyToPreview)?
+        sendMessage,
+    TResult Function(List<Message> messages)? messagesUpdated,
+    TResult Function(String messageId)? messageDelivered,
+    TResult Function(String messageId)? messageRead,
+    TResult Function()? markAsRead,
+    TResult Function(Message message)? retryMessage,
+    TResult Function(String messageId, String newContent)? editMessage,
+    TResult Function(String messageId, bool forEveryone)? deleteMessage,
+    TResult Function(String messageId, String? reaction)? updateReaction,
+    TResult Function(bool isTyping)? setTyping,
+    TResult Function(List<String> typingUsers)? typingUsersUpdated,
+    required TResult orElse(),
+  }) {
+    if (setTyping != null) {
+      return setTyping(isTyping);
+    }
+    return orElse();
+  }
+
+  @override
+  @optionalTypeArgs
+  TResult map<TResult extends Object?>({
+    required TResult Function(LoadMessages value) loadMessages,
+    required TResult Function(SendMessage value) sendMessage,
+    required TResult Function(MessagesUpdated value) messagesUpdated,
+    required TResult Function(MessageDelivered value) messageDelivered,
+    required TResult Function(MessageRead value) messageRead,
+    required TResult Function(MarkAsRead value) markAsRead,
+    required TResult Function(RetryMessage value) retryMessage,
+    required TResult Function(EditMessage value) editMessage,
+    required TResult Function(DeleteMessage value) deleteMessage,
+    required TResult Function(UpdateReaction value) updateReaction,
+    required TResult Function(SetTyping value) setTyping,
+    required TResult Function(TypingUsersUpdated value) typingUsersUpdated,
+  }) {
+    return setTyping(this);
+  }
+
+  @override
+  @optionalTypeArgs
+  TResult? mapOrNull<TResult extends Object?>({
+    TResult? Function(LoadMessages value)? loadMessages,
+    TResult? Function(SendMessage value)? sendMessage,
+    TResult? Function(MessagesUpdated value)? messagesUpdated,
+    TResult? Function(MessageDelivered value)? messageDelivered,
+    TResult? Function(MessageRead value)? messageRead,
+    TResult? Function(MarkAsRead value)? markAsRead,
+    TResult? Function(RetryMessage value)? retryMessage,
+    TResult? Function(EditMessage value)? editMessage,
+    TResult? Function(DeleteMessage value)? deleteMessage,
+    TResult? Function(UpdateReaction value)? updateReaction,
+    TResult? Function(SetTyping value)? setTyping,
+    TResult? Function(TypingUsersUpdated value)? typingUsersUpdated,
+  }) {
+    return setTyping?.call(this);
+  }
+
+  @override
+  @optionalTypeArgs
+  TResult maybeMap<TResult extends Object?>({
+    TResult Function(LoadMessages value)? loadMessages,
+    TResult Function(SendMessage value)? sendMessage,
+    TResult Function(MessagesUpdated value)? messagesUpdated,
+    TResult Function(MessageDelivered value)? messageDelivered,
+    TResult Function(MessageRead value)? messageRead,
+    TResult Function(MarkAsRead value)? markAsRead,
+    TResult Function(RetryMessage value)? retryMessage,
+    TResult Function(EditMessage value)? editMessage,
+    TResult Function(DeleteMessage value)? deleteMessage,
+    TResult Function(UpdateReaction value)? updateReaction,
+    TResult Function(SetTyping value)? setTyping,
+    TResult Function(TypingUsersUpdated value)? typingUsersUpdated,
+    required TResult orElse(),
+  }) {
+    if (setTyping != null) {
+      return setTyping(this);
+    }
+    return orElse();
+  }
+}
+
+abstract class SetTyping implements MessageEvent {
+  const factory SetTyping({required final bool isTyping}) = _$SetTypingImpl;
+
+  bool get isTyping;
+  @JsonKey(ignore: true)
+  _$$SetTypingImplCopyWith<_$SetTypingImpl> get copyWith =>
+      throw _privateConstructorUsedError;
+}
+
+/// @nodoc
+abstract class _$$TypingUsersUpdatedImplCopyWith<$Res> {
+  factory _$$TypingUsersUpdatedImplCopyWith(_$TypingUsersUpdatedImpl value,
+          $Res Function(_$TypingUsersUpdatedImpl) then) =
+      __$$TypingUsersUpdatedImplCopyWithImpl<$Res>;
+  @useResult
+  $Res call({List<String> typingUsers});
+}
+
+/// @nodoc
+class __$$TypingUsersUpdatedImplCopyWithImpl<$Res>
+    extends _$MessageEventCopyWithImpl<$Res, _$TypingUsersUpdatedImpl>
+    implements _$$TypingUsersUpdatedImplCopyWith<$Res> {
+  __$$TypingUsersUpdatedImplCopyWithImpl(_$TypingUsersUpdatedImpl _value,
+      $Res Function(_$TypingUsersUpdatedImpl) _then)
+      : super(_value, _then);
+
+  @pragma('vm:prefer-inline')
+  @override
+  $Res call({
+    Object? typingUsers = null,
+  }) {
+    return _then(_$TypingUsersUpdatedImpl(
+      null == typingUsers
+          ? _value._typingUsers
+          : typingUsers // ignore: cast_nullable_to_non_nullable
+              as List<String>,
+    ));
+  }
+}
+
+/// @nodoc
+
+class _$TypingUsersUpdatedImpl implements TypingUsersUpdated {
+  const _$TypingUsersUpdatedImpl(final List<String> typingUsers)
+      : _typingUsers = typingUsers;
+
+  final List<String> _typingUsers;
+  @override
+  List<String> get typingUsers {
+    if (_typingUsers is EqualUnmodifiableListView) return _typingUsers;
+    // ignore: implicit_dynamic_type
+    return EqualUnmodifiableListView(_typingUsers);
+  }
+
+  @override
+  String toString() {
+    return 'MessageEvent.typingUsersUpdated(typingUsers: $typingUsers)';
+  }
+
+  @override
+  bool operator ==(Object other) {
+    return identical(this, other) ||
+        (other.runtimeType == runtimeType &&
+            other is _$TypingUsersUpdatedImpl &&
+            const DeepCollectionEquality()
+                .equals(other._typingUsers, _typingUsers));
+  }
+
+  @override
+  int get hashCode => Object.hash(
+      runtimeType, const DeepCollectionEquality().hash(_typingUsers));
+
+  @JsonKey(ignore: true)
+  @override
+  @pragma('vm:prefer-inline')
+  _$$TypingUsersUpdatedImplCopyWith<_$TypingUsersUpdatedImpl> get copyWith =>
+      __$$TypingUsersUpdatedImplCopyWithImpl<_$TypingUsersUpdatedImpl>(
+          this, _$identity);
+
+  @override
+  @optionalTypeArgs
+  TResult when<TResult extends Object?>({
+    required TResult Function(String chatId) loadMessages,
+    required TResult Function(String content, String? replyToMessageId,
+            String? replyToSenderId, String? replyToPreview)
+        sendMessage,
+    required TResult Function(List<Message> messages) messagesUpdated,
+    required TResult Function(String messageId) messageDelivered,
+    required TResult Function(String messageId) messageRead,
+    required TResult Function() markAsRead,
+    required TResult Function(Message message) retryMessage,
+    required TResult Function(String messageId, String newContent) editMessage,
+    required TResult Function(String messageId, bool forEveryone) deleteMessage,
+    required TResult Function(String messageId, String? reaction)
+        updateReaction,
+    required TResult Function(bool isTyping) setTyping,
+    required TResult Function(List<String> typingUsers) typingUsersUpdated,
+  }) {
+    return typingUsersUpdated(typingUsers);
+  }
+
+  @override
+  @optionalTypeArgs
+  TResult? whenOrNull<TResult extends Object?>({
+    TResult? Function(String chatId)? loadMessages,
+    TResult? Function(String content, String? replyToMessageId,
+            String? replyToSenderId, String? replyToPreview)?
+        sendMessage,
+    TResult? Function(List<Message> messages)? messagesUpdated,
+    TResult? Function(String messageId)? messageDelivered,
+    TResult? Function(String messageId)? messageRead,
+    TResult? Function()? markAsRead,
+    TResult? Function(Message message)? retryMessage,
+    TResult? Function(String messageId, String newContent)? editMessage,
+    TResult? Function(String messageId, bool forEveryone)? deleteMessage,
+    TResult? Function(String messageId, String? reaction)? updateReaction,
+    TResult? Function(bool isTyping)? setTyping,
+    TResult? Function(List<String> typingUsers)? typingUsersUpdated,
+  }) {
+    return typingUsersUpdated?.call(typingUsers);
+  }
+
+  @override
+  @optionalTypeArgs
+  TResult maybeWhen<TResult extends Object?>({
+    TResult Function(String chatId)? loadMessages,
+    TResult Function(String content, String? replyToMessageId,
+            String? replyToSenderId, String? replyToPreview)?
+        sendMessage,
+    TResult Function(List<Message> messages)? messagesUpdated,
+    TResult Function(String messageId)? messageDelivered,
+    TResult Function(String messageId)? messageRead,
+    TResult Function()? markAsRead,
+    TResult Function(Message message)? retryMessage,
+    TResult Function(String messageId, String newContent)? editMessage,
+    TResult Function(String messageId, bool forEveryone)? deleteMessage,
+    TResult Function(String messageId, String? reaction)? updateReaction,
+    TResult Function(bool isTyping)? setTyping,
+    TResult Function(List<String> typingUsers)? typingUsersUpdated,
+    required TResult orElse(),
+  }) {
+    if (typingUsersUpdated != null) {
+      return typingUsersUpdated(typingUsers);
+    }
+    return orElse();
+  }
+
+  @override
+  @optionalTypeArgs
+  TResult map<TResult extends Object?>({
+    required TResult Function(LoadMessages value) loadMessages,
+    required TResult Function(SendMessage value) sendMessage,
+    required TResult Function(MessagesUpdated value) messagesUpdated,
+    required TResult Function(MessageDelivered value) messageDelivered,
+    required TResult Function(MessageRead value) messageRead,
+    required TResult Function(MarkAsRead value) markAsRead,
+    required TResult Function(RetryMessage value) retryMessage,
+    required TResult Function(EditMessage value) editMessage,
+    required TResult Function(DeleteMessage value) deleteMessage,
+    required TResult Function(UpdateReaction value) updateReaction,
+    required TResult Function(SetTyping value) setTyping,
+    required TResult Function(TypingUsersUpdated value) typingUsersUpdated,
+  }) {
+    return typingUsersUpdated(this);
+  }
+
+  @override
+  @optionalTypeArgs
+  TResult? mapOrNull<TResult extends Object?>({
+    TResult? Function(LoadMessages value)? loadMessages,
+    TResult? Function(SendMessage value)? sendMessage,
+    TResult? Function(MessagesUpdated value)? messagesUpdated,
+    TResult? Function(MessageDelivered value)? messageDelivered,
+    TResult? Function(MessageRead value)? messageRead,
+    TResult? Function(MarkAsRead value)? markAsRead,
+    TResult? Function(RetryMessage value)? retryMessage,
+    TResult? Function(EditMessage value)? editMessage,
+    TResult? Function(DeleteMessage value)? deleteMessage,
+    TResult? Function(UpdateReaction value)? updateReaction,
+    TResult? Function(SetTyping value)? setTyping,
+    TResult? Function(TypingUsersUpdated value)? typingUsersUpdated,
+  }) {
+    return typingUsersUpdated?.call(this);
+  }
+
+  @override
+  @optionalTypeArgs
+  TResult maybeMap<TResult extends Object?>({
+    TResult Function(LoadMessages value)? loadMessages,
+    TResult Function(SendMessage value)? sendMessage,
+    TResult Function(MessagesUpdated value)? messagesUpdated,
+    TResult Function(MessageDelivered value)? messageDelivered,
+    TResult Function(MessageRead value)? messageRead,
+    TResult Function(MarkAsRead value)? markAsRead,
+    TResult Function(RetryMessage value)? retryMessage,
+    TResult Function(EditMessage value)? editMessage,
+    TResult Function(DeleteMessage value)? deleteMessage,
+    TResult Function(UpdateReaction value)? updateReaction,
+    TResult Function(SetTyping value)? setTyping,
+    TResult Function(TypingUsersUpdated value)? typingUsersUpdated,
+    required TResult orElse(),
+  }) {
+    if (typingUsersUpdated != null) {
+      return typingUsersUpdated(this);
+    }
+    return orElse();
+  }
+}
+
+abstract class TypingUsersUpdated implements MessageEvent {
+  const factory TypingUsersUpdated(final List<String> typingUsers) =
+      _$TypingUsersUpdatedImpl;
+
+  List<String> get typingUsers;
+  @JsonKey(ignore: true)
+  _$$TypingUsersUpdatedImplCopyWith<_$TypingUsersUpdatedImpl> get copyWith =>
       throw _privateConstructorUsedError;
 }

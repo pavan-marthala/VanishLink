@@ -31,6 +31,12 @@ import 'package:vanish_link/features/chat/presentation/bloc/webrtc/webrtc_bloc.d
 import 'package:vanish_link/features/chat/domain/repositories/message_repository.dart';
 import 'package:vanish_link/features/chat/data/repositories/message_repository_impl.dart';
 import 'package:vanish_link/features/chat/presentation/bloc/message/message_bloc.dart';
+import 'package:vanish_link/features/chat/domain/services/unread_service.dart';
+import 'package:vanish_link/features/chat/domain/repositories/call_repository.dart';
+import 'package:vanish_link/features/chat/data/repositories/call_repository_impl.dart';
+import 'package:vanish_link/features/chat/domain/services/call_listener_service.dart';
+import 'package:vanish_link/features/chat/presentation/bloc/call/call_bloc.dart';
+
 
 final getIt = GetIt.instance;
 
@@ -91,6 +97,13 @@ Future<void> configureDependencies() async {
     () => MessageRepositoryImpl(),
   );
 
+  getIt.registerLazySingleton<UnreadService>(
+    () => UnreadService(
+      messageRepository: getIt<MessageRepository>(),
+      auth: getIt<FirebaseAuth>(),
+    ),
+  );
+
   // Blocs
   getIt.registerLazySingleton<AuthBloc>(
     () => AuthBloc(authRepository: getIt<AuthRepository>()),
@@ -130,5 +143,21 @@ Future<void> configureDependencies() async {
 
   getIt.registerFactory<MessageBloc>(
     () => MessageBloc(messageRepository: getIt<MessageRepository>()),
+  );
+
+  // Call Feature
+  getIt.registerLazySingleton<CallRepository>(
+    () => CallRepositoryImpl(),
+  );
+
+  getIt.registerLazySingleton<CallListenerService>(
+    () => CallListenerService(
+      callRepository: getIt<CallRepository>(),
+      auth: getIt<FirebaseAuth>(),
+    ),
+  );
+
+  getIt.registerLazySingleton<CallBloc>(
+    () => CallBloc(callRepository: getIt<CallRepository>()),
   );
 }

@@ -19,9 +19,15 @@ import 'package:vanish_link/features/profile/presentation/screens/edit_profile_s
 import 'package:vanish_link/features/request/presentation/screens/request_screen.dart';
 import 'package:vanish_link/features/discover/presentation/screens/discover_screen.dart';
 import 'package:vanish_link/features/discover/domain/entities/user_profile.dart';
-import 'package:vanish_link/core/utils/check_device_size.dart';
 import 'package:vanish_link/features/chat/domain/services/presence_service.dart';
+import 'package:vanish_link/features/chat/domain/services/unread_service.dart';
+import 'package:vanish_link/features/chat/domain/services/call_listener_service.dart';
+import 'package:vanish_link/features/chat/presentation/screens/call_screen.dart';
+import 'package:vanish_link/features/chat/presentation/bloc/call/call_bloc.dart';
+import 'package:vanish_link/features/chat/presentation/widgets/call_overlay_manager.dart';
 import 'package:vanish_link/firebase_options.dart';
+
+
 
 final GlobalKey<NavigatorState> rootNavigatorKey = GlobalKey<NavigatorState>(
   debugLabel: 'root',
@@ -44,6 +50,12 @@ void main() async {
 
   // Start presence monitoring
   getIt<PresenceService>().startMonitoring();
+
+  // Start unread counts monitoring
+  getIt<UnreadService>().startMonitoring();
+
+  // Start incoming call monitoring
+  getIt<CallListenerService>().startMonitoring();
 
   runApp(const MyApp());
 }
@@ -133,6 +145,13 @@ class _MyAppState extends State<MyApp> {
           path: AppRoutes.discover,
           builder: (context, state) => const DiscoverScreen(),
         ),
+        GoRoute(
+          path: AppRoutes.call,
+          builder: (context, state) {
+            final callId = state.pathParameters['callId'] ?? '';
+            return CallScreen(callId: callId);
+          },
+        ),
         StatefulShellRoute.indexedStack(
           builder: (context, state, navigationShell) =>
               HomeScreen(navigationShell: navigationShell),
@@ -210,8 +229,11 @@ class _MyAppState extends State<MyApp> {
 
   @override
   Widget build(BuildContext context) {
-    return BlocProvider<AuthBloc>.value(
-      value: _authBloc,
+    return MultiBlocProvider(
+      providers: [
+        BlocProvider<AuthBloc>.value(value: _authBloc),
+        BlocProvider<CallBloc>.value(value: getIt<CallBloc>()),
+      ],
       child: MaterialApp.router(
         routerConfig: _goRouter,
         title: 'Vanish Link',
@@ -219,7 +241,7 @@ class _MyAppState extends State<MyApp> {
         darkTheme: AppTheme.dark,
         themeMode: ThemeMode.system,
         builder: (context, child) {
-          return child ?? const Text('child');
+          return CallOverlayManager(child: child);
         },
       ),
     );
