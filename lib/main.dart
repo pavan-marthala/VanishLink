@@ -42,10 +42,10 @@ final GlobalKey<NavigatorState> _shellNavigatorKeyRequest =
 final GlobalKey<NavigatorState> _shellNavigatorKeyProfile =
     GlobalKey<NavigatorState>(debugLabel: 'shell-profile');
 void main() async {
-  // Disable debugTransformDebugCreator to prevent LegacyJavaScriptObject casting issues in Flutter Web Inspector
-  debugTransformDebugCreator = false;
-
   WidgetsFlutterBinding.ensureInitialized();
+
+  // Remove debugTransformDebugCreator to prevent LegacyJavaScriptObject casting issues in Flutter Web Inspector
+  FlutterErrorDetails.propertiesTransformers.remove(debugTransformDebugCreator);
 
   await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
   await configureDependencies();
