@@ -42,7 +42,7 @@ class AndroidCallAdapter implements CallPresentationAdapter {
         callbackText: 'Call Back',
       ),
       android: AndroidParams(
-        isCustomNotification: true,
+        isCustomNotification: false,
         isShowLogo: false,
         ringtonePath: 'ringtone',
         backgroundColor: '#090A0F',
