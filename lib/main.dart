@@ -1,5 +1,6 @@
 import 'dart:async';
 import 'package:firebase_core/firebase_core.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
@@ -41,6 +42,9 @@ final GlobalKey<NavigatorState> _shellNavigatorKeyRequest =
 final GlobalKey<NavigatorState> _shellNavigatorKeyProfile =
     GlobalKey<NavigatorState>(debugLabel: 'shell-profile');
 void main() async {
+  // Disable debugTransformDebugCreator to prevent LegacyJavaScriptObject casting issues in Flutter Web Inspector
+  debugTransformDebugCreator = false;
+
   WidgetsFlutterBinding.ensureInitialized();
 
   await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
