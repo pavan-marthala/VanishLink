@@ -62,7 +62,6 @@ class PresenceService with WidgetsBindingObserver {
       _presenceRepository.goOnline();
       _goOnline();
     } else if (state == AppLifecycleState.paused ||
-        state == AppLifecycleState.inactive ||
         state == AppLifecycleState.detached) {
       _goOffline();
     }

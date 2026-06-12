@@ -36,6 +36,12 @@ import 'package:vanish_link/features/chat/domain/repositories/call_repository.da
 import 'package:vanish_link/features/chat/data/repositories/call_repository_impl.dart';
 import 'package:vanish_link/features/chat/domain/services/call_listener_service.dart';
 import 'package:vanish_link/features/chat/presentation/bloc/call/call_bloc.dart';
+import 'package:vanish_link/features/chat/domain/services/ringtone_service.dart';
+import 'package:vanish_link/features/chat/domain/services/call_notification_service.dart';
+import 'dart:io' show Platform;
+import 'package:flutter/foundation.dart';
+import 'package:vanish_link/features/chat/domain/services/call_presentation_adapter.dart';
+import 'package:vanish_link/features/chat/domain/services/call_coordinator.dart';
 
 
 final getIt = GetIt.instance;
@@ -159,5 +165,28 @@ Future<void> configureDependencies() async {
 
   getIt.registerLazySingleton<CallBloc>(
     () => CallBloc(callRepository: getIt<CallRepository>()),
+  );
+
+  getIt.registerLazySingleton<RingtoneService>(() => RingtoneService());
+  getIt.registerLazySingleton<CallNotificationService>(() => CallNotificationService());
+  getIt.registerLazySingleton<CallPresentationAdapter>(() {
+    if (kIsWeb) {
+      return WebCallAdapter();
+    } else if (Platform.isAndroid) {
+      return AndroidCallAdapter();
+    } else if (Platform.isIOS) {
+      return IOSCallAdapter();
+    } else {
+      return DesktopCallAdapter();
+    }
+  });
+  getIt.registerLazySingleton<CallCoordinator>(
+    () => CallCoordinator(
+      callRepository: getIt<CallRepository>(),
+      presenceRepository: getIt<PresenceRepository>(),
+      ringtoneService: getIt<RingtoneService>(),
+      notificationService: getIt<CallNotificationService>(),
+      callKitAdapter: getIt<CallPresentationAdapter>(),
+    ),
   );
 }

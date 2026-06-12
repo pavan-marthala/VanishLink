@@ -34,10 +34,10 @@ class AppMessageInput extends StatelessWidget {
       padding: EdgeInsets.only(
         left: 16,
         right: 16,
-        top: 12,
+        // top: 12,
         bottom: context.isDesktop ? 12 : context.viewInsets.bottom + 90,
       ),
-      margin: const EdgeInsets.all(8),
+      margin: const EdgeInsets.all(0),
       child: Row(
         spacing: 12,
         children: [

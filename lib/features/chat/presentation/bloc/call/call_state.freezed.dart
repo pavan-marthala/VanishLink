@@ -21,10 +21,13 @@ mixin _$CallState {
     required TResult Function() initial,
     required TResult Function(CallModel callModel) calling,
     required TResult Function(CallModel callModel) incomingCall,
+    required TResult Function(CallModel callModel) connecting,
     required TResult Function(CallModel callModel) connected,
+    required TResult Function(CallModel callModel) active,
     required TResult Function(CallModel callModel) declined,
     required TResult Function(CallModel callModel) missed,
     required TResult Function(CallModel callModel) ended,
+    required TResult Function(CallModel callModel, String message) failed,
     required TResult Function(String message) error,
   }) =>
       throw _privateConstructorUsedError;
@@ -33,10 +36,13 @@ mixin _$CallState {
     TResult? Function()? initial,
     TResult? Function(CallModel callModel)? calling,
     TResult? Function(CallModel callModel)? incomingCall,
+    TResult? Function(CallModel callModel)? connecting,
     TResult? Function(CallModel callModel)? connected,
+    TResult? Function(CallModel callModel)? active,
     TResult? Function(CallModel callModel)? declined,
     TResult? Function(CallModel callModel)? missed,
     TResult? Function(CallModel callModel)? ended,
+    TResult? Function(CallModel callModel, String message)? failed,
     TResult? Function(String message)? error,
   }) =>
       throw _privateConstructorUsedError;
@@ -45,10 +51,13 @@ mixin _$CallState {
     TResult Function()? initial,
     TResult Function(CallModel callModel)? calling,
     TResult Function(CallModel callModel)? incomingCall,
+    TResult Function(CallModel callModel)? connecting,
     TResult Function(CallModel callModel)? connected,
+    TResult Function(CallModel callModel)? active,
     TResult Function(CallModel callModel)? declined,
     TResult Function(CallModel callModel)? missed,
     TResult Function(CallModel callModel)? ended,
+    TResult Function(CallModel callModel, String message)? failed,
     TResult Function(String message)? error,
     required TResult orElse(),
   }) =>
@@ -58,10 +67,13 @@ mixin _$CallState {
     required TResult Function(_Initial value) initial,
     required TResult Function(_Calling value) calling,
     required TResult Function(_IncomingCall value) incomingCall,
+    required TResult Function(_Connecting value) connecting,
     required TResult Function(_Connected value) connected,
+    required TResult Function(_Active value) active,
     required TResult Function(_Declined value) declined,
     required TResult Function(_Missed value) missed,
     required TResult Function(_Ended value) ended,
+    required TResult Function(_Failed value) failed,
     required TResult Function(_Error value) error,
   }) =>
       throw _privateConstructorUsedError;
@@ -70,10 +82,13 @@ mixin _$CallState {
     TResult? Function(_Initial value)? initial,
     TResult? Function(_Calling value)? calling,
     TResult? Function(_IncomingCall value)? incomingCall,
+    TResult? Function(_Connecting value)? connecting,
     TResult? Function(_Connected value)? connected,
+    TResult? Function(_Active value)? active,
     TResult? Function(_Declined value)? declined,
     TResult? Function(_Missed value)? missed,
     TResult? Function(_Ended value)? ended,
+    TResult? Function(_Failed value)? failed,
     TResult? Function(_Error value)? error,
   }) =>
       throw _privateConstructorUsedError;
@@ -82,10 +97,13 @@ mixin _$CallState {
     TResult Function(_Initial value)? initial,
     TResult Function(_Calling value)? calling,
     TResult Function(_IncomingCall value)? incomingCall,
+    TResult Function(_Connecting value)? connecting,
     TResult Function(_Connected value)? connected,
+    TResult Function(_Active value)? active,
     TResult Function(_Declined value)? declined,
     TResult Function(_Missed value)? missed,
     TResult Function(_Ended value)? ended,
+    TResult Function(_Failed value)? failed,
     TResult Function(_Error value)? error,
     required TResult orElse(),
   }) =>
@@ -150,10 +168,13 @@ class _$InitialImpl implements _Initial {
     required TResult Function() initial,
     required TResult Function(CallModel callModel) calling,
     required TResult Function(CallModel callModel) incomingCall,
+    required TResult Function(CallModel callModel) connecting,
     required TResult Function(CallModel callModel) connected,
+    required TResult Function(CallModel callModel) active,
     required TResult Function(CallModel callModel) declined,
     required TResult Function(CallModel callModel) missed,
     required TResult Function(CallModel callModel) ended,
+    required TResult Function(CallModel callModel, String message) failed,
     required TResult Function(String message) error,
   }) {
     return initial();
@@ -165,10 +186,13 @@ class _$InitialImpl implements _Initial {
     TResult? Function()? initial,
     TResult? Function(CallModel callModel)? calling,
     TResult? Function(CallModel callModel)? incomingCall,
+    TResult? Function(CallModel callModel)? connecting,
     TResult? Function(CallModel callModel)? connected,
+    TResult? Function(CallModel callModel)? active,
     TResult? Function(CallModel callModel)? declined,
     TResult? Function(CallModel callModel)? missed,
     TResult? Function(CallModel callModel)? ended,
+    TResult? Function(CallModel callModel, String message)? failed,
     TResult? Function(String message)? error,
   }) {
     return initial?.call();
@@ -180,10 +204,13 @@ class _$InitialImpl implements _Initial {
     TResult Function()? initial,
     TResult Function(CallModel callModel)? calling,
     TResult Function(CallModel callModel)? incomingCall,
+    TResult Function(CallModel callModel)? connecting,
     TResult Function(CallModel callModel)? connected,
+    TResult Function(CallModel callModel)? active,
     TResult Function(CallModel callModel)? declined,
     TResult Function(CallModel callModel)? missed,
     TResult Function(CallModel callModel)? ended,
+    TResult Function(CallModel callModel, String message)? failed,
     TResult Function(String message)? error,
     required TResult orElse(),
   }) {
@@ -199,10 +226,13 @@ class _$InitialImpl implements _Initial {
     required TResult Function(_Initial value) initial,
     required TResult Function(_Calling value) calling,
     required TResult Function(_IncomingCall value) incomingCall,
+    required TResult Function(_Connecting value) connecting,
     required TResult Function(_Connected value) connected,
+    required TResult Function(_Active value) active,
     required TResult Function(_Declined value) declined,
     required TResult Function(_Missed value) missed,
     required TResult Function(_Ended value) ended,
+    required TResult Function(_Failed value) failed,
     required TResult Function(_Error value) error,
   }) {
     return initial(this);
@@ -214,10 +244,13 @@ class _$InitialImpl implements _Initial {
     TResult? Function(_Initial value)? initial,
     TResult? Function(_Calling value)? calling,
     TResult? Function(_IncomingCall value)? incomingCall,
+    TResult? Function(_Connecting value)? connecting,
     TResult? Function(_Connected value)? connected,
+    TResult? Function(_Active value)? active,
     TResult? Function(_Declined value)? declined,
     TResult? Function(_Missed value)? missed,
     TResult? Function(_Ended value)? ended,
+    TResult? Function(_Failed value)? failed,
     TResult? Function(_Error value)? error,
   }) {
     return initial?.call(this);
@@ -229,10 +262,13 @@ class _$InitialImpl implements _Initial {
     TResult Function(_Initial value)? initial,
     TResult Function(_Calling value)? calling,
     TResult Function(_IncomingCall value)? incomingCall,
+    TResult Function(_Connecting value)? connecting,
     TResult Function(_Connected value)? connected,
+    TResult Function(_Active value)? active,
     TResult Function(_Declined value)? declined,
     TResult Function(_Missed value)? missed,
     TResult Function(_Ended value)? ended,
+    TResult Function(_Failed value)? failed,
     TResult Function(_Error value)? error,
     required TResult orElse(),
   }) {
@@ -325,10 +361,13 @@ class _$CallingImpl implements _Calling {
     required TResult Function() initial,
     required TResult Function(CallModel callModel) calling,
     required TResult Function(CallModel callModel) incomingCall,
+    required TResult Function(CallModel callModel) connecting,
     required TResult Function(CallModel callModel) connected,
+    required TResult Function(CallModel callModel) active,
     required TResult Function(CallModel callModel) declined,
     required TResult Function(CallModel callModel) missed,
     required TResult Function(CallModel callModel) ended,
+    required TResult Function(CallModel callModel, String message) failed,
     required TResult Function(String message) error,
   }) {
     return calling(callModel);
@@ -340,10 +379,13 @@ class _$CallingImpl implements _Calling {
     TResult? Function()? initial,
     TResult? Function(CallModel callModel)? calling,
     TResult? Function(CallModel callModel)? incomingCall,
+    TResult? Function(CallModel callModel)? connecting,
     TResult? Function(CallModel callModel)? connected,
+    TResult? Function(CallModel callModel)? active,
     TResult? Function(CallModel callModel)? declined,
     TResult? Function(CallModel callModel)? missed,
     TResult? Function(CallModel callModel)? ended,
+    TResult? Function(CallModel callModel, String message)? failed,
     TResult? Function(String message)? error,
   }) {
     return calling?.call(callModel);
@@ -355,10 +397,13 @@ class _$CallingImpl implements _Calling {
     TResult Function()? initial,
     TResult Function(CallModel callModel)? calling,
     TResult Function(CallModel callModel)? incomingCall,
+    TResult Function(CallModel callModel)? connecting,
     TResult Function(CallModel callModel)? connected,
+    TResult Function(CallModel callModel)? active,
     TResult Function(CallModel callModel)? declined,
     TResult Function(CallModel callModel)? missed,
     TResult Function(CallModel callModel)? ended,
+    TResult Function(CallModel callModel, String message)? failed,
     TResult Function(String message)? error,
     required TResult orElse(),
   }) {
@@ -374,10 +419,13 @@ class _$CallingImpl implements _Calling {
     required TResult Function(_Initial value) initial,
     required TResult Function(_Calling value) calling,
     required TResult Function(_IncomingCall value) incomingCall,
+    required TResult Function(_Connecting value) connecting,
     required TResult Function(_Connected value) connected,
+    required TResult Function(_Active value) active,
     required TResult Function(_Declined value) declined,
     required TResult Function(_Missed value) missed,
     required TResult Function(_Ended value) ended,
+    required TResult Function(_Failed value) failed,
     required TResult Function(_Error value) error,
   }) {
     return calling(this);
@@ -389,10 +437,13 @@ class _$CallingImpl implements _Calling {
     TResult? Function(_Initial value)? initial,
     TResult? Function(_Calling value)? calling,
     TResult? Function(_IncomingCall value)? incomingCall,
+    TResult? Function(_Connecting value)? connecting,
     TResult? Function(_Connected value)? connected,
+    TResult? Function(_Active value)? active,
     TResult? Function(_Declined value)? declined,
     TResult? Function(_Missed value)? missed,
     TResult? Function(_Ended value)? ended,
+    TResult? Function(_Failed value)? failed,
     TResult? Function(_Error value)? error,
   }) {
     return calling?.call(this);
@@ -404,10 +455,13 @@ class _$CallingImpl implements _Calling {
     TResult Function(_Initial value)? initial,
     TResult Function(_Calling value)? calling,
     TResult Function(_IncomingCall value)? incomingCall,
+    TResult Function(_Connecting value)? connecting,
     TResult Function(_Connected value)? connected,
+    TResult Function(_Active value)? active,
     TResult Function(_Declined value)? declined,
     TResult Function(_Missed value)? missed,
     TResult Function(_Ended value)? ended,
+    TResult Function(_Failed value)? failed,
     TResult Function(_Error value)? error,
     required TResult orElse(),
   }) {
@@ -505,10 +559,13 @@ class _$IncomingCallImpl implements _IncomingCall {
     required TResult Function() initial,
     required TResult Function(CallModel callModel) calling,
     required TResult Function(CallModel callModel) incomingCall,
+    required TResult Function(CallModel callModel) connecting,
     required TResult Function(CallModel callModel) connected,
+    required TResult Function(CallModel callModel) active,
     required TResult Function(CallModel callModel) declined,
     required TResult Function(CallModel callModel) missed,
     required TResult Function(CallModel callModel) ended,
+    required TResult Function(CallModel callModel, String message) failed,
     required TResult Function(String message) error,
   }) {
     return incomingCall(callModel);
@@ -520,10 +577,13 @@ class _$IncomingCallImpl implements _IncomingCall {
     TResult? Function()? initial,
     TResult? Function(CallModel callModel)? calling,
     TResult? Function(CallModel callModel)? incomingCall,
+    TResult? Function(CallModel callModel)? connecting,
     TResult? Function(CallModel callModel)? connected,
+    TResult? Function(CallModel callModel)? active,
     TResult? Function(CallModel callModel)? declined,
     TResult? Function(CallModel callModel)? missed,
     TResult? Function(CallModel callModel)? ended,
+    TResult? Function(CallModel callModel, String message)? failed,
     TResult? Function(String message)? error,
   }) {
     return incomingCall?.call(callModel);
@@ -535,10 +595,13 @@ class _$IncomingCallImpl implements _IncomingCall {
     TResult Function()? initial,
     TResult Function(CallModel callModel)? calling,
     TResult Function(CallModel callModel)? incomingCall,
+    TResult Function(CallModel callModel)? connecting,
     TResult Function(CallModel callModel)? connected,
+    TResult Function(CallModel callModel)? active,
     TResult Function(CallModel callModel)? declined,
     TResult Function(CallModel callModel)? missed,
     TResult Function(CallModel callModel)? ended,
+    TResult Function(CallModel callModel, String message)? failed,
     TResult Function(String message)? error,
     required TResult orElse(),
   }) {
@@ -554,10 +617,13 @@ class _$IncomingCallImpl implements _IncomingCall {
     required TResult Function(_Initial value) initial,
     required TResult Function(_Calling value) calling,
     required TResult Function(_IncomingCall value) incomingCall,
+    required TResult Function(_Connecting value) connecting,
     required TResult Function(_Connected value) connected,
+    required TResult Function(_Active value) active,
     required TResult Function(_Declined value) declined,
     required TResult Function(_Missed value) missed,
     required TResult Function(_Ended value) ended,
+    required TResult Function(_Failed value) failed,
     required TResult Function(_Error value) error,
   }) {
     return incomingCall(this);
@@ -569,10 +635,13 @@ class _$IncomingCallImpl implements _IncomingCall {
     TResult? Function(_Initial value)? initial,
     TResult? Function(_Calling value)? calling,
     TResult? Function(_IncomingCall value)? incomingCall,
+    TResult? Function(_Connecting value)? connecting,
     TResult? Function(_Connected value)? connected,
+    TResult? Function(_Active value)? active,
     TResult? Function(_Declined value)? declined,
     TResult? Function(_Missed value)? missed,
     TResult? Function(_Ended value)? ended,
+    TResult? Function(_Failed value)? failed,
     TResult? Function(_Error value)? error,
   }) {
     return incomingCall?.call(this);
@@ -584,10 +653,13 @@ class _$IncomingCallImpl implements _IncomingCall {
     TResult Function(_Initial value)? initial,
     TResult Function(_Calling value)? calling,
     TResult Function(_IncomingCall value)? incomingCall,
+    TResult Function(_Connecting value)? connecting,
     TResult Function(_Connected value)? connected,
+    TResult Function(_Active value)? active,
     TResult Function(_Declined value)? declined,
     TResult Function(_Missed value)? missed,
     TResult Function(_Ended value)? ended,
+    TResult Function(_Failed value)? failed,
     TResult Function(_Error value)? error,
     required TResult orElse(),
   }) {
@@ -604,6 +676,204 @@ abstract class _IncomingCall implements CallState {
   CallModel get callModel;
   @JsonKey(ignore: true)
   _$$IncomingCallImplCopyWith<_$IncomingCallImpl> get copyWith =>
+      throw _privateConstructorUsedError;
+}
+
+/// @nodoc
+abstract class _$$ConnectingImplCopyWith<$Res> {
+  factory _$$ConnectingImplCopyWith(
+          _$ConnectingImpl value, $Res Function(_$ConnectingImpl) then) =
+      __$$ConnectingImplCopyWithImpl<$Res>;
+  @useResult
+  $Res call({CallModel callModel});
+
+  $CallModelCopyWith<$Res> get callModel;
+}
+
+/// @nodoc
+class __$$ConnectingImplCopyWithImpl<$Res>
+    extends _$CallStateCopyWithImpl<$Res, _$ConnectingImpl>
+    implements _$$ConnectingImplCopyWith<$Res> {
+  __$$ConnectingImplCopyWithImpl(
+      _$ConnectingImpl _value, $Res Function(_$ConnectingImpl) _then)
+      : super(_value, _then);
+
+  @pragma('vm:prefer-inline')
+  @override
+  $Res call({
+    Object? callModel = null,
+  }) {
+    return _then(_$ConnectingImpl(
+      null == callModel
+          ? _value.callModel
+          : callModel // ignore: cast_nullable_to_non_nullable
+              as CallModel,
+    ));
+  }
+
+  @override
+  @pragma('vm:prefer-inline')
+  $CallModelCopyWith<$Res> get callModel {
+    return $CallModelCopyWith<$Res>(_value.callModel, (value) {
+      return _then(_value.copyWith(callModel: value));
+    });
+  }
+}
+
+/// @nodoc
+
+class _$ConnectingImpl implements _Connecting {
+  const _$ConnectingImpl(this.callModel);
+
+  @override
+  final CallModel callModel;
+
+  @override
+  String toString() {
+    return 'CallState.connecting(callModel: $callModel)';
+  }
+
+  @override
+  bool operator ==(Object other) {
+    return identical(this, other) ||
+        (other.runtimeType == runtimeType &&
+            other is _$ConnectingImpl &&
+            (identical(other.callModel, callModel) ||
+                other.callModel == callModel));
+  }
+
+  @override
+  int get hashCode => Object.hash(runtimeType, callModel);
+
+  @JsonKey(ignore: true)
+  @override
+  @pragma('vm:prefer-inline')
+  _$$ConnectingImplCopyWith<_$ConnectingImpl> get copyWith =>
+      __$$ConnectingImplCopyWithImpl<_$ConnectingImpl>(this, _$identity);
+
+  @override
+  @optionalTypeArgs
+  TResult when<TResult extends Object?>({
+    required TResult Function() initial,
+    required TResult Function(CallModel callModel) calling,
+    required TResult Function(CallModel callModel) incomingCall,
+    required TResult Function(CallModel callModel) connecting,
+    required TResult Function(CallModel callModel) connected,
+    required TResult Function(CallModel callModel) active,
+    required TResult Function(CallModel callModel) declined,
+    required TResult Function(CallModel callModel) missed,
+    required TResult Function(CallModel callModel) ended,
+    required TResult Function(CallModel callModel, String message) failed,
+    required TResult Function(String message) error,
+  }) {
+    return connecting(callModel);
+  }
+
+  @override
+  @optionalTypeArgs
+  TResult? whenOrNull<TResult extends Object?>({
+    TResult? Function()? initial,
+    TResult? Function(CallModel callModel)? calling,
+    TResult? Function(CallModel callModel)? incomingCall,
+    TResult? Function(CallModel callModel)? connecting,
+    TResult? Function(CallModel callModel)? connected,
+    TResult? Function(CallModel callModel)? active,
+    TResult? Function(CallModel callModel)? declined,
+    TResult? Function(CallModel callModel)? missed,
+    TResult? Function(CallModel callModel)? ended,
+    TResult? Function(CallModel callModel, String message)? failed,
+    TResult? Function(String message)? error,
+  }) {
+    return connecting?.call(callModel);
+  }
+
+  @override
+  @optionalTypeArgs
+  TResult maybeWhen<TResult extends Object?>({
+    TResult Function()? initial,
+    TResult Function(CallModel callModel)? calling,
+    TResult Function(CallModel callModel)? incomingCall,
+    TResult Function(CallModel callModel)? connecting,
+    TResult Function(CallModel callModel)? connected,
+    TResult Function(CallModel callModel)? active,
+    TResult Function(CallModel callModel)? declined,
+    TResult Function(CallModel callModel)? missed,
+    TResult Function(CallModel callModel)? ended,
+    TResult Function(CallModel callModel, String message)? failed,
+    TResult Function(String message)? error,
+    required TResult orElse(),
+  }) {
+    if (connecting != null) {
+      return connecting(callModel);
+    }
+    return orElse();
+  }
+
+  @override
+  @optionalTypeArgs
+  TResult map<TResult extends Object?>({
+    required TResult Function(_Initial value) initial,
+    required TResult Function(_Calling value) calling,
+    required TResult Function(_IncomingCall value) incomingCall,
+    required TResult Function(_Connecting value) connecting,
+    required TResult Function(_Connected value) connected,
+    required TResult Function(_Active value) active,
+    required TResult Function(_Declined value) declined,
+    required TResult Function(_Missed value) missed,
+    required TResult Function(_Ended value) ended,
+    required TResult Function(_Failed value) failed,
+    required TResult Function(_Error value) error,
+  }) {
+    return connecting(this);
+  }
+
+  @override
+  @optionalTypeArgs
+  TResult? mapOrNull<TResult extends Object?>({
+    TResult? Function(_Initial value)? initial,
+    TResult? Function(_Calling value)? calling,
+    TResult? Function(_IncomingCall value)? incomingCall,
+    TResult? Function(_Connecting value)? connecting,
+    TResult? Function(_Connected value)? connected,
+    TResult? Function(_Active value)? active,
+    TResult? Function(_Declined value)? declined,
+    TResult? Function(_Missed value)? missed,
+    TResult? Function(_Ended value)? ended,
+    TResult? Function(_Failed value)? failed,
+    TResult? Function(_Error value)? error,
+  }) {
+    return connecting?.call(this);
+  }
+
+  @override
+  @optionalTypeArgs
+  TResult maybeMap<TResult extends Object?>({
+    TResult Function(_Initial value)? initial,
+    TResult Function(_Calling value)? calling,
+    TResult Function(_IncomingCall value)? incomingCall,
+    TResult Function(_Connecting value)? connecting,
+    TResult Function(_Connected value)? connected,
+    TResult Function(_Active value)? active,
+    TResult Function(_Declined value)? declined,
+    TResult Function(_Missed value)? missed,
+    TResult Function(_Ended value)? ended,
+    TResult Function(_Failed value)? failed,
+    TResult Function(_Error value)? error,
+    required TResult orElse(),
+  }) {
+    if (connecting != null) {
+      return connecting(this);
+    }
+    return orElse();
+  }
+}
+
+abstract class _Connecting implements CallState {
+  const factory _Connecting(final CallModel callModel) = _$ConnectingImpl;
+
+  CallModel get callModel;
+  @JsonKey(ignore: true)
+  _$$ConnectingImplCopyWith<_$ConnectingImpl> get copyWith =>
       throw _privateConstructorUsedError;
 }
 
@@ -685,10 +955,13 @@ class _$ConnectedImpl implements _Connected {
     required TResult Function() initial,
     required TResult Function(CallModel callModel) calling,
     required TResult Function(CallModel callModel) incomingCall,
+    required TResult Function(CallModel callModel) connecting,
     required TResult Function(CallModel callModel) connected,
+    required TResult Function(CallModel callModel) active,
     required TResult Function(CallModel callModel) declined,
     required TResult Function(CallModel callModel) missed,
     required TResult Function(CallModel callModel) ended,
+    required TResult Function(CallModel callModel, String message) failed,
     required TResult Function(String message) error,
   }) {
     return connected(callModel);
@@ -700,10 +973,13 @@ class _$ConnectedImpl implements _Connected {
     TResult? Function()? initial,
     TResult? Function(CallModel callModel)? calling,
     TResult? Function(CallModel callModel)? incomingCall,
+    TResult? Function(CallModel callModel)? connecting,
     TResult? Function(CallModel callModel)? connected,
+    TResult? Function(CallModel callModel)? active,
     TResult? Function(CallModel callModel)? declined,
     TResult? Function(CallModel callModel)? missed,
     TResult? Function(CallModel callModel)? ended,
+    TResult? Function(CallModel callModel, String message)? failed,
     TResult? Function(String message)? error,
   }) {
     return connected?.call(callModel);
@@ -715,10 +991,13 @@ class _$ConnectedImpl implements _Connected {
     TResult Function()? initial,
     TResult Function(CallModel callModel)? calling,
     TResult Function(CallModel callModel)? incomingCall,
+    TResult Function(CallModel callModel)? connecting,
     TResult Function(CallModel callModel)? connected,
+    TResult Function(CallModel callModel)? active,
     TResult Function(CallModel callModel)? declined,
     TResult Function(CallModel callModel)? missed,
     TResult Function(CallModel callModel)? ended,
+    TResult Function(CallModel callModel, String message)? failed,
     TResult Function(String message)? error,
     required TResult orElse(),
   }) {
@@ -734,10 +1013,13 @@ class _$ConnectedImpl implements _Connected {
     required TResult Function(_Initial value) initial,
     required TResult Function(_Calling value) calling,
     required TResult Function(_IncomingCall value) incomingCall,
+    required TResult Function(_Connecting value) connecting,
     required TResult Function(_Connected value) connected,
+    required TResult Function(_Active value) active,
     required TResult Function(_Declined value) declined,
     required TResult Function(_Missed value) missed,
     required TResult Function(_Ended value) ended,
+    required TResult Function(_Failed value) failed,
     required TResult Function(_Error value) error,
   }) {
     return connected(this);
@@ -749,10 +1031,13 @@ class _$ConnectedImpl implements _Connected {
     TResult? Function(_Initial value)? initial,
     TResult? Function(_Calling value)? calling,
     TResult? Function(_IncomingCall value)? incomingCall,
+    TResult? Function(_Connecting value)? connecting,
     TResult? Function(_Connected value)? connected,
+    TResult? Function(_Active value)? active,
     TResult? Function(_Declined value)? declined,
     TResult? Function(_Missed value)? missed,
     TResult? Function(_Ended value)? ended,
+    TResult? Function(_Failed value)? failed,
     TResult? Function(_Error value)? error,
   }) {
     return connected?.call(this);
@@ -764,10 +1049,13 @@ class _$ConnectedImpl implements _Connected {
     TResult Function(_Initial value)? initial,
     TResult Function(_Calling value)? calling,
     TResult Function(_IncomingCall value)? incomingCall,
+    TResult Function(_Connecting value)? connecting,
     TResult Function(_Connected value)? connected,
+    TResult Function(_Active value)? active,
     TResult Function(_Declined value)? declined,
     TResult Function(_Missed value)? missed,
     TResult Function(_Ended value)? ended,
+    TResult Function(_Failed value)? failed,
     TResult Function(_Error value)? error,
     required TResult orElse(),
   }) {
@@ -784,6 +1072,204 @@ abstract class _Connected implements CallState {
   CallModel get callModel;
   @JsonKey(ignore: true)
   _$$ConnectedImplCopyWith<_$ConnectedImpl> get copyWith =>
+      throw _privateConstructorUsedError;
+}
+
+/// @nodoc
+abstract class _$$ActiveImplCopyWith<$Res> {
+  factory _$$ActiveImplCopyWith(
+          _$ActiveImpl value, $Res Function(_$ActiveImpl) then) =
+      __$$ActiveImplCopyWithImpl<$Res>;
+  @useResult
+  $Res call({CallModel callModel});
+
+  $CallModelCopyWith<$Res> get callModel;
+}
+
+/// @nodoc
+class __$$ActiveImplCopyWithImpl<$Res>
+    extends _$CallStateCopyWithImpl<$Res, _$ActiveImpl>
+    implements _$$ActiveImplCopyWith<$Res> {
+  __$$ActiveImplCopyWithImpl(
+      _$ActiveImpl _value, $Res Function(_$ActiveImpl) _then)
+      : super(_value, _then);
+
+  @pragma('vm:prefer-inline')
+  @override
+  $Res call({
+    Object? callModel = null,
+  }) {
+    return _then(_$ActiveImpl(
+      null == callModel
+          ? _value.callModel
+          : callModel // ignore: cast_nullable_to_non_nullable
+              as CallModel,
+    ));
+  }
+
+  @override
+  @pragma('vm:prefer-inline')
+  $CallModelCopyWith<$Res> get callModel {
+    return $CallModelCopyWith<$Res>(_value.callModel, (value) {
+      return _then(_value.copyWith(callModel: value));
+    });
+  }
+}
+
+/// @nodoc
+
+class _$ActiveImpl implements _Active {
+  const _$ActiveImpl(this.callModel);
+
+  @override
+  final CallModel callModel;
+
+  @override
+  String toString() {
+    return 'CallState.active(callModel: $callModel)';
+  }
+
+  @override
+  bool operator ==(Object other) {
+    return identical(this, other) ||
+        (other.runtimeType == runtimeType &&
+            other is _$ActiveImpl &&
+            (identical(other.callModel, callModel) ||
+                other.callModel == callModel));
+  }
+
+  @override
+  int get hashCode => Object.hash(runtimeType, callModel);
+
+  @JsonKey(ignore: true)
+  @override
+  @pragma('vm:prefer-inline')
+  _$$ActiveImplCopyWith<_$ActiveImpl> get copyWith =>
+      __$$ActiveImplCopyWithImpl<_$ActiveImpl>(this, _$identity);
+
+  @override
+  @optionalTypeArgs
+  TResult when<TResult extends Object?>({
+    required TResult Function() initial,
+    required TResult Function(CallModel callModel) calling,
+    required TResult Function(CallModel callModel) incomingCall,
+    required TResult Function(CallModel callModel) connecting,
+    required TResult Function(CallModel callModel) connected,
+    required TResult Function(CallModel callModel) active,
+    required TResult Function(CallModel callModel) declined,
+    required TResult Function(CallModel callModel) missed,
+    required TResult Function(CallModel callModel) ended,
+    required TResult Function(CallModel callModel, String message) failed,
+    required TResult Function(String message) error,
+  }) {
+    return active(callModel);
+  }
+
+  @override
+  @optionalTypeArgs
+  TResult? whenOrNull<TResult extends Object?>({
+    TResult? Function()? initial,
+    TResult? Function(CallModel callModel)? calling,
+    TResult? Function(CallModel callModel)? incomingCall,
+    TResult? Function(CallModel callModel)? connecting,
+    TResult? Function(CallModel callModel)? connected,
+    TResult? Function(CallModel callModel)? active,
+    TResult? Function(CallModel callModel)? declined,
+    TResult? Function(CallModel callModel)? missed,
+    TResult? Function(CallModel callModel)? ended,
+    TResult? Function(CallModel callModel, String message)? failed,
+    TResult? Function(String message)? error,
+  }) {
+    return active?.call(callModel);
+  }
+
+  @override
+  @optionalTypeArgs
+  TResult maybeWhen<TResult extends Object?>({
+    TResult Function()? initial,
+    TResult Function(CallModel callModel)? calling,
+    TResult Function(CallModel callModel)? incomingCall,
+    TResult Function(CallModel callModel)? connecting,
+    TResult Function(CallModel callModel)? connected,
+    TResult Function(CallModel callModel)? active,
+    TResult Function(CallModel callModel)? declined,
+    TResult Function(CallModel callModel)? missed,
+    TResult Function(CallModel callModel)? ended,
+    TResult Function(CallModel callModel, String message)? failed,
+    TResult Function(String message)? error,
+    required TResult orElse(),
+  }) {
+    if (active != null) {
+      return active(callModel);
+    }
+    return orElse();
+  }
+
+  @override
+  @optionalTypeArgs
+  TResult map<TResult extends Object?>({
+    required TResult Function(_Initial value) initial,
+    required TResult Function(_Calling value) calling,
+    required TResult Function(_IncomingCall value) incomingCall,
+    required TResult Function(_Connecting value) connecting,
+    required TResult Function(_Connected value) connected,
+    required TResult Function(_Active value) active,
+    required TResult Function(_Declined value) declined,
+    required TResult Function(_Missed value) missed,
+    required TResult Function(_Ended value) ended,
+    required TResult Function(_Failed value) failed,
+    required TResult Function(_Error value) error,
+  }) {
+    return active(this);
+  }
+
+  @override
+  @optionalTypeArgs
+  TResult? mapOrNull<TResult extends Object?>({
+    TResult? Function(_Initial value)? initial,
+    TResult? Function(_Calling value)? calling,
+    TResult? Function(_IncomingCall value)? incomingCall,
+    TResult? Function(_Connecting value)? connecting,
+    TResult? Function(_Connected value)? connected,
+    TResult? Function(_Active value)? active,
+    TResult? Function(_Declined value)? declined,
+    TResult? Function(_Missed value)? missed,
+    TResult? Function(_Ended value)? ended,
+    TResult? Function(_Failed value)? failed,
+    TResult? Function(_Error value)? error,
+  }) {
+    return active?.call(this);
+  }
+
+  @override
+  @optionalTypeArgs
+  TResult maybeMap<TResult extends Object?>({
+    TResult Function(_Initial value)? initial,
+    TResult Function(_Calling value)? calling,
+    TResult Function(_IncomingCall value)? incomingCall,
+    TResult Function(_Connecting value)? connecting,
+    TResult Function(_Connected value)? connected,
+    TResult Function(_Active value)? active,
+    TResult Function(_Declined value)? declined,
+    TResult Function(_Missed value)? missed,
+    TResult Function(_Ended value)? ended,
+    TResult Function(_Failed value)? failed,
+    TResult Function(_Error value)? error,
+    required TResult orElse(),
+  }) {
+    if (active != null) {
+      return active(this);
+    }
+    return orElse();
+  }
+}
+
+abstract class _Active implements CallState {
+  const factory _Active(final CallModel callModel) = _$ActiveImpl;
+
+  CallModel get callModel;
+  @JsonKey(ignore: true)
+  _$$ActiveImplCopyWith<_$ActiveImpl> get copyWith =>
       throw _privateConstructorUsedError;
 }
 
@@ -865,10 +1351,13 @@ class _$DeclinedImpl implements _Declined {
     required TResult Function() initial,
     required TResult Function(CallModel callModel) calling,
     required TResult Function(CallModel callModel) incomingCall,
+    required TResult Function(CallModel callModel) connecting,
     required TResult Function(CallModel callModel) connected,
+    required TResult Function(CallModel callModel) active,
     required TResult Function(CallModel callModel) declined,
     required TResult Function(CallModel callModel) missed,
     required TResult Function(CallModel callModel) ended,
+    required TResult Function(CallModel callModel, String message) failed,
     required TResult Function(String message) error,
   }) {
     return declined(callModel);
@@ -880,10 +1369,13 @@ class _$DeclinedImpl implements _Declined {
     TResult? Function()? initial,
     TResult? Function(CallModel callModel)? calling,
     TResult? Function(CallModel callModel)? incomingCall,
+    TResult? Function(CallModel callModel)? connecting,
     TResult? Function(CallModel callModel)? connected,
+    TResult? Function(CallModel callModel)? active,
     TResult? Function(CallModel callModel)? declined,
     TResult? Function(CallModel callModel)? missed,
     TResult? Function(CallModel callModel)? ended,
+    TResult? Function(CallModel callModel, String message)? failed,
     TResult? Function(String message)? error,
   }) {
     return declined?.call(callModel);
@@ -895,10 +1387,13 @@ class _$DeclinedImpl implements _Declined {
     TResult Function()? initial,
     TResult Function(CallModel callModel)? calling,
     TResult Function(CallModel callModel)? incomingCall,
+    TResult Function(CallModel callModel)? connecting,
     TResult Function(CallModel callModel)? connected,
+    TResult Function(CallModel callModel)? active,
     TResult Function(CallModel callModel)? declined,
     TResult Function(CallModel callModel)? missed,
     TResult Function(CallModel callModel)? ended,
+    TResult Function(CallModel callModel, String message)? failed,
     TResult Function(String message)? error,
     required TResult orElse(),
   }) {
@@ -914,10 +1409,13 @@ class _$DeclinedImpl implements _Declined {
     required TResult Function(_Initial value) initial,
     required TResult Function(_Calling value) calling,
     required TResult Function(_IncomingCall value) incomingCall,
+    required TResult Function(_Connecting value) connecting,
     required TResult Function(_Connected value) connected,
+    required TResult Function(_Active value) active,
     required TResult Function(_Declined value) declined,
     required TResult Function(_Missed value) missed,
     required TResult Function(_Ended value) ended,
+    required TResult Function(_Failed value) failed,
     required TResult Function(_Error value) error,
   }) {
     return declined(this);
@@ -929,10 +1427,13 @@ class _$DeclinedImpl implements _Declined {
     TResult? Function(_Initial value)? initial,
     TResult? Function(_Calling value)? calling,
     TResult? Function(_IncomingCall value)? incomingCall,
+    TResult? Function(_Connecting value)? connecting,
     TResult? Function(_Connected value)? connected,
+    TResult? Function(_Active value)? active,
     TResult? Function(_Declined value)? declined,
     TResult? Function(_Missed value)? missed,
     TResult? Function(_Ended value)? ended,
+    TResult? Function(_Failed value)? failed,
     TResult? Function(_Error value)? error,
   }) {
     return declined?.call(this);
@@ -944,10 +1445,13 @@ class _$DeclinedImpl implements _Declined {
     TResult Function(_Initial value)? initial,
     TResult Function(_Calling value)? calling,
     TResult Function(_IncomingCall value)? incomingCall,
+    TResult Function(_Connecting value)? connecting,
     TResult Function(_Connected value)? connected,
+    TResult Function(_Active value)? active,
     TResult Function(_Declined value)? declined,
     TResult Function(_Missed value)? missed,
     TResult Function(_Ended value)? ended,
+    TResult Function(_Failed value)? failed,
     TResult Function(_Error value)? error,
     required TResult orElse(),
   }) {
@@ -1045,10 +1549,13 @@ class _$MissedImpl implements _Missed {
     required TResult Function() initial,
     required TResult Function(CallModel callModel) calling,
     required TResult Function(CallModel callModel) incomingCall,
+    required TResult Function(CallModel callModel) connecting,
     required TResult Function(CallModel callModel) connected,
+    required TResult Function(CallModel callModel) active,
     required TResult Function(CallModel callModel) declined,
     required TResult Function(CallModel callModel) missed,
     required TResult Function(CallModel callModel) ended,
+    required TResult Function(CallModel callModel, String message) failed,
     required TResult Function(String message) error,
   }) {
     return missed(callModel);
@@ -1060,10 +1567,13 @@ class _$MissedImpl implements _Missed {
     TResult? Function()? initial,
     TResult? Function(CallModel callModel)? calling,
     TResult? Function(CallModel callModel)? incomingCall,
+    TResult? Function(CallModel callModel)? connecting,
     TResult? Function(CallModel callModel)? connected,
+    TResult? Function(CallModel callModel)? active,
     TResult? Function(CallModel callModel)? declined,
     TResult? Function(CallModel callModel)? missed,
     TResult? Function(CallModel callModel)? ended,
+    TResult? Function(CallModel callModel, String message)? failed,
     TResult? Function(String message)? error,
   }) {
     return missed?.call(callModel);
@@ -1075,10 +1585,13 @@ class _$MissedImpl implements _Missed {
     TResult Function()? initial,
     TResult Function(CallModel callModel)? calling,
     TResult Function(CallModel callModel)? incomingCall,
+    TResult Function(CallModel callModel)? connecting,
     TResult Function(CallModel callModel)? connected,
+    TResult Function(CallModel callModel)? active,
     TResult Function(CallModel callModel)? declined,
     TResult Function(CallModel callModel)? missed,
     TResult Function(CallModel callModel)? ended,
+    TResult Function(CallModel callModel, String message)? failed,
     TResult Function(String message)? error,
     required TResult orElse(),
   }) {
@@ -1094,10 +1607,13 @@ class _$MissedImpl implements _Missed {
     required TResult Function(_Initial value) initial,
     required TResult Function(_Calling value) calling,
     required TResult Function(_IncomingCall value) incomingCall,
+    required TResult Function(_Connecting value) connecting,
     required TResult Function(_Connected value) connected,
+    required TResult Function(_Active value) active,
     required TResult Function(_Declined value) declined,
     required TResult Function(_Missed value) missed,
     required TResult Function(_Ended value) ended,
+    required TResult Function(_Failed value) failed,
     required TResult Function(_Error value) error,
   }) {
     return missed(this);
@@ -1109,10 +1625,13 @@ class _$MissedImpl implements _Missed {
     TResult? Function(_Initial value)? initial,
     TResult? Function(_Calling value)? calling,
     TResult? Function(_IncomingCall value)? incomingCall,
+    TResult? Function(_Connecting value)? connecting,
     TResult? Function(_Connected value)? connected,
+    TResult? Function(_Active value)? active,
     TResult? Function(_Declined value)? declined,
     TResult? Function(_Missed value)? missed,
     TResult? Function(_Ended value)? ended,
+    TResult? Function(_Failed value)? failed,
     TResult? Function(_Error value)? error,
   }) {
     return missed?.call(this);
@@ -1124,10 +1643,13 @@ class _$MissedImpl implements _Missed {
     TResult Function(_Initial value)? initial,
     TResult Function(_Calling value)? calling,
     TResult Function(_IncomingCall value)? incomingCall,
+    TResult Function(_Connecting value)? connecting,
     TResult Function(_Connected value)? connected,
+    TResult Function(_Active value)? active,
     TResult Function(_Declined value)? declined,
     TResult Function(_Missed value)? missed,
     TResult Function(_Ended value)? ended,
+    TResult Function(_Failed value)? failed,
     TResult Function(_Error value)? error,
     required TResult orElse(),
   }) {
@@ -1225,10 +1747,13 @@ class _$EndedImpl implements _Ended {
     required TResult Function() initial,
     required TResult Function(CallModel callModel) calling,
     required TResult Function(CallModel callModel) incomingCall,
+    required TResult Function(CallModel callModel) connecting,
     required TResult Function(CallModel callModel) connected,
+    required TResult Function(CallModel callModel) active,
     required TResult Function(CallModel callModel) declined,
     required TResult Function(CallModel callModel) missed,
     required TResult Function(CallModel callModel) ended,
+    required TResult Function(CallModel callModel, String message) failed,
     required TResult Function(String message) error,
   }) {
     return ended(callModel);
@@ -1240,10 +1765,13 @@ class _$EndedImpl implements _Ended {
     TResult? Function()? initial,
     TResult? Function(CallModel callModel)? calling,
     TResult? Function(CallModel callModel)? incomingCall,
+    TResult? Function(CallModel callModel)? connecting,
     TResult? Function(CallModel callModel)? connected,
+    TResult? Function(CallModel callModel)? active,
     TResult? Function(CallModel callModel)? declined,
     TResult? Function(CallModel callModel)? missed,
     TResult? Function(CallModel callModel)? ended,
+    TResult? Function(CallModel callModel, String message)? failed,
     TResult? Function(String message)? error,
   }) {
     return ended?.call(callModel);
@@ -1255,10 +1783,13 @@ class _$EndedImpl implements _Ended {
     TResult Function()? initial,
     TResult Function(CallModel callModel)? calling,
     TResult Function(CallModel callModel)? incomingCall,
+    TResult Function(CallModel callModel)? connecting,
     TResult Function(CallModel callModel)? connected,
+    TResult Function(CallModel callModel)? active,
     TResult Function(CallModel callModel)? declined,
     TResult Function(CallModel callModel)? missed,
     TResult Function(CallModel callModel)? ended,
+    TResult Function(CallModel callModel, String message)? failed,
     TResult Function(String message)? error,
     required TResult orElse(),
   }) {
@@ -1274,10 +1805,13 @@ class _$EndedImpl implements _Ended {
     required TResult Function(_Initial value) initial,
     required TResult Function(_Calling value) calling,
     required TResult Function(_IncomingCall value) incomingCall,
+    required TResult Function(_Connecting value) connecting,
     required TResult Function(_Connected value) connected,
+    required TResult Function(_Active value) active,
     required TResult Function(_Declined value) declined,
     required TResult Function(_Missed value) missed,
     required TResult Function(_Ended value) ended,
+    required TResult Function(_Failed value) failed,
     required TResult Function(_Error value) error,
   }) {
     return ended(this);
@@ -1289,10 +1823,13 @@ class _$EndedImpl implements _Ended {
     TResult? Function(_Initial value)? initial,
     TResult? Function(_Calling value)? calling,
     TResult? Function(_IncomingCall value)? incomingCall,
+    TResult? Function(_Connecting value)? connecting,
     TResult? Function(_Connected value)? connected,
+    TResult? Function(_Active value)? active,
     TResult? Function(_Declined value)? declined,
     TResult? Function(_Missed value)? missed,
     TResult? Function(_Ended value)? ended,
+    TResult? Function(_Failed value)? failed,
     TResult? Function(_Error value)? error,
   }) {
     return ended?.call(this);
@@ -1304,10 +1841,13 @@ class _$EndedImpl implements _Ended {
     TResult Function(_Initial value)? initial,
     TResult Function(_Calling value)? calling,
     TResult Function(_IncomingCall value)? incomingCall,
+    TResult Function(_Connecting value)? connecting,
     TResult Function(_Connected value)? connected,
+    TResult Function(_Active value)? active,
     TResult Function(_Declined value)? declined,
     TResult Function(_Missed value)? missed,
     TResult Function(_Ended value)? ended,
+    TResult Function(_Failed value)? failed,
     TResult Function(_Error value)? error,
     required TResult orElse(),
   }) {
@@ -1324,6 +1864,214 @@ abstract class _Ended implements CallState {
   CallModel get callModel;
   @JsonKey(ignore: true)
   _$$EndedImplCopyWith<_$EndedImpl> get copyWith =>
+      throw _privateConstructorUsedError;
+}
+
+/// @nodoc
+abstract class _$$FailedImplCopyWith<$Res> {
+  factory _$$FailedImplCopyWith(
+          _$FailedImpl value, $Res Function(_$FailedImpl) then) =
+      __$$FailedImplCopyWithImpl<$Res>;
+  @useResult
+  $Res call({CallModel callModel, String message});
+
+  $CallModelCopyWith<$Res> get callModel;
+}
+
+/// @nodoc
+class __$$FailedImplCopyWithImpl<$Res>
+    extends _$CallStateCopyWithImpl<$Res, _$FailedImpl>
+    implements _$$FailedImplCopyWith<$Res> {
+  __$$FailedImplCopyWithImpl(
+      _$FailedImpl _value, $Res Function(_$FailedImpl) _then)
+      : super(_value, _then);
+
+  @pragma('vm:prefer-inline')
+  @override
+  $Res call({
+    Object? callModel = null,
+    Object? message = null,
+  }) {
+    return _then(_$FailedImpl(
+      null == callModel
+          ? _value.callModel
+          : callModel // ignore: cast_nullable_to_non_nullable
+              as CallModel,
+      null == message
+          ? _value.message
+          : message // ignore: cast_nullable_to_non_nullable
+              as String,
+    ));
+  }
+
+  @override
+  @pragma('vm:prefer-inline')
+  $CallModelCopyWith<$Res> get callModel {
+    return $CallModelCopyWith<$Res>(_value.callModel, (value) {
+      return _then(_value.copyWith(callModel: value));
+    });
+  }
+}
+
+/// @nodoc
+
+class _$FailedImpl implements _Failed {
+  const _$FailedImpl(this.callModel, this.message);
+
+  @override
+  final CallModel callModel;
+  @override
+  final String message;
+
+  @override
+  String toString() {
+    return 'CallState.failed(callModel: $callModel, message: $message)';
+  }
+
+  @override
+  bool operator ==(Object other) {
+    return identical(this, other) ||
+        (other.runtimeType == runtimeType &&
+            other is _$FailedImpl &&
+            (identical(other.callModel, callModel) ||
+                other.callModel == callModel) &&
+            (identical(other.message, message) || other.message == message));
+  }
+
+  @override
+  int get hashCode => Object.hash(runtimeType, callModel, message);
+
+  @JsonKey(ignore: true)
+  @override
+  @pragma('vm:prefer-inline')
+  _$$FailedImplCopyWith<_$FailedImpl> get copyWith =>
+      __$$FailedImplCopyWithImpl<_$FailedImpl>(this, _$identity);
+
+  @override
+  @optionalTypeArgs
+  TResult when<TResult extends Object?>({
+    required TResult Function() initial,
+    required TResult Function(CallModel callModel) calling,
+    required TResult Function(CallModel callModel) incomingCall,
+    required TResult Function(CallModel callModel) connecting,
+    required TResult Function(CallModel callModel) connected,
+    required TResult Function(CallModel callModel) active,
+    required TResult Function(CallModel callModel) declined,
+    required TResult Function(CallModel callModel) missed,
+    required TResult Function(CallModel callModel) ended,
+    required TResult Function(CallModel callModel, String message) failed,
+    required TResult Function(String message) error,
+  }) {
+    return failed(callModel, message);
+  }
+
+  @override
+  @optionalTypeArgs
+  TResult? whenOrNull<TResult extends Object?>({
+    TResult? Function()? initial,
+    TResult? Function(CallModel callModel)? calling,
+    TResult? Function(CallModel callModel)? incomingCall,
+    TResult? Function(CallModel callModel)? connecting,
+    TResult? Function(CallModel callModel)? connected,
+    TResult? Function(CallModel callModel)? active,
+    TResult? Function(CallModel callModel)? declined,
+    TResult? Function(CallModel callModel)? missed,
+    TResult? Function(CallModel callModel)? ended,
+    TResult? Function(CallModel callModel, String message)? failed,
+    TResult? Function(String message)? error,
+  }) {
+    return failed?.call(callModel, message);
+  }
+
+  @override
+  @optionalTypeArgs
+  TResult maybeWhen<TResult extends Object?>({
+    TResult Function()? initial,
+    TResult Function(CallModel callModel)? calling,
+    TResult Function(CallModel callModel)? incomingCall,
+    TResult Function(CallModel callModel)? connecting,
+    TResult Function(CallModel callModel)? connected,
+    TResult Function(CallModel callModel)? active,
+    TResult Function(CallModel callModel)? declined,
+    TResult Function(CallModel callModel)? missed,
+    TResult Function(CallModel callModel)? ended,
+    TResult Function(CallModel callModel, String message)? failed,
+    TResult Function(String message)? error,
+    required TResult orElse(),
+  }) {
+    if (failed != null) {
+      return failed(callModel, message);
+    }
+    return orElse();
+  }
+
+  @override
+  @optionalTypeArgs
+  TResult map<TResult extends Object?>({
+    required TResult Function(_Initial value) initial,
+    required TResult Function(_Calling value) calling,
+    required TResult Function(_IncomingCall value) incomingCall,
+    required TResult Function(_Connecting value) connecting,
+    required TResult Function(_Connected value) connected,
+    required TResult Function(_Active value) active,
+    required TResult Function(_Declined value) declined,
+    required TResult Function(_Missed value) missed,
+    required TResult Function(_Ended value) ended,
+    required TResult Function(_Failed value) failed,
+    required TResult Function(_Error value) error,
+  }) {
+    return failed(this);
+  }
+
+  @override
+  @optionalTypeArgs
+  TResult? mapOrNull<TResult extends Object?>({
+    TResult? Function(_Initial value)? initial,
+    TResult? Function(_Calling value)? calling,
+    TResult? Function(_IncomingCall value)? incomingCall,
+    TResult? Function(_Connecting value)? connecting,
+    TResult? Function(_Connected value)? connected,
+    TResult? Function(_Active value)? active,
+    TResult? Function(_Declined value)? declined,
+    TResult? Function(_Missed value)? missed,
+    TResult? Function(_Ended value)? ended,
+    TResult? Function(_Failed value)? failed,
+    TResult? Function(_Error value)? error,
+  }) {
+    return failed?.call(this);
+  }
+
+  @override
+  @optionalTypeArgs
+  TResult maybeMap<TResult extends Object?>({
+    TResult Function(_Initial value)? initial,
+    TResult Function(_Calling value)? calling,
+    TResult Function(_IncomingCall value)? incomingCall,
+    TResult Function(_Connecting value)? connecting,
+    TResult Function(_Connected value)? connected,
+    TResult Function(_Active value)? active,
+    TResult Function(_Declined value)? declined,
+    TResult Function(_Missed value)? missed,
+    TResult Function(_Ended value)? ended,
+    TResult Function(_Failed value)? failed,
+    TResult Function(_Error value)? error,
+    required TResult orElse(),
+  }) {
+    if (failed != null) {
+      return failed(this);
+    }
+    return orElse();
+  }
+}
+
+abstract class _Failed implements CallState {
+  const factory _Failed(final CallModel callModel, final String message) =
+      _$FailedImpl;
+
+  CallModel get callModel;
+  String get message;
+  @JsonKey(ignore: true)
+  _$$FailedImplCopyWith<_$FailedImpl> get copyWith =>
       throw _privateConstructorUsedError;
 }
 
@@ -1394,10 +2142,13 @@ class _$ErrorImpl implements _Error {
     required TResult Function() initial,
     required TResult Function(CallModel callModel) calling,
     required TResult Function(CallModel callModel) incomingCall,
+    required TResult Function(CallModel callModel) connecting,
     required TResult Function(CallModel callModel) connected,
+    required TResult Function(CallModel callModel) active,
     required TResult Function(CallModel callModel) declined,
     required TResult Function(CallModel callModel) missed,
     required TResult Function(CallModel callModel) ended,
+    required TResult Function(CallModel callModel, String message) failed,
     required TResult Function(String message) error,
   }) {
     return error(message);
@@ -1409,10 +2160,13 @@ class _$ErrorImpl implements _Error {
     TResult? Function()? initial,
     TResult? Function(CallModel callModel)? calling,
     TResult? Function(CallModel callModel)? incomingCall,
+    TResult? Function(CallModel callModel)? connecting,
     TResult? Function(CallModel callModel)? connected,
+    TResult? Function(CallModel callModel)? active,
     TResult? Function(CallModel callModel)? declined,
     TResult? Function(CallModel callModel)? missed,
     TResult? Function(CallModel callModel)? ended,
+    TResult? Function(CallModel callModel, String message)? failed,
     TResult? Function(String message)? error,
   }) {
     return error?.call(message);
@@ -1424,10 +2178,13 @@ class _$ErrorImpl implements _Error {
     TResult Function()? initial,
     TResult Function(CallModel callModel)? calling,
     TResult Function(CallModel callModel)? incomingCall,
+    TResult Function(CallModel callModel)? connecting,
     TResult Function(CallModel callModel)? connected,
+    TResult Function(CallModel callModel)? active,
     TResult Function(CallModel callModel)? declined,
     TResult Function(CallModel callModel)? missed,
     TResult Function(CallModel callModel)? ended,
+    TResult Function(CallModel callModel, String message)? failed,
     TResult Function(String message)? error,
     required TResult orElse(),
   }) {
@@ -1443,10 +2200,13 @@ class _$ErrorImpl implements _Error {
     required TResult Function(_Initial value) initial,
     required TResult Function(_Calling value) calling,
     required TResult Function(_IncomingCall value) incomingCall,
+    required TResult Function(_Connecting value) connecting,
     required TResult Function(_Connected value) connected,
+    required TResult Function(_Active value) active,
     required TResult Function(_Declined value) declined,
     required TResult Function(_Missed value) missed,
     required TResult Function(_Ended value) ended,
+    required TResult Function(_Failed value) failed,
     required TResult Function(_Error value) error,
   }) {
     return error(this);
@@ -1458,10 +2218,13 @@ class _$ErrorImpl implements _Error {
     TResult? Function(_Initial value)? initial,
     TResult? Function(_Calling value)? calling,
     TResult? Function(_IncomingCall value)? incomingCall,
+    TResult? Function(_Connecting value)? connecting,
     TResult? Function(_Connected value)? connected,
+    TResult? Function(_Active value)? active,
     TResult? Function(_Declined value)? declined,
     TResult? Function(_Missed value)? missed,
     TResult? Function(_Ended value)? ended,
+    TResult? Function(_Failed value)? failed,
     TResult? Function(_Error value)? error,
   }) {
     return error?.call(this);
@@ -1473,10 +2236,13 @@ class _$ErrorImpl implements _Error {
     TResult Function(_Initial value)? initial,
     TResult Function(_Calling value)? calling,
     TResult Function(_IncomingCall value)? incomingCall,
+    TResult Function(_Connecting value)? connecting,
     TResult Function(_Connected value)? connected,
+    TResult Function(_Active value)? active,
     TResult Function(_Declined value)? declined,
     TResult Function(_Missed value)? missed,
     TResult Function(_Ended value)? ended,
+    TResult Function(_Failed value)? failed,
     TResult Function(_Error value)? error,
     required TResult orElse(),
   }) {

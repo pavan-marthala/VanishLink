@@ -22,6 +22,7 @@ import 'package:vanish_link/features/discover/domain/entities/user_profile.dart'
 import 'package:vanish_link/features/chat/domain/services/presence_service.dart';
 import 'package:vanish_link/features/chat/domain/services/unread_service.dart';
 import 'package:vanish_link/features/chat/domain/services/call_listener_service.dart';
+import 'package:vanish_link/features/chat/domain/services/call_coordinator.dart';
 import 'package:vanish_link/features/chat/presentation/screens/call_screen.dart';
 import 'package:vanish_link/features/chat/presentation/bloc/call/call_bloc.dart';
 import 'package:vanish_link/features/chat/presentation/widgets/call_overlay_manager.dart';
@@ -56,6 +57,9 @@ void main() async {
 
   // Start incoming call monitoring
   getIt<CallListenerService>().startMonitoring();
+
+  // Initialize call coordinator
+  getIt<CallCoordinator>().initialize();
 
   runApp(const MyApp());
 }

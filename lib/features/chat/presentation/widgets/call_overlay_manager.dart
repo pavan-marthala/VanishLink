@@ -58,7 +58,10 @@ class _CallOverlayManagerState extends State<CallOverlayManager> {
   Future<void> _loadOtherUserProfile(String userId) async {
     if (userId == _loadedUserId) return;
     try {
-      final doc = await FirebaseFirestore.instance.collection('users').doc(userId).get();
+      final doc = await FirebaseFirestore.instance
+          .collection('users')
+          .doc(userId)
+          .get();
       if (doc.exists && mounted) {
         final data = doc.data();
         if (data != null) {
@@ -113,21 +116,41 @@ class _CallOverlayManagerState extends State<CallOverlayManager> {
       listener: (context, state) {
         state.maybeMap(
           calling: (s) {
-            final otherId = s.callModel.callerId == currentUserId ? s.callModel.receiverId : s.callModel.callerId;
+            final otherId = s.callModel.callerId == currentUserId
+                ? s.callModel.receiverId
+                : s.callModel.callerId;
             _loadOtherUserProfile(otherId);
           },
           incomingCall: (s) {
-            final otherId = s.callModel.callerId == currentUserId ? s.callModel.receiverId : s.callModel.callerId;
+            final otherId = s.callModel.callerId == currentUserId
+                ? s.callModel.receiverId
+                : s.callModel.callerId;
+            _loadOtherUserProfile(otherId);
+          },
+          connecting: (s) {
+            final otherId = s.callModel.callerId == currentUserId
+                ? s.callModel.receiverId
+                : s.callModel.callerId;
             _loadOtherUserProfile(otherId);
           },
           connected: (s) {
-            final otherId = s.callModel.callerId == currentUserId ? s.callModel.receiverId : s.callModel.callerId;
+            final otherId = s.callModel.callerId == currentUserId
+                ? s.callModel.receiverId
+                : s.callModel.callerId;
+            _loadOtherUserProfile(otherId);
+            _startDurationTimer();
+          },
+          active: (s) {
+            final otherId = s.callModel.callerId == currentUserId
+                ? s.callModel.receiverId
+                : s.callModel.callerId;
             _loadOtherUserProfile(otherId);
             _startDurationTimer();
           },
           declined: (_) => _handleTermination('Call Declined'),
           missed: (_) => _handleTermination('Call Missed'),
           ended: (_) => _handleTermination('Call Ended'),
+          failed: (s) => _handleTermination(s.message),
           error: (s) => _handleTermination(s.message),
           orElse: () {},
         );
@@ -142,11 +165,16 @@ class _CallOverlayManagerState extends State<CallOverlayManager> {
             overlayWidget = _buildFullscreenBackdrop(
               child: Center(
                 child: Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 32, vertical: 24),
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 32,
+                    vertical: 24,
+                  ),
                   decoration: BoxDecoration(
                     color: colors.card,
                     borderRadius: BorderRadius.circular(16),
-                    border: Border.all(color: colors.border.withValues(alpha: 0.1)),
+                    border: Border.all(
+                      color: colors.border.withValues(alpha: 0.1),
+                    ),
                     boxShadow: [
                       BoxShadow(
                         color: colors.black.withValues(alpha: 0.15),
@@ -160,7 +188,9 @@ class _CallOverlayManagerState extends State<CallOverlayManager> {
                     children: [
                       Text(
                         _lastTerminatedMessage!,
-                        style: context.appTypography.titleLarge.copyWith(color: colors.textPrimary),
+                        style: context.appTypography.titleLarge.copyWith(
+                          color: colors.textPrimary,
+                        ),
                       ),
                       const SizedBox(height: 16),
                       CircularProgressIndicator(color: colors.primary),
@@ -187,7 +217,9 @@ class _CallOverlayManagerState extends State<CallOverlayManager> {
                     status: s.callModel.status,
                     onMinimize: () => setState(() => _isMinimized = true),
                     onCancel: () {
-                      context.read<CallBloc>().add(const CallEvent.cancelCall());
+                      context.read<CallBloc>().add(
+                        const CallEvent.cancelCall(),
+                      );
                     },
                   ),
                 );
@@ -204,7 +236,9 @@ class _CallOverlayManagerState extends State<CallOverlayManager> {
                       status: s.callModel.status,
                       onMinimize: () => setState(() => _isMinimized = true),
                       onCancel: () {
-                        context.read<CallBloc>().add(const CallEvent.cancelCall());
+                        context.read<CallBloc>().add(
+                          const CallEvent.cancelCall(),
+                        );
                       },
                     ),
                   );
@@ -219,6 +253,25 @@ class _CallOverlayManagerState extends State<CallOverlayManager> {
                   },
                 );
               },
+              connecting: (s) {
+                final isCaller = s.callModel.callerId == currentUserId;
+                if (!isCaller) return const SizedBox.shrink();
+                if (_isMinimized) {
+                  return _buildMinimizedWidget('connecting');
+                }
+                return _buildFullscreenBackdrop(
+                  child: OutgoingCallOverlay(
+                    contact: _otherUser,
+                    status: 'connecting',
+                    onMinimize: () => setState(() => _isMinimized = true),
+                    onCancel: () {
+                      context.read<CallBloc>().add(
+                        const CallEvent.cancelCall(),
+                      );
+                    },
+                  ),
+                );
+              },
               connected: (s) {
                 if (_isMinimized) {
                   return _buildMinimizedWidget('connected');
@@ -230,7 +283,29 @@ class _CallOverlayManagerState extends State<CallOverlayManager> {
                     isMuted: _isMuted,
                     isSpeakerOn: _isSpeakerOn,
                     onMuteToggle: () => setState(() => _isMuted = !_isMuted),
-                    onSpeakerToggle: () => setState(() => _isSpeakerOn = !_isSpeakerOn),
+                    onSpeakerToggle: () =>
+                        setState(() => _isSpeakerOn = !_isSpeakerOn),
+                    onMinimize: () => setState(() => _isMinimized = true),
+                    onEnd: () {
+                      _stopDurationTimer();
+                      context.read<CallBloc>().add(const CallEvent.endCall());
+                    },
+                  ),
+                );
+              },
+              active: (s) {
+                if (_isMinimized) {
+                  return _buildMinimizedWidget('connected');
+                }
+                return _buildFullscreenBackdrop(
+                  child: ActiveCallOverlay(
+                    contact: _otherUser,
+                    durationText: _formatDuration(_elapsedSeconds),
+                    isMuted: _isMuted,
+                    isSpeakerOn: _isSpeakerOn,
+                    onMuteToggle: () => setState(() => _isMuted = !_isMuted),
+                    onSpeakerToggle: () =>
+                        setState(() => _isSpeakerOn = !_isSpeakerOn),
                     onMinimize: () => setState(() => _isMinimized = true),
                     onEnd: () {
                       _stopDurationTimer();
@@ -242,14 +317,12 @@ class _CallOverlayManagerState extends State<CallOverlayManager> {
               declined: (_) => const SizedBox.shrink(),
               missed: (_) => const SizedBox.shrink(),
               ended: (_) => const SizedBox.shrink(),
+              failed: (_) => const SizedBox.shrink(),
             );
           }
 
           return Stack(
-            children: [
-              widget.child ?? const SizedBox.shrink(),
-              overlayWidget,
-            ],
+            children: [widget.child ?? const SizedBox.shrink(), overlayWidget],
           );
         },
       ),
@@ -272,7 +345,7 @@ class _CallOverlayManagerState extends State<CallOverlayManager> {
     final double screenWidth = context.widthPx;
     final double screenHeight = context.heightPx;
     final double topPadding = MediaQuery.paddingOf(context).top;
-    final double cardWidth = context.isDesktop ? 260.0 : 220.0;
+    final double cardWidth = 260.0;
     final double cardHeight = 72.0;
 
     // Calculate default position
@@ -289,10 +362,16 @@ class _CallOverlayManagerState extends State<CallOverlayManager> {
           setState(() {
             _minimizedX += details.delta.dx;
             _minimizedY += details.delta.dy;
-            
+
             // Keep card within visible screen bounds
-            _minimizedX = _minimizedX.clamp(16.0, screenWidth - cardWidth - 16.0);
-            _minimizedY = _minimizedY.clamp(topPadding + 16.0, screenHeight - cardHeight - 16.0);
+            _minimizedX = _minimizedX.clamp(
+              16.0,
+              screenWidth - cardWidth - 16.0,
+            );
+            _minimizedY = _minimizedY.clamp(
+              topPadding + 16.0,
+              screenHeight - cardHeight - 16.0,
+            );
           });
         },
         child: SizedBox(
@@ -332,7 +411,7 @@ class IncomingCallOverlay extends StatelessWidget {
     final topPadding = MediaQuery.paddingOf(context).top;
     final double topSpacing = topPadding > 0 ? topPadding + 10.0 : 20.0;
     final double screenWidth = context.widthPx;
-    
+
     // Desktop: Compact FaceTime-style floating card in the top-right
     // Mobile: Fully responsive width respecting borders
     final double cardWidth = screenWidth > 380.0 ? 340.0 : screenWidth - 32.0;
@@ -381,7 +460,9 @@ class IncomingCallOverlay extends StatelessWidget {
                       mainAxisSize: MainAxisSize.min,
                       children: [
                         Text(
-                          contact?.displayName ?? contact?.username ?? 'VanishLink User',
+                          contact?.displayName ??
+                              contact?.username ??
+                              'VanishLink User',
                           style: context.appTypography.titleMedium.copyWith(
                             color: colors.textPrimary,
                             fontWeight: FontWeight.bold,
@@ -391,7 +472,9 @@ class IncomingCallOverlay extends StatelessWidget {
                         const SizedBox(height: 4),
                         Text(
                           'Incoming Voice Call...',
-                          style: context.appTypography.bodyMedium.copyWith(color: colors.textSecondary),
+                          style: context.appTypography.bodyMedium.copyWith(
+                            color: colors.textSecondary,
+                          ),
                         ),
                       ],
                     ),
@@ -407,7 +490,9 @@ class IncomingCallOverlay extends StatelessWidget {
                       onPressed: onDecline,
                       style: OutlinedButton.styleFrom(
                         foregroundColor: colors.error,
-                        side: BorderSide(color: colors.error.withValues(alpha: 0.5)),
+                        side: BorderSide(
+                          color: colors.error.withValues(alpha: 0.5),
+                        ),
                         padding: const EdgeInsets.symmetric(vertical: 14),
                         shape: RoundedRectangleBorder(
                           borderRadius: BorderRadius.circular(12),
@@ -480,7 +565,10 @@ class OutgoingCallOverlay extends StatelessWidget {
           top: MediaQuery.paddingOf(context).top + 10.0,
           right: 20,
           child: IconButton(
-            icon: Icon(Icons.close_fullscreen_rounded, color: colors.textPrimary),
+            icon: Icon(
+              Icons.close_fullscreen_rounded,
+              color: colors.textPrimary,
+            ),
             onPressed: onMinimize,
           ),
         ),
@@ -495,7 +583,11 @@ class OutgoingCallOverlay extends StatelessWidget {
                     : null,
                 backgroundColor: colors.primary.withValues(alpha: 0.08),
                 child: contact?.photoUrl.isNotEmpty != true
-                    ? Icon(Icons.person_rounded, color: colors.primary, size: 64)
+                    ? Icon(
+                        Icons.person_rounded,
+                        color: colors.primary,
+                        size: 64,
+                      )
                     : null,
               ),
               const SizedBox(height: 24),
@@ -558,7 +650,10 @@ class ActiveCallOverlay extends StatelessWidget {
           top: MediaQuery.paddingOf(context).top + 10.0,
           right: 20,
           child: IconButton(
-            icon: Icon(Icons.close_fullscreen_rounded, color: colors.textPrimary),
+            icon: Icon(
+              Icons.close_fullscreen_rounded,
+              color: colors.textPrimary,
+            ),
             onPressed: onMinimize,
           ),
         ),
@@ -573,7 +668,11 @@ class ActiveCallOverlay extends StatelessWidget {
                     : null,
                 backgroundColor: colors.primary.withValues(alpha: 0.08),
                 child: contact?.photoUrl.isNotEmpty != true
-                    ? Icon(Icons.person_rounded, color: colors.primary, size: 56)
+                    ? Icon(
+                        Icons.person_rounded,
+                        color: colors.primary,
+                        size: 56,
+                      )
                     : null,
               ),
               const SizedBox(height: 24),
@@ -600,7 +699,9 @@ class ActiveCallOverlay extends StatelessWidget {
                   IconButton(
                     iconSize: 32,
                     color: isMuted ? colors.primary : colors.textSecondary,
-                    icon: Icon(isMuted ? Icons.mic_off_rounded : Icons.mic_rounded),
+                    icon: Icon(
+                      isMuted ? Icons.mic_off_rounded : Icons.mic_rounded,
+                    ),
                     onPressed: onMuteToggle,
                   ),
                   CallActionButton(
@@ -614,7 +715,11 @@ class ActiveCallOverlay extends StatelessWidget {
                   IconButton(
                     iconSize: 32,
                     color: isSpeakerOn ? colors.primary : colors.textSecondary,
-                    icon: Icon(isSpeakerOn ? Icons.volume_up_rounded : Icons.volume_down_rounded),
+                    icon: Icon(
+                      isSpeakerOn
+                          ? Icons.volume_up_rounded
+                          : Icons.volume_down_rounded,
+                    ),
                     onPressed: onSpeakerToggle,
                   ),
                 ],
@@ -695,7 +800,9 @@ class DraggableCallOverlay extends StatelessWidget {
                     ),
                     Text(
                       'Voice Call • ${status == 'connected' ? durationText : 'Calling...'}',
-                      style: typography.bodySmall.copyWith(color: colors.textSecondary),
+                      style: typography.bodySmall.copyWith(
+                        color: colors.textSecondary,
+                      ),
                       overflow: TextOverflow.ellipsis,
                     ),
                   ],
@@ -703,9 +810,14 @@ class DraggableCallOverlay extends StatelessWidget {
               ),
               const SizedBox(width: 4),
               GestureDetector(
-                onTap: () {}, // Swallows taps to prevent outer card restore trigger
+                onTap:
+                    () {}, // Swallows taps to prevent outer card restore trigger
                 child: IconButton(
-                  icon: const Icon(Icons.call_end_rounded, color: Colors.white, size: 18),
+                  icon: const Icon(
+                    Icons.call_end_rounded,
+                    color: Colors.white,
+                    size: 18,
+                  ),
                   style: IconButton.styleFrom(
                     backgroundColor: colors.error,
                     padding: const EdgeInsets.all(8),

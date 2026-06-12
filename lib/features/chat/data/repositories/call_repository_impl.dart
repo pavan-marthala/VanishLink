@@ -2,6 +2,8 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_database/firebase_database.dart';
 import 'package:vanish_link/features/chat/domain/entities/call_model.dart';
 import 'package:vanish_link/features/chat/domain/repositories/call_repository.dart';
+import 'package:vanish_link/core/utils/map_parser.dart';
+import 'package:flutter/foundation.dart';
 
 class CallRepositoryImpl implements CallRepository {
   final FirebaseDatabase _database;
@@ -87,7 +89,8 @@ class CallRepositoryImpl implements CallRepository {
       final snapshot = event.snapshot;
       if (!snapshot.exists || snapshot.value == null) return null;
       try {
-        final map = Map<String, dynamic>.from(snapshot.value as Map);
+        final map = safeMapCast(snapshot.value);
+        if (map == null) return null;
         return CallModel.fromJson(map);
       } catch (_) {
         return null;
@@ -107,12 +110,30 @@ class CallRepositoryImpl implements CallRepository {
       final snapshot = event.snapshot;
       if (!snapshot.exists || snapshot.value == null) return null;
       try {
-        final map = Map<dynamic, dynamic>.from(snapshot.value as Map);
-        for (final entry in map.values) {
-          final callMap = Map<String, dynamic>.from(entry as Map);
-          final status = callMap['status'] as String? ?? '';
-          if (status == 'calling' || status == 'ringing') {
-            return CallModel.fromJson(callMap);
+        final value = snapshot.value;
+        if (value is Map) {
+          final map = Map<dynamic, dynamic>.from(value);
+          for (final entry in map.values) {
+            final callMap = safeMapCast(entry);
+            if (callMap != null) {
+              final status = callMap['status'] as String? ?? '';
+              if (status == 'calling' || status == 'ringing') {
+                return CallModel.fromJson(callMap);
+              }
+            }
+          }
+        } else if (kIsWeb && value != null) {
+          final parentMap = safeMapCast(value);
+          if (parentMap != null) {
+            for (final entry in parentMap.values) {
+              final callMap = safeMapCast(entry);
+              if (callMap != null) {
+                final status = callMap['status'] as String? ?? '';
+                if (status == 'calling' || status == 'ringing') {
+                  return CallModel.fromJson(callMap);
+                }
+              }
+            }
           }
         }
       } catch (_) {}

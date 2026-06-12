@@ -74,15 +74,29 @@ class CallBloc extends Bloc<CallEvent, CallState> {
         _startTimeoutTimer(call.callId);
         emit(CallState.incomingCall(call));
         break;
+      case 'connecting':
+        emit(CallState.connecting(call));
+        break;
       case 'accepted':
         _cancelTimeoutTimer();
         _startDurationTimer();
         emit(CallState.connected(call));
         break;
+      case 'active':
+        _cancelTimeoutTimer();
+        _startDurationTimer();
+        emit(CallState.active(call));
+        break;
       case 'declined':
         _cancelTimeoutTimer();
         _stopDurationTimer();
         emit(CallState.declined(call));
+        await _callRepository.storeCallHistory(call);
+        break;
+      case 'busy':
+        _cancelTimeoutTimer();
+        _stopDurationTimer();
+        emit(CallState.failed(call, 'User is busy'));
         await _callRepository.storeCallHistory(call);
         break;
       case 'missed':
@@ -95,6 +109,12 @@ class CallBloc extends Bloc<CallEvent, CallState> {
         _cancelTimeoutTimer();
         _stopDurationTimer();
         emit(CallState.ended(call));
+        await _callRepository.storeCallHistory(call);
+        break;
+      case 'failed':
+        _cancelTimeoutTimer();
+        _stopDurationTimer();
+        emit(CallState.failed(call, 'Call Failed'));
         await _callRepository.storeCallHistory(call);
         break;
       case 'cancelled':
@@ -134,7 +154,9 @@ class CallBloc extends Bloc<CallEvent, CallState> {
     return state.maybeMap(
       calling: (s) => s.callModel,
       incomingCall: (s) => s.callModel,
+      connecting: (s) => s.callModel,
       connected: (s) => s.callModel,
+      active: (s) => s.callModel,
       orElse: () => null,
     );
   }

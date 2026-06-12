@@ -20,8 +20,7 @@ import 'package:vanish_link/core/utils/chat_utils.dart';
 import 'package:vanish_link/features/chat/domain/entities/message.dart';
 import 'package:vanish_link/core/theme/app_typography.dart';
 import 'package:vanish_link/features/chat/presentation/bloc/message/message_bloc.dart';
-import 'package:vanish_link/features/chat/presentation/bloc/call/call_bloc.dart';
-import 'package:vanish_link/features/chat/presentation/bloc/call/call_event.dart';
+import 'package:vanish_link/features/chat/domain/services/call_coordinator.dart';
 
 class ChatDetailsScreen extends StatefulWidget {
   final String? chatId;
@@ -43,7 +42,8 @@ class _ChatDetailsScreenState extends State<ChatDetailsScreen> {
   UserProfile? _contact;
   bool _isLoading = false;
   final TextEditingController _messageController = TextEditingController();
-  final GlobalKey<_ChatDetailsBodyState> _bodyKey = GlobalKey<_ChatDetailsBodyState>();
+  final GlobalKey<_ChatDetailsBodyState> _bodyKey =
+      GlobalKey<_ChatDetailsBodyState>();
 
   @override
   void initState() {
@@ -235,22 +235,11 @@ class _ChatDetailsScreenState extends State<ChatDetailsScreen> {
             icon: Icon(CupertinoIcons.phone, color: colors.textPrimary),
             onPressed: () {
               if (contactUserId != null && currentUserId.isNotEmpty) {
-                final callBloc = getIt<CallBloc>();
-                final hasActive = callBloc.state.maybeMap(
-                  calling: (_) => true,
-                  incomingCall: (_) => true,
-                  connected: (_) => true,
-                  orElse: () => false,
-                );
-                if (hasActive) {
-                  showWarningToast(message: 'You already have an active call.');
-                  return;
-                }
-                callBloc.add(CallEvent.createCall(
+                getIt<CallCoordinator>().initiateCall(
                   callerId: currentUserId,
                   receiverId: contactUserId,
                   type: 'voice',
-                ));
+                );
               }
             },
           ),
@@ -311,7 +300,7 @@ class _ChatDetailsBody extends StatefulWidget {
 class _ChatDetailsBodyState extends State<_ChatDetailsBody> {
   final ScrollController _scrollController = ScrollController();
   final Map<String, GlobalKey> _messageKeys = {};
-  
+
   // Typing
   Timer? _typingTimer;
   bool _isTyping = false;
@@ -336,14 +325,18 @@ class _ChatDetailsBodyState extends State<_ChatDetailsBody> {
     final text = widget.messageController.text;
     if (text.isNotEmpty && !_isTyping) {
       _isTyping = true;
-      context.read<MessageBloc>().add(const MessageEvent.setTyping(isTyping: true));
+      context.read<MessageBloc>().add(
+        const MessageEvent.setTyping(isTyping: true),
+      );
     }
 
     _typingTimer?.cancel();
     _typingTimer = Timer(const Duration(milliseconds: 1500), () {
       if (_isTyping) {
         _isTyping = false;
-        context.read<MessageBloc>().add(const MessageEvent.setTyping(isTyping: false));
+        context.read<MessageBloc>().add(
+          const MessageEvent.setTyping(isTyping: false),
+        );
       }
     });
   }
@@ -396,11 +389,18 @@ class _ChatDetailsBodyState extends State<_ChatDetailsBody> {
     }
 
     final lowercaseQuery = query.toLowerCase();
-    final matches = allMessages.where((msg) {
-      final contentMatch = msg.content.toLowerCase().contains(lowercaseQuery);
-      final replyMatch = msg.replyToPreview?.toLowerCase().contains(lowercaseQuery) ?? false;
-      return contentMatch || replyMatch;
-    }).map((msg) => msg.messageId).toList();
+    final matches = allMessages
+        .where((msg) {
+          final contentMatch = msg.content.toLowerCase().contains(
+            lowercaseQuery,
+          );
+          final replyMatch =
+              msg.replyToPreview?.toLowerCase().contains(lowercaseQuery) ??
+              false;
+          return contentMatch || replyMatch;
+        })
+        .map((msg) => msg.messageId)
+        .toList();
 
     setState(() {
       _matchingMessageIds = matches;
@@ -426,21 +426,23 @@ class _ChatDetailsBodyState extends State<_ChatDetailsBody> {
     } else {
       final approxOffset = index * 85.0;
       if (_scrollController.hasClients) {
-        _scrollController.animateTo(
-          approxOffset,
-          duration: const Duration(milliseconds: 200),
-          curve: Curves.easeOut,
-        ).then((_) {
-          WidgetsBinding.instance.addPostFrameCallback((_) {
-            if (key != null && key.currentContext != null) {
-              Scrollable.ensureVisible(
-                key.currentContext!,
-                duration: const Duration(milliseconds: 200),
-                alignment: 0.5,
-              );
-            }
-          });
-        });
+        _scrollController
+            .animateTo(
+              approxOffset,
+              duration: const Duration(milliseconds: 200),
+              curve: Curves.easeOut,
+            )
+            .then((_) {
+              WidgetsBinding.instance.addPostFrameCallback((_) {
+                if (key != null && key.currentContext != null) {
+                  Scrollable.ensureVisible(
+                    key.currentContext!,
+                    duration: const Duration(milliseconds: 200),
+                    alignment: 0.5,
+                  );
+                }
+              });
+            });
       }
     }
   }
@@ -478,11 +480,15 @@ class _ChatDetailsBodyState extends State<_ChatDetailsBody> {
               mainAxisSize: MainAxisSize.min,
               children: [
                 Padding(
-                  padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 16),
+                  padding: const EdgeInsets.symmetric(
+                    vertical: 12,
+                    horizontal: 16,
+                  ),
                   child: Row(
                     mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                     children: ['👍', '❤️', '😂', '😮', '🔥'].map((emoji) {
-                      final hasReacted = message.reactions[currentUserId] == emoji;
+                      final hasReacted =
+                          message.reactions[currentUserId] == emoji;
                       return GestureDetector(
                         onTap: () {
                           Navigator.pop(bottomSheetContext);
@@ -496,10 +502,15 @@ class _ChatDetailsBodyState extends State<_ChatDetailsBody> {
                         child: Container(
                           padding: const EdgeInsets.all(8),
                           decoration: BoxDecoration(
-                            color: hasReacted ? colors.primary.withValues(alpha: 0.15) : Colors.transparent,
+                            color: hasReacted
+                                ? colors.primary.withValues(alpha: 0.15)
+                                : Colors.transparent,
                             shape: BoxShape.circle,
                           ),
-                          child: Text(emoji, style: const TextStyle(fontSize: 24)),
+                          child: Text(
+                            emoji,
+                            style: const TextStyle(fontSize: 24),
+                          ),
                         ),
                       );
                     }).toList(),
@@ -507,8 +518,16 @@ class _ChatDetailsBodyState extends State<_ChatDetailsBody> {
                 ),
                 const Divider(),
                 ListTile(
-                  leading: Icon(CupertinoIcons.reply, color: colors.textPrimary),
-                  title: Text('Reply', style: typography.bodyMedium.copyWith(color: colors.textPrimary)),
+                  leading: Icon(
+                    CupertinoIcons.reply,
+                    color: colors.textPrimary,
+                  ),
+                  title: Text(
+                    'Reply',
+                    style: typography.bodyMedium.copyWith(
+                      color: colors.textPrimary,
+                    ),
+                  ),
                   onTap: () {
                     Navigator.pop(bottomSheetContext);
                     setState(() {
@@ -519,8 +538,16 @@ class _ChatDetailsBodyState extends State<_ChatDetailsBody> {
                   },
                 ),
                 ListTile(
-                  leading: Icon(CupertinoIcons.doc_on_doc, color: colors.textPrimary),
-                  title: Text('Copy Text', style: typography.bodyMedium.copyWith(color: colors.textPrimary)),
+                  leading: Icon(
+                    CupertinoIcons.doc_on_doc,
+                    color: colors.textPrimary,
+                  ),
+                  title: Text(
+                    'Copy Text',
+                    style: typography.bodyMedium.copyWith(
+                      color: colors.textPrimary,
+                    ),
+                  ),
                   onTap: () {
                     Navigator.pop(bottomSheetContext);
                     Clipboard.setData(ClipboardData(text: message.content));
@@ -529,8 +556,16 @@ class _ChatDetailsBodyState extends State<_ChatDetailsBody> {
                 ),
                 if (isMe && !message.isDeleted) ...[
                   ListTile(
-                    leading: Icon(CupertinoIcons.pencil, color: colors.textPrimary),
-                    title: Text('Edit Message', style: typography.bodyMedium.copyWith(color: colors.textPrimary)),
+                    leading: Icon(
+                      CupertinoIcons.pencil,
+                      color: colors.textPrimary,
+                    ),
+                    title: Text(
+                      'Edit Message',
+                      style: typography.bodyMedium.copyWith(
+                        color: colors.textPrimary,
+                      ),
+                    ),
                     onTap: () {
                       Navigator.pop(bottomSheetContext);
                       setState(() {
@@ -542,7 +577,12 @@ class _ChatDetailsBodyState extends State<_ChatDetailsBody> {
                   ),
                   ListTile(
                     leading: Icon(CupertinoIcons.trash, color: colors.error),
-                    title: Text('Delete for Everyone', style: typography.bodyMedium.copyWith(color: colors.error)),
+                    title: Text(
+                      'Delete for Everyone',
+                      style: typography.bodyMedium.copyWith(
+                        color: colors.error,
+                      ),
+                    ),
                     onTap: () {
                       Navigator.pop(bottomSheetContext);
                       context.read<MessageBloc>().add(
@@ -556,7 +596,10 @@ class _ChatDetailsBodyState extends State<_ChatDetailsBody> {
                 ],
                 ListTile(
                   leading: Icon(CupertinoIcons.trash, color: colors.error),
-                  title: Text('Delete for Me', style: typography.bodyMedium.copyWith(color: colors.error)),
+                  title: Text(
+                    'Delete for Me',
+                    style: typography.bodyMedium.copyWith(color: colors.error),
+                  ),
                   onTap: () {
                     Navigator.pop(bottomSheetContext);
                     context.read<MessageBloc>().add(
@@ -609,8 +652,10 @@ class _ChatDetailsBodyState extends State<_ChatDetailsBody> {
                 alignment: Alignment.bottomCenter,
                 children: [
                   state.map(
-                    initial: (_) => const Center(child: CircularProgressIndicator()),
-                    loading: (_) => const Center(child: CircularProgressIndicator()),
+                    initial: (_) =>
+                        const Center(child: CircularProgressIndicator()),
+                    loading: (_) =>
+                        const Center(child: CircularProgressIndicator()),
                     empty: (_) => _buildEmptyState(context),
                     error: (s) => Center(
                       child: Padding(
@@ -633,9 +678,13 @@ class _ChatDetailsBodyState extends State<_ChatDetailsBody> {
                           left: 8,
                           right: 8,
                           top: 12,
-                          bottom: context.isDesktop
-                              ? 80
-                              : context.viewInsets.bottom + 170,
+                          bottom:
+                              (context.isDesktop
+                                  ? 80
+                                  : context.viewInsets.bottom + 170) +
+                              (_replyToMessage != null || _editMessage != null
+                                  ? 60
+                                  : 0),
                         ),
                         itemCount: reversedMessages.length,
                         itemBuilder: (context, index) {
@@ -647,11 +696,16 @@ class _ChatDetailsBodyState extends State<_ChatDetailsBody> {
                             () => GlobalKey(),
                           );
 
-                          final isHighlighted = _isSearching && _matchingMessageIds.contains(message.messageId);
-                          final isCurrentMatch = _isSearching && _matchingMessageIds.isNotEmpty &&
+                          final isHighlighted =
+                              _isSearching &&
+                              _matchingMessageIds.contains(message.messageId);
+                          final isCurrentMatch =
+                              _isSearching &&
+                              _matchingMessageIds.isNotEmpty &&
                               _currentMatchIndex >= 0 &&
                               _currentMatchIndex < _matchingMessageIds.length &&
-                              _matchingMessageIds[_currentMatchIndex] == message.messageId;
+                              _matchingMessageIds[_currentMatchIndex] ==
+                                  message.messageId;
 
                           return _MessageBubble(
                             key: key,
@@ -660,7 +714,8 @@ class _ChatDetailsBodyState extends State<_ChatDetailsBody> {
                             isHighlighted: isHighlighted,
                             isCurrentMatch: isCurrentMatch,
                             searchQuery: _searchController.text,
-                            onLongPress: () => _showMessageActions(context, message, isMe),
+                            onLongPress: () =>
+                                _showMessageActions(context, message, isMe),
                           );
                         },
                       );
@@ -670,31 +725,32 @@ class _ChatDetailsBodyState extends State<_ChatDetailsBody> {
                     left: 0,
                     right: 0,
                     bottom: 0,
-                    child: Container(
-                      decoration: BoxDecoration(
-                        color: colors.background.withValues(alpha: 0.95),
-                        border: Border(top: BorderSide(color: colors.border.withValues(alpha: 0.2))),
-                      ),
-                      child: Column(
-                        mainAxisSize: MainAxisSize.min,
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          if (_replyToMessage != null) _buildReplyPreviewBanner(colors, typography, currentUserId),
-                          if (_editMessage != null) _buildEditPreviewBanner(colors, typography),
-                          if (typingUsers.isNotEmpty) _buildTypingIndicator(colors, typography),
-                          AppMessageInput(
-                            controller: widget.messageController,
-                            hintText: widget.contact != null
-                                ? 'Message ${widget.contact!.displayName}...'
-                                : 'Type a secure message...',
-                            showBottomPadding: widget.showBackButton,
-                            onSend: _sendMessage,
-                            onAttachPressed: () => _showComingSoon('attach'),
-                            onEmojiPressed: () => _showComingSoon('emoji'),
-                            onSubmitted: (_) => _sendMessage(),
+                    child: Column(
+                      mainAxisSize: MainAxisSize.min,
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        if (_replyToMessage != null)
+                          _buildReplyPreviewBanner(
+                            colors,
+                            typography,
+                            currentUserId,
                           ),
-                        ],
-                      ),
+                        if (_editMessage != null)
+                          _buildEditPreviewBanner(colors, typography),
+                        if (typingUsers.isNotEmpty)
+                          _buildTypingIndicator(colors, typography),
+                        AppMessageInput(
+                          controller: widget.messageController,
+                          hintText: widget.contact != null
+                              ? 'Message ${widget.contact!.displayName}...'
+                              : 'Type a secure message...',
+                          showBottomPadding: widget.showBackButton,
+                          onSend: _sendMessage,
+                          onAttachPressed: () => _showComingSoon('attach'),
+                          onEmojiPressed: () => _showComingSoon('emoji'),
+                          onSubmitted: (_) => _sendMessage(),
+                        ),
+                      ],
                     ),
                   ),
                 ],
@@ -706,12 +762,18 @@ class _ChatDetailsBodyState extends State<_ChatDetailsBody> {
     );
   }
 
-  Widget _buildSearchBar(AppColors colors, AppTypography typography, List<Message> allMessages) {
+  Widget _buildSearchBar(
+    AppColors colors,
+    AppTypography typography,
+    List<Message> allMessages,
+  ) {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
       decoration: BoxDecoration(
         color: colors.card,
-        border: Border(bottom: BorderSide(color: colors.border.withValues(alpha: 0.5))),
+        border: Border(
+          bottom: BorderSide(color: colors.border.withValues(alpha: 0.5)),
+        ),
       ),
       child: Row(
         children: [
@@ -753,19 +815,31 @@ class _ChatDetailsBodyState extends State<_ChatDetailsBody> {
               onPressed: () {
                 if (_matchingMessageIds.isEmpty) return;
                 setState(() {
-                  _currentMatchIndex = (_currentMatchIndex - 1 + _matchingMessageIds.length) % _matchingMessageIds.length;
+                  _currentMatchIndex =
+                      (_currentMatchIndex - 1 + _matchingMessageIds.length) %
+                      _matchingMessageIds.length;
                 });
-                _scrollToMatch(_matchingMessageIds[_currentMatchIndex], allMessages);
+                _scrollToMatch(
+                  _matchingMessageIds[_currentMatchIndex],
+                  allMessages,
+                );
               },
             ),
             IconButton(
-              icon: Icon(CupertinoIcons.chevron_down, color: colors.textPrimary),
+              icon: Icon(
+                CupertinoIcons.chevron_down,
+                color: colors.textPrimary,
+              ),
               onPressed: () {
                 if (_matchingMessageIds.isEmpty) return;
                 setState(() {
-                  _currentMatchIndex = (_currentMatchIndex + 1) % _matchingMessageIds.length;
+                  _currentMatchIndex =
+                      (_currentMatchIndex + 1) % _matchingMessageIds.length;
                 });
-                _scrollToMatch(_matchingMessageIds[_currentMatchIndex], allMessages);
+                _scrollToMatch(
+                  _matchingMessageIds[_currentMatchIndex],
+                  allMessages,
+                );
               },
             ),
           ],
@@ -774,7 +848,11 @@ class _ChatDetailsBodyState extends State<_ChatDetailsBody> {
     );
   }
 
-  Widget _buildReplyPreviewBanner(AppColors colors, AppTypography typography, String currentUserId) {
+  Widget _buildReplyPreviewBanner(
+    AppColors colors,
+    AppTypography typography,
+    String currentUserId,
+  ) {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
       decoration: BoxDecoration(
@@ -791,12 +869,19 @@ class _ChatDetailsBodyState extends State<_ChatDetailsBody> {
               mainAxisSize: MainAxisSize.min,
               children: [
                 Text(
-                  _replyToMessage!.senderId == currentUserId ? 'Replying to yourself' : 'Replying to contact',
-                  style: typography.bodySmall.copyWith(fontWeight: FontWeight.bold, color: colors.primary),
+                  _replyToMessage!.senderId == currentUserId
+                      ? 'Replying to yourself'
+                      : 'Replying to contact',
+                  style: typography.bodySmall.copyWith(
+                    fontWeight: FontWeight.bold,
+                    color: colors.primary,
+                  ),
                 ),
                 Text(
                   _replyToMessage!.content,
-                  style: typography.bodyMedium.copyWith(color: colors.textSecondary),
+                  style: typography.bodyMedium.copyWith(
+                    color: colors.textSecondary,
+                  ),
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
                 ),
@@ -830,11 +915,16 @@ class _ChatDetailsBodyState extends State<_ChatDetailsBody> {
               children: [
                 Text(
                   'Editing message',
-                  style: typography.bodySmall.copyWith(fontWeight: FontWeight.bold, color: colors.primary),
+                  style: typography.bodySmall.copyWith(
+                    fontWeight: FontWeight.bold,
+                    color: colors.primary,
+                  ),
                 ),
                 Text(
                   _editMessage!.content,
-                  style: typography.bodyMedium.copyWith(color: colors.textSecondary),
+                  style: typography.bodyMedium.copyWith(
+                    color: colors.textSecondary,
+                  ),
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
                 ),
@@ -1002,7 +1092,12 @@ class _MessageBubble extends StatelessWidget {
     required this.onLongPress,
   });
 
-  List<TextSpan> _highlightSpans(String text, String query, TextStyle baseStyle, TextStyle highlightStyle) {
+  List<TextSpan> _highlightSpans(
+    String text,
+    String query,
+    TextStyle baseStyle,
+    TextStyle highlightStyle,
+  ) {
     if (query.isEmpty || !text.toLowerCase().contains(query.toLowerCase())) {
       return [TextSpan(text: text, style: baseStyle)];
     }
@@ -1016,12 +1111,16 @@ class _MessageBubble extends StatelessWidget {
 
     while (indexOf != -1) {
       if (indexOf > start) {
-        spans.add(TextSpan(text: text.substring(start, indexOf), style: baseStyle));
+        spans.add(
+          TextSpan(text: text.substring(start, indexOf), style: baseStyle),
+        );
       }
-      spans.add(TextSpan(
-        text: text.substring(indexOf, indexOf + query.length),
-        style: highlightStyle,
-      ));
+      spans.add(
+        TextSpan(
+          text: text.substring(indexOf, indexOf + query.length),
+          style: highlightStyle,
+        ),
+      );
       start = indexOf + query.length;
       indexOf = lowercaseText.indexOf(lowercaseQuery, start);
     }
@@ -1049,7 +1148,9 @@ class _MessageBubble extends StatelessWidget {
       ),
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
       decoration: BoxDecoration(
-        color: isMe ? (isFailed ? colors.error.withValues(alpha: 0.12) : null) : colors.card,
+        color: isMe
+            ? (isFailed ? colors.error.withValues(alpha: 0.12) : null)
+            : colors.card,
         gradient: isMe && !isFailed ? context.appGradients.purpleRose : null,
         borderRadius: BorderRadius.only(
           topLeft: const Radius.circular(16),
@@ -1066,11 +1167,13 @@ class _MessageBubble extends StatelessWidget {
             : isHighlighted
             ? Border.all(color: colors.primary, width: 1.5)
             : isMe
-            ? (isFailed ? Border.all(color: colors.error.withValues(alpha: 0.4), width: 1.5) : null)
-            : Border.all(
-                color: colors.border.withValues(alpha: 0.5),
-                width: 1,
-              ),
+            ? (isFailed
+                  ? Border.all(
+                      color: colors.error.withValues(alpha: 0.4),
+                      width: 1.5,
+                    )
+                  : null)
+            : Border.all(color: colors.border.withValues(alpha: 0.5), width: 1),
         boxShadow: [
           BoxShadow(
             color: colors.black.withValues(alpha: 0.03),
@@ -1083,15 +1186,20 @@ class _MessageBubble extends StatelessWidget {
         crossAxisAlignment: CrossAxisAlignment.end,
         mainAxisSize: MainAxisSize.min,
         children: [
-          if (message.replyToMessageId != null) _buildReplyPreview(colors, typography),
+          if (message.replyToMessageId != null)
+            _buildReplyPreview(colors, typography),
           if (searchQuery == null || searchQuery!.isEmpty)
             Text(
               message.content,
               style: typography.bodyMedium.copyWith(
-                color: isMe ? (isFailed ? colors.textPrimary : Colors.white) : colors.textPrimary,
+                color: isMe
+                    ? (isFailed ? colors.textPrimary : Colors.white)
+                    : colors.textPrimary,
                 fontSize: 15,
                 fontWeight: FontWeight.w500,
-                fontStyle: message.isDeleted ? FontStyle.italic : FontStyle.normal,
+                fontStyle: message.isDeleted
+                    ? FontStyle.italic
+                    : FontStyle.normal,
               ),
             )
           else
@@ -1101,10 +1209,14 @@ class _MessageBubble extends StatelessWidget {
                   message.content,
                   searchQuery!,
                   typography.bodyMedium.copyWith(
-                    color: isMe ? (isFailed ? colors.textPrimary : Colors.white) : colors.textPrimary,
+                    color: isMe
+                        ? (isFailed ? colors.textPrimary : Colors.white)
+                        : colors.textPrimary,
                     fontSize: 15,
                     fontWeight: FontWeight.w500,
-                    fontStyle: message.isDeleted ? FontStyle.italic : FontStyle.normal,
+                    fontStyle: message.isDeleted
+                        ? FontStyle.italic
+                        : FontStyle.normal,
                   ),
                   typography.bodyMedium.copyWith(
                     color: Colors.black,
@@ -1115,48 +1227,7 @@ class _MessageBubble extends StatelessWidget {
                 ),
               ),
             ),
-          const SizedBox(height: 4),
-          Row(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              if (message.edited) ...[
-                Text(
-                  ' (edited)',
-                  style: typography.bodySmall.copyWith(
-                    color: isMe ? Colors.white70 : colors.textTertiary,
-                    fontSize: 9,
-                  ),
-                ),
-                const SizedBox(width: 4),
-              ],
-              if (isFailed) ...[
-                Text(
-                  'Failed to send. Tap to retry',
-                  style: typography.bodySmall.copyWith(
-                    color: colors.error,
-                    fontSize: 10,
-                    fontWeight: FontWeight.bold,
-                  ),
-                ),
-                const SizedBox(width: 4),
-              ] else ...[
-                Text(
-                  timeStr,
-                  style: typography.bodySmall.copyWith(
-                    color: isMe
-                        ? Colors.white.withValues(alpha: 0.7)
-                        : colors.textTertiary,
-                    fontSize: 10,
-                    fontWeight: FontWeight.w500,
-                  ),
-                ),
-              ],
-              if (isMe) ...[
-                const SizedBox(width: 4),
-                _buildReceiptIcon(colors),
-              ],
-            ],
-          ),
+
           if (message.reactions.isNotEmpty) ...[
             const SizedBox(height: 6),
             _buildReactions(colors, typography),
@@ -1182,7 +1253,56 @@ class _MessageBubble extends StatelessWidget {
       child: GestureDetector(
         onLongPress: onLongPress,
         onSecondaryTap: onLongPress,
-        child: bubbleContent,
+        child: Column(
+          crossAxisAlignment: isMe
+              ? CrossAxisAlignment.end
+              : CrossAxisAlignment.start,
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            bubbleContent,
+
+            const SizedBox(height: 4),
+            Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                if (message.edited) ...[
+                  Text(
+                    ' (edited)',
+                    style: typography.bodySmall.copyWith(
+                      color: isMe ? Colors.white70 : colors.textTertiary,
+                      fontSize: 8,
+                    ),
+                  ),
+                  const SizedBox(width: 4),
+                ],
+                if (isFailed) ...[
+                  Text(
+                    'Failed to send. Tap to retry',
+                    style: typography.bodySmall.copyWith(
+                      color: colors.error,
+                      fontSize: 10,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                  const SizedBox(width: 4),
+                ] else ...[
+                  Text(
+                    timeStr,
+                    style: typography.bodySmall.copyWith(
+                      color: isMe ? colors.textPrimary : colors.textTertiary,
+                      fontSize: 8,
+                      // fontWeight: FontWeight.w500,
+                    ),
+                  ),
+                ],
+                if (isMe) ...[
+                  const SizedBox(width: 4),
+                  _buildReceiptIcon(colors),
+                ],
+              ],
+            ),
+          ],
+        ),
       ),
     );
   }
@@ -1192,7 +1312,9 @@ class _MessageBubble extends StatelessWidget {
       margin: const EdgeInsets.only(bottom: 6),
       padding: const EdgeInsets.all(8),
       decoration: BoxDecoration(
-        color: isMe ? Colors.black.withValues(alpha: 0.15) : colors.background.withValues(alpha: 0.5),
+        color: isMe
+            ? Colors.black.withValues(alpha: 0.15)
+            : colors.background.withValues(alpha: 0.5),
         borderRadius: BorderRadius.circular(8),
         border: Border(
           left: BorderSide(
@@ -1219,7 +1341,9 @@ class _MessageBubble extends StatelessWidget {
           Text(
             message.replyToPreview ?? '',
             style: typography.bodySmall.copyWith(
-              color: isMe ? Colors.white.withValues(alpha: 0.9) : colors.textSecondary,
+              color: isMe
+                  ? Colors.white.withValues(alpha: 0.9)
+                  : colors.textSecondary,
               fontSize: 12,
             ),
             maxLines: 1,
@@ -1244,10 +1368,14 @@ class _MessageBubble extends StatelessWidget {
         return Container(
           padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
           decoration: BoxDecoration(
-            color: isMe ? Colors.black.withValues(alpha: 0.1) : colors.background.withValues(alpha: 0.3),
+            color: isMe
+                ? Colors.black.withValues(alpha: 0.1)
+                : colors.background.withValues(alpha: 0.3),
             borderRadius: BorderRadius.circular(12),
             border: Border.all(
-              color: isMe ? Colors.white24 : colors.border.withValues(alpha: 0.3),
+              color: isMe
+                  ? Colors.white24
+                  : colors.border.withValues(alpha: 0.3),
             ),
           ),
           child: Row(
@@ -1259,7 +1387,7 @@ class _MessageBubble extends StatelessWidget {
                 Text(
                   '$count',
                   style: typography.bodySmall.copyWith(
-                    fontSize: 9, 
+                    fontSize: 9,
                     color: isMe ? Colors.white70 : colors.textSecondary,
                     fontWeight: FontWeight.bold,
                   ),
@@ -1285,11 +1413,7 @@ class _MessageBubble extends StatelessWidget {
     }
 
     if (message.status == 'failed') {
-      return Icon(
-        Icons.error_outline_rounded,
-        size: 13,
-        color: colors.error,
-      );
+      return Icon(Icons.error_outline_rounded, size: 13, color: colors.error);
     }
 
     final isRead = message.status == 'read';
@@ -1298,9 +1422,7 @@ class _MessageBubble extends StatelessWidget {
     return Icon(
       isDelivered ? Icons.done_all : Icons.check,
       size: 13,
-      color: isRead
-          ? const Color(0xFF80D8FF)
-          : Colors.white70,
+      color: isRead ? const Color(0xFF80D8FF) : Colors.white70,
     );
   }
 }

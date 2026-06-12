@@ -36,12 +36,14 @@ class CallListenerService {
         final hasActive = callBloc.state.maybeMap(
           calling: (_) => true,
           incomingCall: (_) => true,
+          connecting: (_) => true,
           connected: (_) => true,
+          active: (_) => true,
           orElse: () => false,
         );
         if (hasActive) {
-          // Decline the call because we are already in another call
-          _callRepository.updateCallStatus(call.callId, 'declined');
+          // Reject the call as busy because we are already in another call
+          _callRepository.updateCallStatus(call.callId, 'busy');
           return;
         }
         // Update CallBloc status to start listening

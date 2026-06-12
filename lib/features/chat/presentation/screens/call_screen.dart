@@ -107,7 +107,16 @@ class _CallScreenState extends State<CallScreen> {
             final otherId = s.callModel.callerId == currentUserId ? s.callModel.receiverId : s.callModel.callerId;
             _loadOtherUserProfile(otherId);
           },
+          connecting: (s) {
+            final otherId = s.callModel.callerId == currentUserId ? s.callModel.receiverId : s.callModel.callerId;
+            _loadOtherUserProfile(otherId);
+          },
           connected: (s) {
+            final otherId = s.callModel.callerId == currentUserId ? s.callModel.receiverId : s.callModel.callerId;
+            _loadOtherUserProfile(otherId);
+            _startLocalTimer();
+          },
+          active: (s) {
             final otherId = s.callModel.callerId == currentUserId ? s.callModel.receiverId : s.callModel.callerId;
             _loadOtherUserProfile(otherId);
             _startLocalTimer();
@@ -115,6 +124,7 @@ class _CallScreenState extends State<CallScreen> {
           declined: (_) => _handleTermination('Call Declined'),
           missed: (_) => _handleTermination('Call Missed'),
           ended: (_) => _handleTermination('Call Ended'),
+          failed: (s) => _handleTermination(s.message),
           error: (s) => _handleTermination(s.message),
           orElse: () {},
         );
@@ -158,12 +168,25 @@ class _CallScreenState extends State<CallScreen> {
                       },
                     );
                   },
+                  connecting: (s) {
+                    return OutgoingCallView(
+                      contact: _otherUser,
+                      status: 'connecting',
+                      onCancel: () {
+                        context.read<CallBloc>().add(const CallEvent.cancelCall());
+                      },
+                    );
+                  },
                   connected: (s) {
+                    return _buildConnectedView();
+                  },
+                  active: (s) {
                     return _buildConnectedView();
                   },
                   declined: (_) => _buildTerminationView('Call Declined'),
                   missed: (_) => _buildTerminationView('Call Missed'),
                   ended: (_) => _buildTerminationView('Call Ended'),
+                  failed: (s) => _buildTerminationView(s.message),
                 );
               },
             ),
