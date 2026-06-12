@@ -18,6 +18,19 @@ import 'package:vanish_link/features/chat/presentation/bloc/chats_bloc.dart';
 import 'package:vanish_link/features/profile/domain/repositories/profile_repository.dart';
 import 'package:vanish_link/features/profile/data/repositories/profile_repository_impl.dart';
 import 'package:vanish_link/features/profile/presentation/bloc/profile_bloc.dart';
+import 'package:vanish_link/features/chat/domain/repositories/presence_repository.dart';
+import 'package:vanish_link/features/chat/data/repositories/presence_repository_impl.dart';
+import 'package:vanish_link/features/chat/domain/services/presence_service.dart';
+import 'package:vanish_link/features/chat/presentation/bloc/presence/presence_bloc.dart';
+import 'package:vanish_link/features/chat/domain/repositories/webrtc_repository.dart';
+import 'package:vanish_link/features/chat/data/repositories/webrtc_repository_impl.dart';
+import 'package:vanish_link/features/chat/domain/repositories/signaling_repository.dart';
+import 'package:vanish_link/features/chat/data/repositories/signaling_repository_impl.dart';
+import 'package:vanish_link/features/chat/domain/services/webrtc_service.dart';
+import 'package:vanish_link/features/chat/presentation/bloc/webrtc/webrtc_bloc.dart';
+import 'package:vanish_link/features/chat/domain/repositories/message_repository.dart';
+import 'package:vanish_link/features/chat/data/repositories/message_repository_impl.dart';
+import 'package:vanish_link/features/chat/presentation/bloc/message/message_bloc.dart';
 
 final getIt = GetIt.instance;
 
@@ -51,6 +64,33 @@ Future<void> configureDependencies() async {
     () => ProfileRepositoryImpl(),
   );
 
+  getIt.registerLazySingleton<PresenceRepository>(
+    () => PresenceRepositoryImpl(),
+  );
+
+  getIt.registerLazySingleton<PresenceService>(
+    () => PresenceService(presenceRepository: getIt<PresenceRepository>()),
+  );
+
+  getIt.registerLazySingleton<WebRtcRepository>(
+    () => WebRtcRepositoryImpl(),
+  );
+
+  getIt.registerLazySingleton<SignalingRepository>(
+    () => SignalingRepositoryImpl(),
+  );
+
+  getIt.registerLazySingleton<WebRtcService>(
+    () => WebRtcService(
+      webRtcRepository: getIt<WebRtcRepository>(),
+      signalingRepository: getIt<SignalingRepository>(),
+    ),
+  );
+
+  getIt.registerLazySingleton<MessageRepository>(
+    () => MessageRepositoryImpl(),
+  );
+
   // Blocs
   getIt.registerLazySingleton<AuthBloc>(
     () => AuthBloc(authRepository: getIt<AuthRepository>()),
@@ -78,5 +118,17 @@ Future<void> configureDependencies() async {
 
   getIt.registerFactory<ProfileBloc>(
     () => ProfileBloc(profileRepository: getIt<ProfileRepository>()),
+  );
+
+  getIt.registerFactory<PresenceBloc>(
+    () => PresenceBloc(presenceRepository: getIt<PresenceRepository>()),
+  );
+
+  getIt.registerFactory<WebRtcBloc>(
+    () => WebRtcBloc(webRtcService: getIt<WebRtcService>()),
+  );
+
+  getIt.registerFactory<MessageBloc>(
+    () => MessageBloc(messageRepository: getIt<MessageRepository>()),
   );
 }

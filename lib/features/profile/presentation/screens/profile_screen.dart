@@ -9,6 +9,7 @@ import 'package:vanish_link/core/utils/app_toast.dart';
 import 'package:vanish_link/core/di/injection.dart';
 import 'package:vanish_link/features/auth/presentation/bloc/auth_bloc.dart';
 import 'package:vanish_link/features/profile/presentation/bloc/profile_bloc.dart';
+import 'package:vanish_link/features/chat/presentation/bloc/presence/presence_bloc.dart';
 
 class ProfileScreen extends StatelessWidget {
   const ProfileScreen({super.key});
@@ -244,36 +245,46 @@ class _ProfileScreenContent extends StatelessWidget {
                             ),
                             const SizedBox(height: 16),
                             // Status Banner
-                            Container(
-                              width: double.infinity,
-                              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
-                              decoration: BoxDecoration(
-                                color: colors.white.withValues(alpha: 0.1),
-                                borderRadius: BorderRadius.circular(16),
-                              ),
-                              child: Row(
-                                children: [
-                                  Container(
-                                    width: 8,
-                                    height: 8,
+                            BlocProvider<PresenceBloc>(
+                              create: (context) => getIt<PresenceBloc>()..add(PresenceEvent.monitorUser(profile.userId)),
+                              child: BlocBuilder<PresenceBloc, PresenceState>(
+                                builder: (context, presenceState) {
+                                  final isOnline = presenceState.isOnline;
+                                  final presenceText = presenceState.displayStatus;
+
+                                  return Container(
+                                    width: double.infinity,
+                                    padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
                                     decoration: BoxDecoration(
-                                      color: colors.success,
-                                      shape: BoxShape.circle,
+                                      color: colors.white.withValues(alpha: 0.1),
+                                      borderRadius: BorderRadius.circular(16),
                                     ),
-                                  ),
-                                  const SizedBox(width: 8),
-                                  Expanded(
-                                    child: Text(
-                                      profile.status,
-                                      style: typography.bodySmall.copyWith(
-                                        color: colors.white,
-                                        fontWeight: FontWeight.w600,
-                                      ),
-                                      maxLines: 1,
-                                      overflow: TextOverflow.ellipsis,
+                                    child: Row(
+                                      children: [
+                                        Container(
+                                          width: 8,
+                                          height: 8,
+                                          decoration: BoxDecoration(
+                                            color: isOnline ? colors.success : colors.inActiveStatus,
+                                            shape: BoxShape.circle,
+                                          ),
+                                        ),
+                                        const SizedBox(width: 8),
+                                        Expanded(
+                                          child: Text(
+                                            presenceText,
+                                            style: typography.bodySmall.copyWith(
+                                              color: colors.white,
+                                              fontWeight: FontWeight.w600,
+                                            ),
+                                            maxLines: 1,
+                                            overflow: TextOverflow.ellipsis,
+                                          ),
+                                        ),
+                                      ],
                                     ),
-                                  ),
-                                ],
+                                  );
+                                },
                               ),
                             ),
                           ],

@@ -6,6 +6,7 @@ import 'package:go_router/go_router.dart';
 import 'package:vanish_link/core/di/injection.dart';
 import 'package:vanish_link/core/routes/app_routes.dart';
 import 'package:vanish_link/core/theme/app_theme.dart';
+import 'package:vanish_link/core/utils/sized_context.dart';
 import 'package:vanish_link/features/auth/presentation/bloc/auth_bloc.dart';
 import 'package:vanish_link/features/auth/presentation/screens/sign_in_screen.dart';
 import 'package:vanish_link/features/auth/presentation/screens/sign_up_screen.dart';
@@ -18,6 +19,8 @@ import 'package:vanish_link/features/profile/presentation/screens/edit_profile_s
 import 'package:vanish_link/features/request/presentation/screens/request_screen.dart';
 import 'package:vanish_link/features/discover/presentation/screens/discover_screen.dart';
 import 'package:vanish_link/features/discover/domain/entities/user_profile.dart';
+import 'package:vanish_link/core/utils/check_device_size.dart';
+import 'package:vanish_link/features/chat/domain/services/presence_service.dart';
 import 'package:vanish_link/firebase_options.dart';
 
 final GlobalKey<NavigatorState> rootNavigatorKey = GlobalKey<NavigatorState>(
@@ -38,6 +41,9 @@ void main() async {
 
   // Start checking authentication state
   getIt<AuthBloc>().add(const AuthEvent.started());
+
+  // Start presence monitoring
+  getIt<PresenceService>().startMonitoring();
 
   runApp(const MyApp());
 }
@@ -142,10 +148,24 @@ class _MyAppState extends State<MyApp> {
                   routes: [
                     GoRoute(
                       path: ':chatId',
-                      builder: (context, state) {
+                      pageBuilder: (context, state) {
                         final chatId = state.pathParameters['chatId'];
                         final contact = state.extra as UserProfile?;
-                        return ChatDetailsScreen(chatId: chatId, contact: contact);
+
+                        if (context.isDesktop) {
+                          // On tablet/desktop, keep the user on ChatScreen and select this chatId inline
+                          return NoTransitionPage(
+                            child: ChatScreen(selectedChatId: chatId),
+                          );
+                        } else {
+                          // On mobile, push the details screen full screen
+                          return MaterialPage(
+                            child: ChatDetailsScreen(
+                              chatId: chatId,
+                              contact: contact,
+                            ),
+                          );
+                        }
                       },
                     ),
                   ],

@@ -9,6 +9,10 @@ import 'package:vanish_link/core/theme/app_typography.dart';
 import 'package:vanish_link/core/utils/dimens.dart';
 import 'package:vanish_link/core/utils/check_device_size.dart';
 import 'package:vanish_link/core/utils/app_toast.dart';
+import 'package:vanish_link/core/widgets/app_search_field.dart';
+import 'package:vanish_link/core/widgets/app_empty_state.dart';
+import 'package:vanish_link/core/widgets/skeletons.dart';
+import 'package:vanish_link/features/chat/presentation/bloc/presence/presence_bloc.dart';
 import 'package:vanish_link/features/discover/presentation/bloc/discover_bloc.dart';
 import 'package:vanish_link/features/discover/domain/entities/user_profile.dart';
 import 'package:vanish_link/features/discover/domain/repositories/discover_repository.dart';
@@ -23,19 +27,6 @@ class DiscoverScreen extends StatefulWidget {
 class _DiscoverScreenState extends State<DiscoverScreen> {
   final TextEditingController _searchController = TextEditingController();
 
-  // Dummy data list used for skeleton loaders matching the exact card design
-  final List<UserProfile> _dummyUsers = List.generate(
-    4,
-    (index) => UserProfile(
-      userId: 'dummy_$index',
-      vanishId: 'VANISH_XXXX',
-      username: 'username_placeholder',
-      displayName: 'Display Name Placeholder',
-      photoUrl: '',
-      status: 'Available',
-    ),
-  );
-
   @override
   void dispose() {
     _searchController.dispose();
@@ -44,14 +35,16 @@ class _DiscoverScreenState extends State<DiscoverScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final colors = context.appColors;
-    final typography = context.appTypography;
-    final gradients = context.appGradients;
-    final isDesktop = checkDesktopSize(context);
-
     return BlocProvider<DiscoverBloc>(
       create: (context) => getIt<DiscoverBloc>(),
-      child: Scaffold(
+      child: Builder(
+        builder: (context) {
+          final colors = context.appColors;
+          final typography = context.appTypography;
+          final gradients = context.appGradients;
+          final isDesktop = checkDesktopSize(context);
+
+          return Scaffold(
         body: Container(
           decoration: BoxDecoration(
             gradient: context.isDark
@@ -92,20 +85,17 @@ class _DiscoverScreenState extends State<DiscoverScreen> {
                       const SizedBox(height: Dimens.veryLargePadding),
 
                       // Capsule Styled Search Input
-                      BlocBuilder<DiscoverBloc, DiscoverState>(
-                        builder: (context, state) {
-                          return _SearchField(
-                            controller: _searchController,
-                            onChanged: (val) {
-                              context.read<DiscoverBloc>().add(
-                                DiscoverEvent.searchQueryChanged(val),
-                              );
-                            },
-                            onClear: () {
-                              context.read<DiscoverBloc>().add(
-                                const DiscoverEvent.searchQueryChanged(''),
-                              );
-                            },
+                      AppSearchField(
+                        controller: _searchController,
+                        hintText: 'Search username or Vanish ID',
+                        onChanged: (val) {
+                          context.read<DiscoverBloc>().add(
+                            DiscoverEvent.searchQueryChanged(val),
+                          );
+                        },
+                        onClear: () {
+                          context.read<DiscoverBloc>().add(
+                            const DiscoverEvent.searchQueryChanged(''),
                           );
                         },
                       ),
@@ -133,7 +123,7 @@ class _DiscoverScreenState extends State<DiscoverScreen> {
                             return AnimatedSwitcher(
                               duration: const Duration(milliseconds: 300),
                               child: state.map(
-                                initial: (_) => const _EmptyState(
+                                initial: (_) => const AppEmptyState(
                                   key: ValueKey('initial_state'),
                                   icon: Icons.explore_outlined,
                                   title: 'Find People',
@@ -144,15 +134,11 @@ class _DiscoverScreenState extends State<DiscoverScreen> {
                                   key: const ValueKey('searching_state'),
                                   enabled: true,
                                   child: ListView.separated(
-                                    itemCount: _dummyUsers.length,
+                                    itemCount: 4,
                                     separatorBuilder: (context, index) =>
                                         const SizedBox(height: 12),
-                                    itemBuilder: (context, index) => _UserCard(
-                                      user: _dummyUsers[index],
-                                      friendshipStatus: FriendshipStatus.none,
-                                      isSending: false,
-                                      onSendRequest: () {},
-                                    ),
+                                    itemBuilder: (context, index) =>
+                                        const RequestCardSkeleton(),
                                   ),
                                 ),
                                 results: (s) => ListView.separated(
@@ -202,10 +188,13 @@ class _DiscoverScreenState extends State<DiscoverScreen> {
                                     );
                                   },
                                 ),
-                                empty: (_) => const _SearchEmptyState(
+                                empty: (_) => const AppEmptyState(
                                   key: ValueKey('empty_state'),
+                                  icon: Icons.search_off_rounded,
+                                  title: 'No Users Found',
+                                  subtitle: 'Try another username or Vanish ID',
                                 ),
-                                error: (s) => _EmptyState(
+                                error: (s) => AppEmptyState(
                                   key: const ValueKey('error_state'),
                                   icon: Icons.error_outline_rounded,
                                   title: 'Error Occurred',
@@ -223,8 +212,10 @@ class _DiscoverScreenState extends State<DiscoverScreen> {
             ),
           ),
         ),
-      ),
-    );
+      );
+    },
+  ),
+);
   }
 }
 
@@ -364,159 +355,152 @@ class _UserCard extends StatelessWidget {
     final colors = context.appColors;
     final typography = context.appTypography;
 
-    return Container(
-      decoration: BoxDecoration(
-        color: colors.card,
-        borderRadius: BorderRadius.circular(20),
-        border: Border.all(
-          color: colors.border.withValues(alpha: context.isDark ? 0.3 : 0.5),
-        ),
-        boxShadow: [
-          BoxShadow(
-            color: colors.black.withValues(alpha: context.isDark ? 0.2 : 0.03),
-            blurRadius: 16,
-            offset: const Offset(0, 8),
-          ),
-        ],
-      ),
-      padding: const EdgeInsets.all(16),
-      child: Row(
-        children: [
-          // Profile Avatar with Online Status Dot
-          Stack(
-            children: [
-              Container(
-                decoration: BoxDecoration(
-                  shape: BoxShape.circle,
-                  border: Border.all(
-                    color: colors.primary.withValues(alpha: 0.15),
-                    width: 2,
-                  ),
-                ),
-                child: CircleAvatar(
-                  radius: 28,
-                  backgroundImage: user.photoUrl.isNotEmpty
-                      ? NetworkImage(user.photoUrl)
-                      : null,
-                  backgroundColor: colors.primary.withValues(alpha: 0.08),
-                  child: user.photoUrl.isEmpty
-                      ? Icon(
-                          Icons.person_rounded,
-                          color: colors.primary,
-                          size: 28,
-                        )
-                      : null,
-                ),
+    return BlocProvider<PresenceBloc>(
+      create: (context) => getIt<PresenceBloc>()..add(PresenceEvent.monitorUser(user.userId)),
+      child: BlocBuilder<PresenceBloc, PresenceState>(
+        builder: (context, presenceState) {
+          final isOnline = presenceState.isOnline;
+          final presenceText = presenceState.displayStatus;
+
+          return Container(
+            decoration: BoxDecoration(
+              color: colors.card,
+              borderRadius: BorderRadius.circular(20),
+              border: Border.all(
+                color: colors.border.withValues(alpha: context.isDark ? 0.3 : 0.5),
               ),
-              Positioned(
-                right: 0,
-                bottom: 0,
-                child: Container(
-                  width: 14,
-                  height: 14,
-                  decoration: BoxDecoration(
-                    color: _getStatusColor(colors, user.status),
-                    shape: BoxShape.circle,
-                    border: Border.all(color: colors.card, width: 2.5),
-                  ),
-                ),
-              ),
-            ],
-          ),
-          const SizedBox(width: 16),
-          // User Info Column
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  user.displayName,
-                  style: typography.bodyLarge.copyWith(
-                    fontWeight: FontWeight.w700,
-                    color: colors.textPrimary,
-                  ),
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
-                ),
-                const SizedBox(height: 2),
-                Text(
-                  '@${user.username}',
-                  style: typography.bodyMedium.copyWith(
-                    color: colors.textSecondary,
-                    fontWeight: FontWeight.w500,
-                  ),
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
-                ),
-                const SizedBox(height: 6),
-                Row(
-                  children: [
-                    Text(
-                      user.status,
-                      style: typography.bodySmall.copyWith(
-                        color: colors.textTertiary,
-                        fontWeight: FontWeight.w500,
-                      ),
-                    ),
-                    if (user.vanishId.isNotEmpty) ...[
-                      const SizedBox(width: 6),
-                      Container(
-                        width: 3,
-                        height: 3,
-                        decoration: BoxDecoration(
-                          color: colors.textTertiary.withValues(alpha: 0.5),
-                          shape: BoxShape.circle,
-                        ),
-                      ),
-                      const SizedBox(width: 6),
-                      Container(
-                        padding: const EdgeInsets.symmetric(
-                          horizontal: 6,
-                          vertical: 2,
-                        ),
-                        decoration: BoxDecoration(
-                          color: colors.primary.withValues(alpha: 0.08),
-                          borderRadius: BorderRadius.circular(6),
-                        ),
-                        child: Text(
-                          user.vanishId,
-                          style: typography.bodySmall.copyWith(
-                            color: colors.primary,
-                            fontSize: 10,
-                            fontWeight: FontWeight.w700,
-                            letterSpacing: 0.5,
-                          ),
-                        ),
-                      ),
-                    ],
-                  ],
+              boxShadow: [
+                BoxShadow(
+                  color: colors.black.withValues(alpha: context.isDark ? 0.2 : 0.03),
+                  blurRadius: 16,
+                  offset: const Offset(0, 8),
                 ),
               ],
             ),
-          ),
-          const SizedBox(width: 8),
-          // Inline Friend Request Button
-          _buildActionButton(context),
-        ],
+            padding: const EdgeInsets.all(16),
+            child: Row(
+              children: [
+                // Profile Avatar with Online Status Dot
+                Stack(
+                  children: [
+                    Container(
+                      decoration: BoxDecoration(
+                        shape: BoxShape.circle,
+                        border: Border.all(
+                          color: colors.primary.withValues(alpha: 0.15),
+                          width: 2,
+                        ),
+                      ),
+                      child: CircleAvatar(
+                        radius: 28,
+                        backgroundImage: user.photoUrl.isNotEmpty
+                            ? NetworkImage(user.photoUrl)
+                            : null,
+                        backgroundColor: colors.primary.withValues(alpha: 0.08),
+                        child: user.photoUrl.isEmpty
+                            ? Icon(
+                                Icons.person_rounded,
+                                color: colors.primary,
+                                size: 28,
+                              )
+                            : null,
+                      ),
+                    ),
+                    Positioned(
+                      right: 0,
+                      bottom: 0,
+                      child: Container(
+                        width: 14,
+                        height: 14,
+                        decoration: BoxDecoration(
+                          color: isOnline ? colors.success : colors.inActiveStatus,
+                          shape: BoxShape.circle,
+                          border: Border.all(color: colors.card, width: 2.5),
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+                const SizedBox(width: 16),
+                // User Info Column
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        user.displayName,
+                        style: typography.bodyLarge.copyWith(
+                          fontWeight: FontWeight.w700,
+                          color: colors.textPrimary,
+                        ),
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                      const SizedBox(height: 2),
+                      Text(
+                        '@${user.username}',
+                        style: typography.bodyMedium.copyWith(
+                          color: colors.textSecondary,
+                          fontWeight: FontWeight.w500,
+                        ),
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                      const SizedBox(height: 6),
+                      Row(
+                        children: [
+                          Text(
+                            presenceText,
+                            style: typography.bodySmall.copyWith(
+                              color: colors.textTertiary,
+                              fontWeight: FontWeight.w500,
+                            ),
+                          ),
+                          if (user.vanishId.isNotEmpty) ...[
+                            const SizedBox(width: 6),
+                            Container(
+                              width: 3,
+                              height: 3,
+                              decoration: BoxDecoration(
+                                color: colors.textTertiary.withValues(alpha: 0.5),
+                                shape: BoxShape.circle,
+                              ),
+                            ),
+                            const SizedBox(width: 6),
+                            Container(
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: 6,
+                                vertical: 2,
+                              ),
+                              decoration: BoxDecoration(
+                                color: colors.primary.withValues(alpha: 0.08),
+                                borderRadius: BorderRadius.circular(6),
+                              ),
+                              child: Text(
+                                user.vanishId,
+                                style: typography.bodySmall.copyWith(
+                                  color: colors.primary,
+                                  fontSize: 10,
+                                  fontWeight: FontWeight.w700,
+                                  letterSpacing: 0.5,
+                                ),
+                              ),
+                            ),
+                          ],
+                        ],
+                      ),
+                    ],
+                  ),
+                ),
+                const SizedBox(width: 8),
+                // Inline Friend Request Button
+                _buildActionButton(context),
+              ],
+            ),
+          );
+        },
       ),
     );
-  }
-
-  Color _getStatusColor(AppColors colors, String status) {
-    switch (status.toLowerCase()) {
-      case 'available':
-      case 'online':
-        return colors.success;
-      case 'busy':
-      case 'dnd':
-      case 'do not disturb':
-        return colors.error;
-      case 'away':
-      case 'idle':
-        return colors.warning;
-      default:
-        return colors.inActiveStatus;
-    }
   }
 
   Widget _buildActionButton(BuildContext context) {
@@ -553,7 +537,6 @@ class _UserCard extends StatelessWidget {
       case FriendshipStatus.none:
         return InkWell(
           onTap: () {
-            // Premium haptic interaction
             HapticFeedback.lightImpact();
             onSendRequest();
           },
@@ -659,163 +642,5 @@ class _UserCard extends StatelessWidget {
           ),
         );
     }
-  }
-}
-
-class _EmptyState extends StatelessWidget {
-  final IconData icon;
-  final String title;
-  final String subtitle;
-
-  const _EmptyState({
-    super.key,
-    required this.icon,
-    required this.title,
-    required this.subtitle,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    final colors = context.appColors;
-    final typography = context.appTypography;
-
-    return Center(
-      child: SingleChildScrollView(
-        padding: const EdgeInsets.all(24),
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            // Glowing Icon Wrapper with Radial Gradient background
-            Container(
-              padding: const EdgeInsets.all(24),
-              decoration: BoxDecoration(
-                shape: BoxShape.circle,
-                gradient: RadialGradient(
-                  colors: [
-                    colors.primary.withValues(alpha: 0.15),
-                    Colors.transparent,
-                  ],
-                  radius: 0.8,
-                ),
-              ),
-              child: Container(
-                padding: const EdgeInsets.all(18),
-                decoration: BoxDecoration(
-                  shape: BoxShape.circle,
-                  color: colors.card,
-                  border: Border.all(
-                    color: colors.border.withValues(alpha: 0.3),
-                  ),
-                  boxShadow: [
-                    BoxShadow(
-                      color: colors.primary.withValues(alpha: 0.1),
-                      blurRadius: 24,
-                      offset: const Offset(0, 8),
-                    ),
-                  ],
-                ),
-                child: ShaderMask(
-                  shaderCallback: (bounds) =>
-                      context.appGradients.purpleRose.createShader(bounds),
-                  child: Icon(icon, size: 48, color: Colors.white),
-                ),
-              ),
-            ),
-            const SizedBox(height: 24),
-            Text(
-              title,
-              style: typography.titleLarge.copyWith(
-                fontWeight: FontWeight.w800,
-                color: colors.textPrimary,
-                fontSize: 20,
-              ),
-              textAlign: TextAlign.center,
-            ),
-            const SizedBox(height: 8),
-            Text(
-              subtitle,
-              style: typography.bodyMedium.copyWith(
-                color: colors.textSecondary,
-                fontWeight: FontWeight.w500,
-              ),
-              textAlign: TextAlign.center,
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-}
-
-class _SearchEmptyState extends StatelessWidget {
-  const _SearchEmptyState({super.key});
-
-  @override
-  Widget build(BuildContext context) {
-    final colors = context.appColors;
-    final typography = context.appTypography;
-
-    return Center(
-      child: SingleChildScrollView(
-        padding: const EdgeInsets.all(24),
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Container(
-              padding: const EdgeInsets.all(24),
-              decoration: BoxDecoration(
-                shape: BoxShape.circle,
-                gradient: RadialGradient(
-                  colors: [
-                    colors.error.withValues(alpha: 0.1),
-                    Colors.transparent,
-                  ],
-                  radius: 0.8,
-                ),
-              ),
-              child: Container(
-                padding: const EdgeInsets.all(18),
-                decoration: BoxDecoration(
-                  shape: BoxShape.circle,
-                  color: colors.card,
-                  border: Border.all(
-                    color: colors.border.withValues(alpha: 0.3),
-                  ),
-                ),
-                child: ShaderMask(
-                  shaderCallback: (bounds) => LinearGradient(
-                    colors: [colors.error, colors.errorLight],
-                  ).createShader(bounds),
-                  child: const Icon(
-                    Icons.search_off_rounded,
-                    size: 48,
-                    color: Colors.white,
-                  ),
-                ),
-              ),
-            ),
-            const SizedBox(height: 24),
-            Text(
-              'No Users Found',
-              style: typography.titleLarge.copyWith(
-                fontWeight: FontWeight.w800,
-                color: colors.textPrimary,
-                fontSize: 20,
-              ),
-              textAlign: TextAlign.center,
-            ),
-            const SizedBox(height: 8),
-            Text(
-              'Try another username or Vanish ID',
-              style: typography.bodyMedium.copyWith(
-                color: colors.textSecondary,
-                fontWeight: FontWeight.w500,
-              ),
-              textAlign: TextAlign.center,
-            ),
-          ],
-        ),
-      ),
-    );
   }
 }

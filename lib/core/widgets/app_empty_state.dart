@@ -2,14 +2,16 @@ import 'package:flutter/material.dart';
 import 'package:vanish_link/core/theme/app_theme.dart';
 
 class AppEmptyState extends StatelessWidget {
-  final IconData icon;
+  final IconData? icon;
+  final Widget? illustration;
   final String title;
   final String subtitle;
-  final Widget? action;
+  final Widget? action; // CTA
 
   const AppEmptyState({
     super.key,
-    required this.icon,
+    this.icon,
+    this.illustration,
     required this.title,
     required this.subtitle,
     this.action,
@@ -26,42 +28,45 @@ class AppEmptyState extends StatelessWidget {
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            // Glowing Icon Wrapper with Radial Gradient background
-            Container(
-              padding: const EdgeInsets.all(24),
-              decoration: BoxDecoration(
-                shape: BoxShape.circle,
-                gradient: RadialGradient(
-                  colors: [
-                    colors.primary.withValues(alpha: 0.15),
-                    Colors.transparent,
-                  ],
-                  radius: 0.8,
-                ),
-              ),
-              child: Container(
-                padding: const EdgeInsets.all(18),
+            if (illustration != null)
+              illustration!
+            else if (icon != null)
+              // Glowing Icon Wrapper with Radial Gradient background
+              Container(
+                padding: const EdgeInsets.all(24),
                 decoration: BoxDecoration(
                   shape: BoxShape.circle,
-                  color: colors.card,
-                  border: Border.all(
-                    color: colors.border.withValues(alpha: 0.3),
+                  gradient: RadialGradient(
+                    colors: [
+                      colors.primary.withValues(alpha: 0.15),
+                      Colors.transparent,
+                    ],
+                    radius: 0.8,
                   ),
-                  boxShadow: [
-                    BoxShadow(
-                      color: colors.primary.withValues(alpha: 0.1),
-                      blurRadius: 24,
-                      offset: const Offset(0, 8),
-                    ),
-                  ],
                 ),
-                child: ShaderMask(
-                  shaderCallback: (bounds) =>
-                      context.appGradients.purpleRose.createShader(bounds),
-                  child: Icon(icon, size: 48, color: Colors.white),
+                child: Container(
+                  padding: const EdgeInsets.all(18),
+                  decoration: BoxDecoration(
+                    shape: BoxShape.circle,
+                    color: colors.card,
+                    border: Border.all(
+                      color: colors.border.withValues(alpha: 0.3),
+                    ),
+                    boxShadow: [
+                      BoxShadow(
+                        color: colors.primary.withValues(alpha: 0.1),
+                        blurRadius: 24,
+                        offset: const Offset(0, 8),
+                      ),
+                    ],
+                  ),
+                  child: ShaderMask(
+                    shaderCallback: (bounds) =>
+                        context.appGradients.purpleRose.createShader(bounds),
+                    child: Icon(icon, size: 48, color: Colors.white),
+                  ),
                 ),
               ),
-            ),
             const SizedBox(height: 24),
             Text(
               title,

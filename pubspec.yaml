@@ -65,6 +65,7 @@ dependencies:
   firebase_auth: ^6.5.2
   cloud_firestore: ^6.5.0
   firebase_database: ^12.4.2
+  flutter_webrtc: ^1.4.1
 
 dev_dependencies:
   build_runner: 2.4.0
