@@ -1,0 +1,9 @@
+{
+  "workflow": {
+    "auto": false,
+    "interactive": true,
+    "milestones": [
+      "Milestone 1: Web Calling & Audio Stabilization"
+    ]
+  }
+}
