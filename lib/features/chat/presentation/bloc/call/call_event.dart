@@ -11,7 +11,7 @@ class CallEvent with _$CallEvent {
     required String type,
   }) = CreateCall;
 
-  const factory CallEvent.acceptCall() = AcceptCall;
+  const factory CallEvent.acceptCall({String? callId}) = AcceptCall;
   const factory CallEvent.declineCall() = DeclineCall;
   const factory CallEvent.cancelCall() = CancelCall;
   const factory CallEvent.endCall() = EndCall;

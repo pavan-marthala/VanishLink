@@ -20,7 +20,7 @@ mixin _$CallEvent {
   TResult when<TResult extends Object?>({
     required TResult Function(String callerId, String receiverId, String type)
         createCall,
-    required TResult Function() acceptCall,
+    required TResult Function(String? callId) acceptCall,
     required TResult Function() declineCall,
     required TResult Function() cancelCall,
     required TResult Function() endCall,
@@ -32,7 +32,7 @@ mixin _$CallEvent {
   TResult? whenOrNull<TResult extends Object?>({
     TResult? Function(String callerId, String receiverId, String type)?
         createCall,
-    TResult? Function()? acceptCall,
+    TResult? Function(String? callId)? acceptCall,
     TResult? Function()? declineCall,
     TResult? Function()? cancelCall,
     TResult? Function()? endCall,
@@ -44,7 +44,7 @@ mixin _$CallEvent {
   TResult maybeWhen<TResult extends Object?>({
     TResult Function(String callerId, String receiverId, String type)?
         createCall,
-    TResult Function()? acceptCall,
+    TResult Function(String? callId)? acceptCall,
     TResult Function()? declineCall,
     TResult Function()? cancelCall,
     TResult Function()? endCall,
@@ -191,7 +191,7 @@ class _$CreateCallImpl implements CreateCall {
   TResult when<TResult extends Object?>({
     required TResult Function(String callerId, String receiverId, String type)
         createCall,
-    required TResult Function() acceptCall,
+    required TResult Function(String? callId) acceptCall,
     required TResult Function() declineCall,
     required TResult Function() cancelCall,
     required TResult Function() endCall,
@@ -206,7 +206,7 @@ class _$CreateCallImpl implements CreateCall {
   TResult? whenOrNull<TResult extends Object?>({
     TResult? Function(String callerId, String receiverId, String type)?
         createCall,
-    TResult? Function()? acceptCall,
+    TResult? Function(String? callId)? acceptCall,
     TResult? Function()? declineCall,
     TResult? Function()? cancelCall,
     TResult? Function()? endCall,
@@ -221,7 +221,7 @@ class _$CreateCallImpl implements CreateCall {
   TResult maybeWhen<TResult extends Object?>({
     TResult Function(String callerId, String receiverId, String type)?
         createCall,
-    TResult Function()? acceptCall,
+    TResult Function(String? callId)? acceptCall,
     TResult Function()? declineCall,
     TResult Function()? cancelCall,
     TResult Function()? endCall,
@@ -301,6 +301,8 @@ abstract class _$$AcceptCallImplCopyWith<$Res> {
   factory _$$AcceptCallImplCopyWith(
           _$AcceptCallImpl value, $Res Function(_$AcceptCallImpl) then) =
       __$$AcceptCallImplCopyWithImpl<$Res>;
+  @useResult
+  $Res call({String? callId});
 }
 
 /// @nodoc
@@ -310,40 +312,64 @@ class __$$AcceptCallImplCopyWithImpl<$Res>
   __$$AcceptCallImplCopyWithImpl(
       _$AcceptCallImpl _value, $Res Function(_$AcceptCallImpl) _then)
       : super(_value, _then);
+
+  @pragma('vm:prefer-inline')
+  @override
+  $Res call({
+    Object? callId = freezed,
+  }) {
+    return _then(_$AcceptCallImpl(
+      callId: freezed == callId
+          ? _value.callId
+          : callId // ignore: cast_nullable_to_non_nullable
+              as String?,
+    ));
+  }
 }
 
 /// @nodoc
 
 class _$AcceptCallImpl implements AcceptCall {
-  const _$AcceptCallImpl();
+  const _$AcceptCallImpl({this.callId});
+
+  @override
+  final String? callId;
 
   @override
   String toString() {
-    return 'CallEvent.acceptCall()';
+    return 'CallEvent.acceptCall(callId: $callId)';
   }
 
   @override
   bool operator ==(Object other) {
     return identical(this, other) ||
-        (other.runtimeType == runtimeType && other is _$AcceptCallImpl);
+        (other.runtimeType == runtimeType &&
+            other is _$AcceptCallImpl &&
+            (identical(other.callId, callId) || other.callId == callId));
   }
 
   @override
-  int get hashCode => runtimeType.hashCode;
+  int get hashCode => Object.hash(runtimeType, callId);
+
+  @JsonKey(ignore: true)
+  @override
+  @pragma('vm:prefer-inline')
+  _$$AcceptCallImplCopyWith<_$AcceptCallImpl> get copyWith =>
+      __$$AcceptCallImplCopyWithImpl<_$AcceptCallImpl>(this, _$identity);
 
   @override
   @optionalTypeArgs
   TResult when<TResult extends Object?>({
     required TResult Function(String callerId, String receiverId, String type)
         createCall,
-    required TResult Function() acceptCall,
+    required TResult Function(String? callId) acceptCall,
     required TResult Function() declineCall,
     required TResult Function() cancelCall,
     required TResult Function() endCall,
     required TResult Function(String callId) listenToCall,
     required TResult Function(CallModel? callModel) callUpdated,
   }) {
-    return acceptCall();
+    return acceptCall(callId);
   }
 
   @override
@@ -351,14 +377,14 @@ class _$AcceptCallImpl implements AcceptCall {
   TResult? whenOrNull<TResult extends Object?>({
     TResult? Function(String callerId, String receiverId, String type)?
         createCall,
-    TResult? Function()? acceptCall,
+    TResult? Function(String? callId)? acceptCall,
     TResult? Function()? declineCall,
     TResult? Function()? cancelCall,
     TResult? Function()? endCall,
     TResult? Function(String callId)? listenToCall,
     TResult? Function(CallModel? callModel)? callUpdated,
   }) {
-    return acceptCall?.call();
+    return acceptCall?.call(callId);
   }
 
   @override
@@ -366,7 +392,7 @@ class _$AcceptCallImpl implements AcceptCall {
   TResult maybeWhen<TResult extends Object?>({
     TResult Function(String callerId, String receiverId, String type)?
         createCall,
-    TResult Function()? acceptCall,
+    TResult Function(String? callId)? acceptCall,
     TResult Function()? declineCall,
     TResult Function()? cancelCall,
     TResult Function()? endCall,
@@ -375,7 +401,7 @@ class _$AcceptCallImpl implements AcceptCall {
     required TResult orElse(),
   }) {
     if (acceptCall != null) {
-      return acceptCall();
+      return acceptCall(callId);
     }
     return orElse();
   }
@@ -428,7 +454,12 @@ class _$AcceptCallImpl implements AcceptCall {
 }
 
 abstract class AcceptCall implements CallEvent {
-  const factory AcceptCall() = _$AcceptCallImpl;
+  const factory AcceptCall({final String? callId}) = _$AcceptCallImpl;
+
+  String? get callId;
+  @JsonKey(ignore: true)
+  _$$AcceptCallImplCopyWith<_$AcceptCallImpl> get copyWith =>
+      throw _privateConstructorUsedError;
 }
 
 /// @nodoc
@@ -471,7 +502,7 @@ class _$DeclineCallImpl implements DeclineCall {
   TResult when<TResult extends Object?>({
     required TResult Function(String callerId, String receiverId, String type)
         createCall,
-    required TResult Function() acceptCall,
+    required TResult Function(String? callId) acceptCall,
     required TResult Function() declineCall,
     required TResult Function() cancelCall,
     required TResult Function() endCall,
@@ -486,7 +517,7 @@ class _$DeclineCallImpl implements DeclineCall {
   TResult? whenOrNull<TResult extends Object?>({
     TResult? Function(String callerId, String receiverId, String type)?
         createCall,
-    TResult? Function()? acceptCall,
+    TResult? Function(String? callId)? acceptCall,
     TResult? Function()? declineCall,
     TResult? Function()? cancelCall,
     TResult? Function()? endCall,
@@ -501,7 +532,7 @@ class _$DeclineCallImpl implements DeclineCall {
   TResult maybeWhen<TResult extends Object?>({
     TResult Function(String callerId, String receiverId, String type)?
         createCall,
-    TResult Function()? acceptCall,
+    TResult Function(String? callId)? acceptCall,
     TResult Function()? declineCall,
     TResult Function()? cancelCall,
     TResult Function()? endCall,
@@ -606,7 +637,7 @@ class _$CancelCallImpl implements CancelCall {
   TResult when<TResult extends Object?>({
     required TResult Function(String callerId, String receiverId, String type)
         createCall,
-    required TResult Function() acceptCall,
+    required TResult Function(String? callId) acceptCall,
     required TResult Function() declineCall,
     required TResult Function() cancelCall,
     required TResult Function() endCall,
@@ -621,7 +652,7 @@ class _$CancelCallImpl implements CancelCall {
   TResult? whenOrNull<TResult extends Object?>({
     TResult? Function(String callerId, String receiverId, String type)?
         createCall,
-    TResult? Function()? acceptCall,
+    TResult? Function(String? callId)? acceptCall,
     TResult? Function()? declineCall,
     TResult? Function()? cancelCall,
     TResult? Function()? endCall,
@@ -636,7 +667,7 @@ class _$CancelCallImpl implements CancelCall {
   TResult maybeWhen<TResult extends Object?>({
     TResult Function(String callerId, String receiverId, String type)?
         createCall,
-    TResult Function()? acceptCall,
+    TResult Function(String? callId)? acceptCall,
     TResult Function()? declineCall,
     TResult Function()? cancelCall,
     TResult Function()? endCall,
@@ -741,7 +772,7 @@ class _$EndCallImpl implements EndCall {
   TResult when<TResult extends Object?>({
     required TResult Function(String callerId, String receiverId, String type)
         createCall,
-    required TResult Function() acceptCall,
+    required TResult Function(String? callId) acceptCall,
     required TResult Function() declineCall,
     required TResult Function() cancelCall,
     required TResult Function() endCall,
@@ -756,7 +787,7 @@ class _$EndCallImpl implements EndCall {
   TResult? whenOrNull<TResult extends Object?>({
     TResult? Function(String callerId, String receiverId, String type)?
         createCall,
-    TResult? Function()? acceptCall,
+    TResult? Function(String? callId)? acceptCall,
     TResult? Function()? declineCall,
     TResult? Function()? cancelCall,
     TResult? Function()? endCall,
@@ -771,7 +802,7 @@ class _$EndCallImpl implements EndCall {
   TResult maybeWhen<TResult extends Object?>({
     TResult Function(String callerId, String receiverId, String type)?
         createCall,
-    TResult Function()? acceptCall,
+    TResult Function(String? callId)? acceptCall,
     TResult Function()? declineCall,
     TResult Function()? cancelCall,
     TResult Function()? endCall,
@@ -902,7 +933,7 @@ class _$ListenToCallImpl implements ListenToCall {
   TResult when<TResult extends Object?>({
     required TResult Function(String callerId, String receiverId, String type)
         createCall,
-    required TResult Function() acceptCall,
+    required TResult Function(String? callId) acceptCall,
     required TResult Function() declineCall,
     required TResult Function() cancelCall,
     required TResult Function() endCall,
@@ -917,7 +948,7 @@ class _$ListenToCallImpl implements ListenToCall {
   TResult? whenOrNull<TResult extends Object?>({
     TResult? Function(String callerId, String receiverId, String type)?
         createCall,
-    TResult? Function()? acceptCall,
+    TResult? Function(String? callId)? acceptCall,
     TResult? Function()? declineCall,
     TResult? Function()? cancelCall,
     TResult? Function()? endCall,
@@ -932,7 +963,7 @@ class _$ListenToCallImpl implements ListenToCall {
   TResult maybeWhen<TResult extends Object?>({
     TResult Function(String callerId, String receiverId, String type)?
         createCall,
-    TResult Function()? acceptCall,
+    TResult Function(String? callId)? acceptCall,
     TResult Function()? declineCall,
     TResult Function()? cancelCall,
     TResult Function()? endCall,
@@ -1083,7 +1114,7 @@ class _$CallUpdatedImpl implements CallUpdated {
   TResult when<TResult extends Object?>({
     required TResult Function(String callerId, String receiverId, String type)
         createCall,
-    required TResult Function() acceptCall,
+    required TResult Function(String? callId) acceptCall,
     required TResult Function() declineCall,
     required TResult Function() cancelCall,
     required TResult Function() endCall,
@@ -1098,7 +1129,7 @@ class _$CallUpdatedImpl implements CallUpdated {
   TResult? whenOrNull<TResult extends Object?>({
     TResult? Function(String callerId, String receiverId, String type)?
         createCall,
-    TResult? Function()? acceptCall,
+    TResult? Function(String? callId)? acceptCall,
     TResult? Function()? declineCall,
     TResult? Function()? cancelCall,
     TResult? Function()? endCall,
@@ -1113,7 +1144,7 @@ class _$CallUpdatedImpl implements CallUpdated {
   TResult maybeWhen<TResult extends Object?>({
     TResult Function(String callerId, String receiverId, String type)?
         createCall,
-    TResult Function()? acceptCall,
+    TResult Function(String? callId)? acceptCall,
     TResult Function()? declineCall,
     TResult Function()? cancelCall,
     TResult Function()? endCall,

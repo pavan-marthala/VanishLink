@@ -127,9 +127,9 @@ class CallBloc extends Bloc<CallEvent, CallState> {
   }
 
   Future<void> _onAcceptCall(AcceptCall event, Emitter<CallState> emit) async {
-    final call = _getActiveCall();
-    if (call == null) return;
-    await _callRepository.acceptCall(call.callId);
+    final callId = event.callId ?? _getActiveCall()?.callId;
+    if (callId == null) return;
+    await _callRepository.acceptCall(callId);
   }
 
   Future<void> _onDeclineCall(DeclineCall event, Emitter<CallState> emit) async {

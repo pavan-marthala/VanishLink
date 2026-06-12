@@ -31,6 +31,17 @@ class _CallOverlayManagerState extends State<CallOverlayManager> {
   Timer? _durationTimer;
   int _elapsedSeconds = 0;
   String? _lastTerminatedMessage;
+  StreamSubscription<User?>? _authSubscription;
+
+  @override
+  void initState() {
+    super.initState();
+    _authSubscription = FirebaseAuth.instance.authStateChanges().listen((user) {
+      if (mounted) {
+        setState(() {});
+      }
+    });
+  }
 
   void _startDurationTimer() {
     _durationTimer?.cancel();
@@ -103,6 +114,7 @@ class _CallOverlayManagerState extends State<CallOverlayManager> {
 
   @override
   void dispose() {
+    _authSubscription?.cancel();
     _durationTimer?.cancel();
     super.dispose();
   }

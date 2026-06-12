@@ -152,7 +152,14 @@ class CallCoordinator {
     if (event == null) return;
     switch (event) {
       case ck.CallEventActionCallAccept():
-        getIt<CallBloc>().add(const CallEvent.acceptCall());
+        final body = event.body as Map<dynamic, dynamic>?;
+        final callId = body?['id'] as String?;
+        if (callId != null) {
+          getIt<CallBloc>().add(CallEvent.listenToCall(callId));
+          getIt<CallBloc>().add(CallEvent.acceptCall(callId: callId));
+        } else {
+          getIt<CallBloc>().add(const CallEvent.acceptCall());
+        }
         break;
       case ck.CallEventActionCallDecline():
         getIt<CallBloc>().add(const CallEvent.declineCall());
