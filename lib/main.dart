@@ -1,6 +1,5 @@
 import 'dart:async';
 import 'package:firebase_core/firebase_core.dart';
-import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
@@ -28,8 +27,6 @@ import 'package:vanish_link/features/chat/presentation/screens/call_screen.dart'
 import 'package:vanish_link/features/chat/presentation/bloc/call/call_bloc.dart';
 import 'package:vanish_link/features/chat/presentation/widgets/call_overlay_manager.dart';
 import 'package:vanish_link/firebase_options.dart';
-
-
 
 final GlobalKey<NavigatorState> rootNavigatorKey = GlobalKey<NavigatorState>(
   debugLabel: 'root',
