@@ -6,6 +6,7 @@ import 'package:vanish_link/core/di/injection.dart';
 import 'package:vanish_link/core/utils/app_toast.dart';
 import 'package:vanish_link/features/chat/domain/entities/call_model.dart';
 import 'package:vanish_link/features/chat/domain/repositories/presence_repository.dart';
+import 'package:vanish_link/features/chat/domain/entities/presence_status.dart';
 import 'package:vanish_link/features/chat/presentation/bloc/call/call_bloc.dart';
 import 'package:vanish_link/features/chat/presentation/bloc/call/call_event.dart';
 import 'package:vanish_link/features/chat/presentation/bloc/call/call_state.dart';
@@ -240,7 +241,7 @@ class CallCoordinator {
       final presence = await _presenceRepository.watchPresence(userId).first.timeout(
         const Duration(seconds: 2),
       );
-      return presence.online;
+      return presence.status != PresenceStatusType.offline;
     } catch (_) {
       return false;
     }

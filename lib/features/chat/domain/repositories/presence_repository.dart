@@ -7,6 +7,9 @@ abstract class PresenceRepository {
   /// Manually update online status of a user
   Future<void> setUserOnline(String userId, bool online);
 
+  /// Manually update presence status of a user
+  Future<void> setUserStatus(String userId, PresenceStatusType status);
+
   /// Set up automatic offline state on network/socket disconnect
   Future<void> setupOnDisconnect(String userId);
 

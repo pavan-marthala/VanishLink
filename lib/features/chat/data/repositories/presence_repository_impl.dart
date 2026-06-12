@@ -28,7 +28,25 @@ class PresenceRepositoryImpl implements PresenceRepository {
           return PresenceStatus.offline();
         }
 
-        final online = data['online'] as bool? ?? false;
+        final statusStr = data['status'] as String? ?? '';
+        final PresenceStatusType status;
+        final bool online;
+
+        if (statusStr == 'online') {
+          status = PresenceStatusType.online;
+          online = true;
+        } else if (statusStr == 'background') {
+          status = PresenceStatusType.background;
+          online = true;
+        } else if (statusStr == 'offline') {
+          status = PresenceStatusType.offline;
+          online = false;
+        } else {
+          final legacyOnline = data['online'] as bool? ?? false;
+          status = legacyOnline ? PresenceStatusType.online : PresenceStatusType.offline;
+          online = legacyOnline;
+        }
+
         final lastSeenRaw = data['lastSeen'];
         int lastSeenMs = 0;
         if (lastSeenRaw is int) {
@@ -38,6 +56,7 @@ class PresenceRepositoryImpl implements PresenceRepository {
         }
 
         return PresenceStatus(
+          status: status,
           online: online,
           lastSeen: DateTime.fromMillisecondsSinceEpoch(lastSeenMs),
         );
@@ -49,10 +68,19 @@ class PresenceRepositoryImpl implements PresenceRepository {
 
   @override
   Future<void> setUserOnline(String userId, bool online) async {
+    await setUserStatus(
+      userId,
+      online ? PresenceStatusType.online : PresenceStatusType.offline,
+    );
+  }
+
+  @override
+  Future<void> setUserStatus(String userId, PresenceStatusType status) async {
     if (userId.isEmpty) return;
 
     await _database.ref('presence/$userId').update({
-      'online': online,
+      'status': status.name,
+      'online': status != PresenceStatusType.offline,
       'lastSeen': ServerValue.timestamp,
     });
   }
@@ -63,6 +91,7 @@ class PresenceRepositoryImpl implements PresenceRepository {
 
     final ref = _database.ref('presence/$userId');
     await ref.onDisconnect().update({
+      'status': PresenceStatusType.offline.name,
       'online': false,
       'lastSeen': ServerValue.timestamp,
     });

@@ -2,6 +2,7 @@ import 'dart:async';
 import 'package:flutter/widgets.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:vanish_link/features/chat/domain/repositories/presence_repository.dart';
+import 'package:vanish_link/features/chat/domain/entities/presence_status.dart';
 
 class PresenceService with WidgetsBindingObserver {
   final PresenceRepository _presenceRepository;
@@ -23,20 +24,20 @@ class PresenceService with WidgetsBindingObserver {
       if (user != null) {
         _currentUserId = user.uid;
         _presenceRepository.goOnline();
-        _goOnline();
+        _updateStatus(PresenceStatusType.online);
         _connectionSubscription?.cancel();
         _connectionSubscription = _presenceRepository
             .watchConnectionState()
             .listen((connected) {
           if (connected && _currentUserId != null) {
-            _goOnline();
+            _updateStatus(PresenceStatusType.online);
           }
         });
       } else {
         if (_currentUserId != null) {
           _connectionSubscription?.cancel();
           _connectionSubscription = null;
-          _goOffline();
+          _updateStatus(PresenceStatusType.offline);
           _currentUserId = null;
         }
       }
@@ -50,7 +51,7 @@ class PresenceService with WidgetsBindingObserver {
     _connectionSubscription?.cancel();
     _connectionSubscription = null;
     if (_currentUserId != null) {
-      _goOffline();
+      _updateStatus(PresenceStatusType.offline);
     }
   }
 
@@ -60,24 +61,25 @@ class PresenceService with WidgetsBindingObserver {
 
     if (state == AppLifecycleState.resumed) {
       _presenceRepository.goOnline();
-      _goOnline();
-    } else if (state == AppLifecycleState.paused ||
-        state == AppLifecycleState.detached) {
-      _goOffline();
+      _updateStatus(PresenceStatusType.online);
+    } else if (state == AppLifecycleState.paused) {
+      _updateStatus(PresenceStatusType.background);
+    } else if (state == AppLifecycleState.detached) {
+      _updateStatus(PresenceStatusType.offline);
     }
   }
 
-  void _goOnline() {
+  void _updateStatus(PresenceStatusType status) async {
     final uid = _currentUserId;
     if (uid == null) return;
-    _presenceRepository.setupOnDisconnect(uid);
-    _presenceRepository.setUserOnline(uid, true);
-  }
-
-  void _goOffline() async {
-    final uid = _currentUserId;
-    if (uid == null) return;
-    await _presenceRepository.setUserOnline(uid, false);
-    await _presenceRepository.goOffline();
+    if (status == PresenceStatusType.online) {
+      await _presenceRepository.setupOnDisconnect(uid);
+      await _presenceRepository.setUserStatus(uid, PresenceStatusType.online);
+    } else if (status == PresenceStatusType.background) {
+      await _presenceRepository.setUserStatus(uid, PresenceStatusType.background);
+    } else {
+      await _presenceRepository.setUserStatus(uid, PresenceStatusType.offline);
+      await _presenceRepository.goOffline();
+    }
   }
 }

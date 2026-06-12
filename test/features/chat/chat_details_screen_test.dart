@@ -24,6 +24,8 @@ class FakePresenceRepository implements PresenceRepository {
   @override
   Future<void> setupOnDisconnect(String userId) async {}
   @override
+  Future<void> setUserStatus(String userId, PresenceStatusType status) async {}
+  @override
   Stream<PresenceStatus> watchPresence(String userId) => Stream.value(PresenceStatus.offline());
   @override
   Stream<bool> watchConnectionState() => Stream.value(true);

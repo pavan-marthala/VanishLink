@@ -6,18 +6,21 @@ part 'presence_state.freezed.dart';
 class PresenceState with _$PresenceState {
   const factory PresenceState.unknown() = Unknown;
   const factory PresenceState.online() = Online;
+  const factory PresenceState.background() = Background;
   const factory PresenceState.offline({required DateTime lastSeen}) = Offline;
 }
 
 extension PresenceStateX on PresenceState {
   bool get isOnline => maybeMap(
         online: (_) => true,
+        background: (_) => true,
         orElse: () => false,
       );
 
   String get displayStatus => map(
         unknown: (_) => 'Offline',
         online: (_) => 'Online',
+        background: (_) => 'Away',
         offline: (o) {
           if (o.lastSeen.millisecondsSinceEpoch == 0) {
             return 'Offline';

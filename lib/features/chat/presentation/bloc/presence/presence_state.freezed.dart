@@ -20,6 +20,7 @@ mixin _$PresenceState {
   TResult when<TResult extends Object?>({
     required TResult Function() unknown,
     required TResult Function() online,
+    required TResult Function() background,
     required TResult Function(DateTime lastSeen) offline,
   }) =>
       throw _privateConstructorUsedError;
@@ -27,6 +28,7 @@ mixin _$PresenceState {
   TResult? whenOrNull<TResult extends Object?>({
     TResult? Function()? unknown,
     TResult? Function()? online,
+    TResult? Function()? background,
     TResult? Function(DateTime lastSeen)? offline,
   }) =>
       throw _privateConstructorUsedError;
@@ -34,6 +36,7 @@ mixin _$PresenceState {
   TResult maybeWhen<TResult extends Object?>({
     TResult Function()? unknown,
     TResult Function()? online,
+    TResult Function()? background,
     TResult Function(DateTime lastSeen)? offline,
     required TResult orElse(),
   }) =>
@@ -42,6 +45,7 @@ mixin _$PresenceState {
   TResult map<TResult extends Object?>({
     required TResult Function(Unknown value) unknown,
     required TResult Function(Online value) online,
+    required TResult Function(Background value) background,
     required TResult Function(Offline value) offline,
   }) =>
       throw _privateConstructorUsedError;
@@ -49,6 +53,7 @@ mixin _$PresenceState {
   TResult? mapOrNull<TResult extends Object?>({
     TResult? Function(Unknown value)? unknown,
     TResult? Function(Online value)? online,
+    TResult? Function(Background value)? background,
     TResult? Function(Offline value)? offline,
   }) =>
       throw _privateConstructorUsedError;
@@ -56,6 +61,7 @@ mixin _$PresenceState {
   TResult maybeMap<TResult extends Object?>({
     TResult Function(Unknown value)? unknown,
     TResult Function(Online value)? online,
+    TResult Function(Background value)? background,
     TResult Function(Offline value)? offline,
     required TResult orElse(),
   }) =>
@@ -120,6 +126,7 @@ class _$UnknownImpl implements Unknown {
   TResult when<TResult extends Object?>({
     required TResult Function() unknown,
     required TResult Function() online,
+    required TResult Function() background,
     required TResult Function(DateTime lastSeen) offline,
   }) {
     return unknown();
@@ -130,6 +137,7 @@ class _$UnknownImpl implements Unknown {
   TResult? whenOrNull<TResult extends Object?>({
     TResult? Function()? unknown,
     TResult? Function()? online,
+    TResult? Function()? background,
     TResult? Function(DateTime lastSeen)? offline,
   }) {
     return unknown?.call();
@@ -140,6 +148,7 @@ class _$UnknownImpl implements Unknown {
   TResult maybeWhen<TResult extends Object?>({
     TResult Function()? unknown,
     TResult Function()? online,
+    TResult Function()? background,
     TResult Function(DateTime lastSeen)? offline,
     required TResult orElse(),
   }) {
@@ -154,6 +163,7 @@ class _$UnknownImpl implements Unknown {
   TResult map<TResult extends Object?>({
     required TResult Function(Unknown value) unknown,
     required TResult Function(Online value) online,
+    required TResult Function(Background value) background,
     required TResult Function(Offline value) offline,
   }) {
     return unknown(this);
@@ -164,6 +174,7 @@ class _$UnknownImpl implements Unknown {
   TResult? mapOrNull<TResult extends Object?>({
     TResult? Function(Unknown value)? unknown,
     TResult? Function(Online value)? online,
+    TResult? Function(Background value)? background,
     TResult? Function(Offline value)? offline,
   }) {
     return unknown?.call(this);
@@ -174,6 +185,7 @@ class _$UnknownImpl implements Unknown {
   TResult maybeMap<TResult extends Object?>({
     TResult Function(Unknown value)? unknown,
     TResult Function(Online value)? online,
+    TResult Function(Background value)? background,
     TResult Function(Offline value)? offline,
     required TResult orElse(),
   }) {
@@ -228,6 +240,7 @@ class _$OnlineImpl implements Online {
   TResult when<TResult extends Object?>({
     required TResult Function() unknown,
     required TResult Function() online,
+    required TResult Function() background,
     required TResult Function(DateTime lastSeen) offline,
   }) {
     return online();
@@ -238,6 +251,7 @@ class _$OnlineImpl implements Online {
   TResult? whenOrNull<TResult extends Object?>({
     TResult? Function()? unknown,
     TResult? Function()? online,
+    TResult? Function()? background,
     TResult? Function(DateTime lastSeen)? offline,
   }) {
     return online?.call();
@@ -248,6 +262,7 @@ class _$OnlineImpl implements Online {
   TResult maybeWhen<TResult extends Object?>({
     TResult Function()? unknown,
     TResult Function()? online,
+    TResult Function()? background,
     TResult Function(DateTime lastSeen)? offline,
     required TResult orElse(),
   }) {
@@ -262,6 +277,7 @@ class _$OnlineImpl implements Online {
   TResult map<TResult extends Object?>({
     required TResult Function(Unknown value) unknown,
     required TResult Function(Online value) online,
+    required TResult Function(Background value) background,
     required TResult Function(Offline value) offline,
   }) {
     return online(this);
@@ -272,6 +288,7 @@ class _$OnlineImpl implements Online {
   TResult? mapOrNull<TResult extends Object?>({
     TResult? Function(Unknown value)? unknown,
     TResult? Function(Online value)? online,
+    TResult? Function(Background value)? background,
     TResult? Function(Offline value)? offline,
   }) {
     return online?.call(this);
@@ -282,6 +299,7 @@ class _$OnlineImpl implements Online {
   TResult maybeMap<TResult extends Object?>({
     TResult Function(Unknown value)? unknown,
     TResult Function(Online value)? online,
+    TResult Function(Background value)? background,
     TResult Function(Offline value)? offline,
     required TResult orElse(),
   }) {
@@ -294,6 +312,120 @@ class _$OnlineImpl implements Online {
 
 abstract class Online implements PresenceState {
   const factory Online() = _$OnlineImpl;
+}
+
+/// @nodoc
+abstract class _$$BackgroundImplCopyWith<$Res> {
+  factory _$$BackgroundImplCopyWith(
+          _$BackgroundImpl value, $Res Function(_$BackgroundImpl) then) =
+      __$$BackgroundImplCopyWithImpl<$Res>;
+}
+
+/// @nodoc
+class __$$BackgroundImplCopyWithImpl<$Res>
+    extends _$PresenceStateCopyWithImpl<$Res, _$BackgroundImpl>
+    implements _$$BackgroundImplCopyWith<$Res> {
+  __$$BackgroundImplCopyWithImpl(
+      _$BackgroundImpl _value, $Res Function(_$BackgroundImpl) _then)
+      : super(_value, _then);
+}
+
+/// @nodoc
+
+class _$BackgroundImpl implements Background {
+  const _$BackgroundImpl();
+
+  @override
+  String toString() {
+    return 'PresenceState.background()';
+  }
+
+  @override
+  bool operator ==(Object other) {
+    return identical(this, other) ||
+        (other.runtimeType == runtimeType && other is _$BackgroundImpl);
+  }
+
+  @override
+  int get hashCode => runtimeType.hashCode;
+
+  @override
+  @optionalTypeArgs
+  TResult when<TResult extends Object?>({
+    required TResult Function() unknown,
+    required TResult Function() online,
+    required TResult Function() background,
+    required TResult Function(DateTime lastSeen) offline,
+  }) {
+    return background();
+  }
+
+  @override
+  @optionalTypeArgs
+  TResult? whenOrNull<TResult extends Object?>({
+    TResult? Function()? unknown,
+    TResult? Function()? online,
+    TResult? Function()? background,
+    TResult? Function(DateTime lastSeen)? offline,
+  }) {
+    return background?.call();
+  }
+
+  @override
+  @optionalTypeArgs
+  TResult maybeWhen<TResult extends Object?>({
+    TResult Function()? unknown,
+    TResult Function()? online,
+    TResult Function()? background,
+    TResult Function(DateTime lastSeen)? offline,
+    required TResult orElse(),
+  }) {
+    if (background != null) {
+      return background();
+    }
+    return orElse();
+  }
+
+  @override
+  @optionalTypeArgs
+  TResult map<TResult extends Object?>({
+    required TResult Function(Unknown value) unknown,
+    required TResult Function(Online value) online,
+    required TResult Function(Background value) background,
+    required TResult Function(Offline value) offline,
+  }) {
+    return background(this);
+  }
+
+  @override
+  @optionalTypeArgs
+  TResult? mapOrNull<TResult extends Object?>({
+    TResult? Function(Unknown value)? unknown,
+    TResult? Function(Online value)? online,
+    TResult? Function(Background value)? background,
+    TResult? Function(Offline value)? offline,
+  }) {
+    return background?.call(this);
+  }
+
+  @override
+  @optionalTypeArgs
+  TResult maybeMap<TResult extends Object?>({
+    TResult Function(Unknown value)? unknown,
+    TResult Function(Online value)? online,
+    TResult Function(Background value)? background,
+    TResult Function(Offline value)? offline,
+    required TResult orElse(),
+  }) {
+    if (background != null) {
+      return background(this);
+    }
+    return orElse();
+  }
+}
+
+abstract class Background implements PresenceState {
+  const factory Background() = _$BackgroundImpl;
 }
 
 /// @nodoc
@@ -363,6 +495,7 @@ class _$OfflineImpl implements Offline {
   TResult when<TResult extends Object?>({
     required TResult Function() unknown,
     required TResult Function() online,
+    required TResult Function() background,
     required TResult Function(DateTime lastSeen) offline,
   }) {
     return offline(lastSeen);
@@ -373,6 +506,7 @@ class _$OfflineImpl implements Offline {
   TResult? whenOrNull<TResult extends Object?>({
     TResult? Function()? unknown,
     TResult? Function()? online,
+    TResult? Function()? background,
     TResult? Function(DateTime lastSeen)? offline,
   }) {
     return offline?.call(lastSeen);
@@ -383,6 +517,7 @@ class _$OfflineImpl implements Offline {
   TResult maybeWhen<TResult extends Object?>({
     TResult Function()? unknown,
     TResult Function()? online,
+    TResult Function()? background,
     TResult Function(DateTime lastSeen)? offline,
     required TResult orElse(),
   }) {
@@ -397,6 +532,7 @@ class _$OfflineImpl implements Offline {
   TResult map<TResult extends Object?>({
     required TResult Function(Unknown value) unknown,
     required TResult Function(Online value) online,
+    required TResult Function(Background value) background,
     required TResult Function(Offline value) offline,
   }) {
     return offline(this);
@@ -407,6 +543,7 @@ class _$OfflineImpl implements Offline {
   TResult? mapOrNull<TResult extends Object?>({
     TResult? Function(Unknown value)? unknown,
     TResult? Function(Online value)? online,
+    TResult? Function(Background value)? background,
     TResult? Function(Offline value)? offline,
   }) {
     return offline?.call(this);
@@ -417,6 +554,7 @@ class _$OfflineImpl implements Offline {
   TResult maybeMap<TResult extends Object?>({
     TResult Function(Unknown value)? unknown,
     TResult Function(Online value)? online,
+    TResult Function(Background value)? background,
     TResult Function(Offline value)? offline,
     required TResult orElse(),
   }) {

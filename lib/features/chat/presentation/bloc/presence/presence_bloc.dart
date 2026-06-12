@@ -36,8 +36,10 @@ class PresenceBloc extends Bloc<PresenceEvent, PresenceState> {
     });
 
     on<PresenceUpdated>((event, emit) {
-      if (event.status.online) {
+      if (event.status.status == PresenceStatusType.online) {
         emit(const PresenceState.online());
+      } else if (event.status.status == PresenceStatusType.background) {
+        emit(const PresenceState.background());
       } else if (event.status.lastSeen.millisecondsSinceEpoch == 0) {
         emit(const PresenceState.unknown());
       } else {

@@ -42,6 +42,15 @@ class FakePresenceRepository implements PresenceRepository {
   }
 
   @override
+  Future<void> setUserStatus(String userId, PresenceStatusType status) async {
+    if (status != PresenceStatusType.offline) {
+      onlineUserUpdates.add(userId);
+    } else {
+      onlineUserUpdates.add('$userId:offline');
+    }
+  }
+
+  @override
   Future<void> goOnline() async {}
 
   @override
