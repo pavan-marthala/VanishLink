@@ -23,10 +23,16 @@ import 'package:vanish_link/features/chat/domain/services/presence_service.dart'
 import 'package:vanish_link/features/chat/domain/services/unread_service.dart';
 import 'package:vanish_link/features/chat/domain/services/call_listener_service.dart';
 import 'package:vanish_link/features/chat/domain/services/call_coordinator.dart';
+import 'package:vanish_link/features/chat/domain/services/notification_service.dart';
+import 'package:vanish_link/features/chat/domain/services/notification_router.dart';
+import 'package:vanish_link/features/chat/domain/services/notification_presenter.dart';
 import 'package:vanish_link/features/chat/presentation/screens/call_screen.dart';
 import 'package:vanish_link/features/chat/presentation/bloc/call/call_bloc.dart';
 import 'package:vanish_link/features/chat/presentation/widgets/call_overlay_manager.dart';
 import 'package:vanish_link/firebase_options.dart';
+import 'package:vanish_link/core/services/permission_manager.dart';
+import 'package:vanish_link/features/profile/presentation/screens/onboarding_screen.dart';
+import 'package:vanish_link/features/profile/presentation/screens/permissions_screen.dart';
 
 final GlobalKey<NavigatorState> rootNavigatorKey = GlobalKey<NavigatorState>(
   debugLabel: 'root',
@@ -61,6 +67,17 @@ void main() async {
 
   // Initialize call coordinator
   getIt<CallCoordinator>().initialize();
+
+  // Initialize notifications asynchronously after the first frame
+  WidgetsBinding.instance.addPostFrameCallback((_) async {
+    try {
+      await getIt<NotificationPresenter>().initialize();
+      await getIt<NotificationService>().initialize();
+      getIt<NotificationRouter>().start();
+    } catch (e, stack) {
+      debugPrint('Error initializing notifications: $e\n$stack');
+    }
+  });
 
   runApp(const MyApp());
 }
@@ -120,6 +137,16 @@ class _MyAppState extends State<MyApp> {
             return null;
           },
           authenticated: (_) {
+            final onboardingCompleted = getIt<PermissionManager>().isOnboardingCompletedSync();
+            if (!onboardingCompleted) {
+              if (matchedLocation != AppRoutes.onboarding) {
+                return AppRoutes.onboarding;
+              }
+              return null;
+            }
+            if (matchedLocation == AppRoutes.onboarding) {
+              return AppRoutes.chats;
+            }
             if (isSplash || isSignIn || isSignUp) {
               return AppRoutes.chats;
             }
@@ -145,6 +172,14 @@ class _MyAppState extends State<MyApp> {
         GoRoute(
           path: AppRoutes.signUp,
           builder: (context, state) => const SignUpScreen(),
+        ),
+        GoRoute(
+          path: AppRoutes.onboarding,
+          builder: (context, state) => const OnboardingScreen(),
+        ),
+        GoRoute(
+          path: AppRoutes.permissions,
+          builder: (context, state) => const PermissionsScreen(),
         ),
         GoRoute(
           path: AppRoutes.discover,

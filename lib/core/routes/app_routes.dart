@@ -9,4 +9,6 @@ class AppRoutes {
   static const call = '/call/:callId';
   static const signIn = '/sign-in';
   static const signUp = '/sign-up';
+  static const onboarding = '/onboarding';
+  static const permissions = '/profile/permissions';
 }

@@ -48,8 +48,10 @@ class CallListenerService {
         }
         // Update CallBloc status to start listening
         getIt<CallBloc>().add(CallEvent.listenToCall(call.callId));
-        // If status is 'calling', change to 'ringing' to signal to the caller we are ringing
-        if (call.status == 'calling') {
+        // If status is 'created', 'delivering', or 'calling', change to 'ringing' to signal to the caller we are ringing
+        if (call.status == 'created' ||
+            call.status == 'delivering' ||
+            call.status == 'calling') {
           _callRepository.updateCallStatus(call.callId, 'ringing');
         }
       }

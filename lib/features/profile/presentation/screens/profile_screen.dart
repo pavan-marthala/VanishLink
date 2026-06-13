@@ -325,6 +325,16 @@ class _ProfileScreenContent extends StatelessWidget {
                           showInfoToast(message: 'Notification settings coming soon!');
                         },
                       ),
+                      const SizedBox(height: 12),
+                      _buildSettingsTile(
+                        icon: CupertinoIcons.shield_fill,
+                        title: 'Permission Management',
+                        subtitle: 'Review device permission states',
+                        onTap: () {
+                          HapticFeedback.lightImpact();
+                          context.push(AppRoutes.permissions);
+                        },
+                      ),
                       const SizedBox(height: 20),
 
                       _buildSectionHeader('Application'),

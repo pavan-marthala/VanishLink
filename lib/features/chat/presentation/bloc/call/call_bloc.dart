@@ -2,13 +2,20 @@ import 'dart:async';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:vanish_link/features/chat/domain/repositories/call_repository.dart';
 import 'package:vanish_link/features/chat/domain/entities/call_model.dart';
+import 'package:flutter/foundation.dart';
+import 'package:vanish_link/features/chat/domain/entities/call_delivery.dart';
+import 'package:vanish_link/features/chat/domain/services/call_delivery_contracts.dart';
+import 'package:vanish_link/core/di/injection.dart';
+import 'package:firebase_auth/firebase_auth.dart';
+import 'package:vanish_link/core/services/permission_manager.dart';
 import 'call_event.dart';
 import 'call_state.dart';
 
 class CallBloc extends Bloc<CallEvent, CallState> {
   final CallRepository _callRepository;
   StreamSubscription<CallModel?>? _callSubscription;
-  Timer? _timeoutTimer;
+  Timer? _deliveringTimer;
+  Timer? _ringingTimer;
   Timer? _durationTimer;
   int _callDuration = 0;
 
@@ -66,59 +73,87 @@ class CallBloc extends Bloc<CallEvent, CallState> {
     }
 
     switch (call.status) {
-      case 'calling':
-        _startTimeoutTimer(call.callId);
+      case 'created':
+        _startDeliveringTimer(call.callId);
+        emit(CallState.calling(call));
+        final currentUserId = FirebaseAuth.instance.currentUser?.uid;
+        if (call.callerId == currentUserId) {
+          getIt<CallDeliveryNotificationTrigger>().triggerIncomingCallPush(call);
+          _callRepository.updateCallStatus(call.callId, 'delivering');
+        }
+        break;
+      case 'delivering':
+        _startDeliveringTimer(call.callId);
         emit(CallState.calling(call));
         break;
+      case 'calling':
       case 'ringing':
-        _startTimeoutTimer(call.callId);
-        emit(CallState.incomingCall(call));
+        _deliveringTimer?.cancel();
+        _deliveringTimer = null;
+        _startRingingTimer(call.callId);
+        emit(call.status == 'ringing' ? CallState.incomingCall(call) : CallState.calling(call));
         break;
       case 'connecting':
+        _cancelDeliveryTimers();
         emit(CallState.connecting(call));
         break;
       case 'accepted':
-        _cancelTimeoutTimer();
+        _cancelDeliveryTimers();
         _startDurationTimer();
         emit(CallState.connected(call));
         break;
       case 'active':
-        _cancelTimeoutTimer();
+        _cancelDeliveryTimers();
         _startDurationTimer();
         emit(CallState.active(call));
         break;
       case 'declined':
-        _cancelTimeoutTimer();
+        _cancelDeliveryTimers();
         _stopDurationTimer();
         emit(CallState.declined(call));
         await _callRepository.storeCallHistory(call);
         break;
       case 'busy':
-        _cancelTimeoutTimer();
+        _cancelDeliveryTimers();
         _stopDurationTimer();
         emit(CallState.failed(call, 'User is busy'));
         await _callRepository.storeCallHistory(call);
         break;
       case 'missed':
-        _cancelTimeoutTimer();
+        _cancelDeliveryTimers();
         _stopDurationTimer();
         emit(CallState.missed(call));
         await _callRepository.storeCallHistory(call);
+        getIt<CallDeliveryNotificationTrigger>().triggerMissedCallPush(call);
+        break;
+      case 'unreachable':
+        _cancelDeliveryTimers();
+        _stopDurationTimer();
+        emit(CallState.failed(call, 'User is unreachable'));
+        await _callRepository.storeCallHistory(call);
+        getIt<CallDeliveryNotificationTrigger>().triggerTimeoutCallPush(call);
+        break;
+      case 'timeout':
+        _cancelDeliveryTimers();
+        _stopDurationTimer();
+        emit(CallState.failed(call, 'Call Timeout'));
+        await _callRepository.storeCallHistory(call);
+        getIt<CallDeliveryNotificationTrigger>().triggerTimeoutCallPush(call);
         break;
       case 'ended':
-        _cancelTimeoutTimer();
+        _cancelDeliveryTimers();
         _stopDurationTimer();
         emit(CallState.ended(call));
         await _callRepository.storeCallHistory(call);
         break;
       case 'failed':
-        _cancelTimeoutTimer();
+        _cancelDeliveryTimers();
         _stopDurationTimer();
         emit(CallState.failed(call, 'Call Failed'));
         await _callRepository.storeCallHistory(call);
         break;
       case 'cancelled':
-        _cancelTimeoutTimer();
+        _cancelDeliveryTimers();
         _stopDurationTimer();
         emit(CallState.ended(call)); // Map cancelled to ended for screen pop
         await _callRepository.storeCallHistory(call);
@@ -129,6 +164,28 @@ class CallBloc extends Bloc<CallEvent, CallState> {
   Future<void> _onAcceptCall(AcceptCall event, Emitter<CallState> emit) async {
     final callId = event.callId ?? _getActiveCall()?.callId;
     if (callId == null) return;
+
+    final call = _getActiveCall();
+    if (call != null) {
+      final pm = getIt<PermissionManager>();
+      // Request mic permission
+      final micStatus = await pm.requestPermission(VanishPermissionType.microphone);
+
+      // If video call, request camera permission too
+      bool camGranted = true;
+      if (call.type == 'video') {
+        final camStatus = await pm.requestPermission(VanishPermissionType.camera);
+        camGranted = camStatus == VanishPermissionStatus.granted;
+      }
+
+      if (micStatus != VanishPermissionStatus.granted || !camGranted) {
+        debugPrint('[CallBloc] Accept Call aborted: Microphone or Camera permission denied.');
+        await _callRepository.updateCallStatus(callId, 'declined');
+        emit(CallState.failed(call, 'Microphone permission denied'));
+        return;
+      }
+    }
+
     await _callRepository.acceptCall(callId);
   }
 
@@ -161,19 +218,35 @@ class CallBloc extends Bloc<CallEvent, CallState> {
     );
   }
 
-  void _startTimeoutTimer(String callId) {
-    if (_timeoutTimer != null) return;
-    _timeoutTimer = Timer(const Duration(seconds: 30), () async {
+  void _startDeliveringTimer(String callId) {
+    if (_deliveringTimer != null) return;
+    debugPrint('[CallBloc] Starting delivering timer for call: $callId');
+    _deliveringTimer = Timer(CallDeliveryConfig.deliveringTimeout, () async {
       final call = _getActiveCall();
-      if (call != null && (call.status == 'calling' || call.status == 'ringing')) {
+      if (call != null && (call.status == 'created' || call.status == 'delivering')) {
+        debugPrint('[CallBloc] Call delivering timed out. Marking unreachable.');
+        await _callRepository.updateCallStatus(callId, 'unreachable');
+      }
+    });
+  }
+
+  void _startRingingTimer(String callId) {
+    if (_ringingTimer != null) return;
+    debugPrint('[CallBloc] Starting ringing timer for call: $callId');
+    _ringingTimer = Timer(CallDeliveryConfig.ringingTimeout, () async {
+      final call = _getActiveCall();
+      if (call != null && (call.status == 'ringing' || call.status == 'calling')) {
+        debugPrint('[CallBloc] Call ringing timed out. Marking missed.');
         await _callRepository.updateCallStatus(callId, 'missed');
       }
     });
   }
 
-  void _cancelTimeoutTimer() {
-    _timeoutTimer?.cancel();
-    _timeoutTimer = null;
+  void _cancelDeliveryTimers() {
+    _deliveringTimer?.cancel();
+    _deliveringTimer = null;
+    _ringingTimer?.cancel();
+    _ringingTimer = null;
   }
 
   void _startDurationTimer() {
@@ -192,7 +265,7 @@ class CallBloc extends Bloc<CallEvent, CallState> {
   @override
   Future<void> close() {
     _callSubscription?.cancel();
-    _timeoutTimer?.cancel();
+    _cancelDeliveryTimers();
     _durationTimer?.cancel();
     return super.close();
   }

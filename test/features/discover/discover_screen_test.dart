@@ -37,6 +37,20 @@ class FakePresenceRepository implements PresenceRepository {
   Stream<PresenceStatus> watchPresence(String userId) => Stream.value(PresenceStatus.offline());
   @override
   Stream<bool> watchConnectionState() => Stream.value(true);
+
+  @override
+  Future<void> updateDevicePushToken({
+    required String userId,
+    required String deviceId,
+    required String token,
+    required String platform,
+    required bool notificationPermission,
+    required bool microphonePermission,
+    required bool cameraPermission,
+  }) async {}
+
+  @override
+  Future<void> removeDevicePushToken(String userId, String deviceId) async {}
 }
 
 void main() {

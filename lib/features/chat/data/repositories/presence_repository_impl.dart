@@ -113,4 +113,34 @@ class PresenceRepositoryImpl implements PresenceRepository {
       return event.snapshot.value as bool? ?? false;
     });
   }
+
+  @override
+  Future<void> updateDevicePushToken({
+    required String userId,
+    required String deviceId,
+    required String token,
+    required String platform,
+    required bool notificationPermission,
+    required bool microphonePermission,
+    required bool cameraPermission,
+  }) async {
+    if (userId.isEmpty || deviceId.isEmpty) return;
+
+    await _database.ref('presence/$userId/devices/$deviceId').update({
+      'platform': platform,
+      'pushProvider': 'fcm',
+      'pushToken': token,
+      'lastActiveAt': ServerValue.timestamp,
+      'notificationPermission': notificationPermission,
+      'microphonePermission': microphonePermission,
+      'cameraPermission': cameraPermission,
+    });
+  }
+
+  @override
+  Future<void> removeDevicePushToken(String userId, String deviceId) async {
+    if (userId.isEmpty || deviceId.isEmpty) return;
+
+    await _database.ref('presence/$userId/devices/$deviceId').remove();
+  }
 }

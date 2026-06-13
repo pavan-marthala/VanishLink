@@ -1,4 +1,8 @@
 import 'package:firebase_database/firebase_database.dart';
+import 'package:flutter/foundation.dart';
+import 'package:vanish_link/features/chat/domain/entities/notification_payload.dart';
+import 'package:vanish_link/features/chat/domain/services/notification_dispatcher.dart';
+import 'package:vanish_link/core/di/injection.dart';
 import 'package:vanish_link/features/chat/domain/entities/message.dart';
 import 'package:vanish_link/features/chat/domain/repositories/message_repository.dart';
 
@@ -48,6 +52,27 @@ class MessageRepositoryImpl implements MessageRepository {
         .child(receiverId)
         .child(chatId)
         .set(ServerValue.increment(1));
+
+    try {
+      final payload = NotificationPayload(
+        id: messageId,
+        type: NotificationType.newMessage,
+        title: 'New Message',
+        body: content,
+        senderId: senderId,
+        receiverId: receiverId,
+        chatId: chatId,
+        createdAt: createdAt,
+        data: {
+          'chatId': chatId,
+          'senderId': senderId,
+        },
+      );
+      debugPrint('[MessageRepositoryImpl] Dispatching chat notification for message: $messageId');
+      await getIt<NotificationDispatcher>().dispatch(payload);
+    } catch (e) {
+      debugPrint('Error dispatching message notification: $e');
+    }
   }
 
   @override

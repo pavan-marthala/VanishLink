@@ -30,7 +30,7 @@ class CallRepositoryImpl implements CallRepository {
       callerId: callerId,
       receiverId: receiverId,
       type: type,
-      status: 'calling',
+      status: 'created',
       createdAt: now,
     );
 
@@ -117,7 +117,7 @@ class CallRepositoryImpl implements CallRepository {
             final callMap = safeMapCast(entry);
             if (callMap != null) {
               final status = callMap['status'] as String? ?? '';
-              if (status == 'calling' || status == 'ringing') {
+              if (status == 'created' || status == 'delivering' || status == 'calling' || status == 'ringing') {
                 return CallModel.fromJson(callMap);
               }
             }
@@ -126,13 +126,13 @@ class CallRepositoryImpl implements CallRepository {
           final parentMap = safeMapCast(value);
           if (parentMap != null) {
             for (final entry in parentMap.values) {
-              final callMap = safeMapCast(entry);
-              if (callMap != null) {
-                final status = callMap['status'] as String? ?? '';
-                if (status == 'calling' || status == 'ringing') {
-                  return CallModel.fromJson(callMap);
-                }
-              }
+               final callMap = safeMapCast(entry);
+               if (callMap != null) {
+                 final status = callMap['status'] as String? ?? '';
+                 if (status == 'created' || status == 'delivering' || status == 'calling' || status == 'ringing') {
+                   return CallModel.fromJson(callMap);
+                 }
+               }
             }
           }
         }

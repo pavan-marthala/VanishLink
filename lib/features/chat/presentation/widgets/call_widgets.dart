@@ -101,6 +101,11 @@ class _CallStatusIndicatorState extends State<CallStatusIndicator>
     bool animate = false;
 
     switch (widget.status) {
+      case 'created':
+      case 'delivering':
+        text = 'Dialing...';
+        animate = true;
+        break;
       case 'calling':
         text = 'Calling...';
         animate = true;

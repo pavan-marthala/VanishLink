@@ -40,8 +40,18 @@ import 'package:vanish_link/features/chat/domain/services/ringtone_service.dart'
 import 'package:vanish_link/features/chat/domain/services/call_notification_service.dart';
 import 'dart:io' show Platform;
 import 'package:flutter/foundation.dart';
+import 'package:flutter_local_notifications/flutter_local_notifications.dart';
+import 'package:vanish_link/features/chat/domain/services/notification_service.dart';
+import 'package:vanish_link/features/chat/domain/services/notification_router.dart';
+import 'package:vanish_link/features/chat/domain/services/notification_dispatcher.dart';
+import 'package:vanish_link/features/chat/domain/services/notification_presenter.dart';
+import 'package:vanish_link/features/chat/domain/services/call_delivery_contracts.dart';
 import 'package:vanish_link/features/chat/domain/services/call_presentation_adapter.dart';
 import 'package:vanish_link/features/chat/domain/services/call_coordinator.dart';
+import 'package:vanish_link/core/utils/device_identifier_provider.dart';
+import 'package:shared_preferences/shared_preferences.dart';
+import 'package:vanish_link/core/services/permission_manager.dart';
+
 
 
 final getIt = GetIt.instance;
@@ -49,6 +59,15 @@ final getIt = GetIt.instance;
 Future<void> configureDependencies() async {
   // External
   getIt.registerLazySingleton<FirebaseAuth>(() => FirebaseAuth.instance);
+
+  // Shared Preferences
+  final sharedPrefs = await SharedPreferences.getInstance();
+  getIt.registerLazySingleton<SharedPreferences>(() => sharedPrefs);
+
+  // Permission Manager
+  getIt.registerLazySingleton<PermissionManager>(
+    () => PermissionManagerImpl(getIt<SharedPreferences>()),
+  );
 
   // Data Sources
   getIt.registerLazySingleton<AuthRemoteDataSource>(
@@ -80,8 +99,15 @@ Future<void> configureDependencies() async {
     () => PresenceRepositoryImpl(),
   );
 
+  getIt.registerLazySingleton<DeviceIdentifierProvider>(
+    () => DeviceIdentifierProviderImpl(),
+  );
+
   getIt.registerLazySingleton<PresenceService>(
-    () => PresenceService(presenceRepository: getIt<PresenceRepository>()),
+    () => PresenceService(
+      presenceRepository: getIt<PresenceRepository>(),
+      deviceIdentifierProvider: getIt<DeviceIdentifierProvider>(),
+    ),
   );
 
   getIt.registerLazySingleton<WebRtcRepository>(
@@ -167,8 +193,13 @@ Future<void> configureDependencies() async {
     () => CallBloc(callRepository: getIt<CallRepository>()),
   );
 
+  // Local Notifications Plugin
+  getIt.registerLazySingleton<FlutterLocalNotificationsPlugin>(() => FlutterLocalNotificationsPlugin());
+
   getIt.registerLazySingleton<RingtoneService>(() => RingtoneService());
-  getIt.registerLazySingleton<CallNotificationService>(() => CallNotificationService());
+  getIt.registerLazySingleton<CallNotificationService>(
+    () => CallNotificationService(localNotifications: getIt<FlutterLocalNotificationsPlugin>()),
+  );
   getIt.registerLazySingleton<CallPresentationAdapter>(() {
     if (kIsWeb) {
       return WebCallAdapter();
@@ -188,5 +219,26 @@ Future<void> configureDependencies() async {
       notificationService: getIt<CallNotificationService>(),
       callKitAdapter: getIt<CallPresentationAdapter>(),
     ),
+  );
+
+  // Notification Feature
+  getIt.registerLazySingleton<NotificationService>(() => NotificationService());
+  getIt.registerLazySingleton<NotificationPresenter>(
+    () => NotificationPresenterImpl(localNotifications: getIt<FlutterLocalNotificationsPlugin>()),
+  );
+  getIt.registerLazySingleton<NotificationRouter>(
+    () => NotificationRouter(
+      notificationService: getIt<NotificationService>(),
+      notificationPresenter: getIt<NotificationPresenter>(),
+      callCoordinator: getIt<CallCoordinator>(),
+    ),
+  );
+  getIt.registerLazySingleton<NotificationDispatcher>(
+    () => NotificationDispatcherImpl(),
+  );
+
+  // Call Delivery Trigger
+  getIt.registerLazySingleton<CallDeliveryNotificationTrigger>(
+    () => CallDeliveryNotificationTriggerImpl(),
   );
 }

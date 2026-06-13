@@ -2,26 +2,14 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 
 class CallNotificationService {
-  final FlutterLocalNotificationsPlugin _localNotifications = FlutterLocalNotificationsPlugin();
-  bool _isInitialized = false;
+  final FlutterLocalNotificationsPlugin _localNotifications;
+
+  CallNotificationService({
+    FlutterLocalNotificationsPlugin? localNotifications,
+  }) : _localNotifications = localNotifications ?? FlutterLocalNotificationsPlugin();
 
   Future<void> initialize() async {
-    if (kIsWeb) return;
-    if (_isInitialized) return;
-    
-    const androidInit = AndroidInitializationSettings('@mipmap/ic_launcher');
-    const iosInit = DarwinInitializationSettings(
-      requestAlertPermission: false,
-      requestBadgePermission: false,
-      requestSoundPermission: false,
-    );
-    
-    const initSettings = InitializationSettings(android: androidInit, iOS: iosInit);
-    
-    await _localNotifications.initialize(
-      settings: initSettings,
-    );
-    _isInitialized = true;
+    // Shared initialization is managed centrally by NotificationPresenter
   }
 
   Future<void> showIncomingCallNotification({

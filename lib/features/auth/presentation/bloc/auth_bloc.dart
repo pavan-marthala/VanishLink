@@ -1,8 +1,11 @@
 import 'dart:async';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:freezed_annotation/freezed_annotation.dart';
+import 'package:vanish_link/core/di/injection.dart';
+import 'package:vanish_link/core/utils/device_identifier_provider.dart';
 import 'package:vanish_link/features/auth/domain/entities/auth_user.dart';
 import 'package:vanish_link/features/auth/domain/repositories/auth_repository.dart';
+import 'package:vanish_link/features/chat/domain/repositories/presence_repository.dart';
 
 part 'auth_event.dart';
 part 'auth_state.dart';
@@ -39,6 +42,20 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
           }
         },
         signOutRequested: (e) async {
+          final uid = _authRepository.currentUser?.uid;
+          if (uid != null) {
+            try {
+              final deviceIdProvider = getIt<DeviceIdentifierProvider>();
+              final presenceRepo = getIt<PresenceRepository>();
+              final deviceId = await deviceIdProvider.getIdentifier();
+              await presenceRepo.removeDevicePushToken(uid, deviceId);
+              // ignore: avoid_print
+              print('[DIAG-PUSH] push token removed successfully on logout for user: $uid, device: $deviceId');
+            } catch (err) {
+              // ignore: avoid_print
+              print('[DIAG-PUSH] push token cleanup failed on logout: $err');
+            }
+          }
           await _authRepository.signOut();
         },
       );

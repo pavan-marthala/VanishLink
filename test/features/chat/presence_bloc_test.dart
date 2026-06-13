@@ -6,6 +6,7 @@ import 'package:vanish_link/features/chat/domain/entities/presence_status.dart';
 import 'package:vanish_link/features/chat/domain/repositories/presence_repository.dart';
 import 'package:vanish_link/features/chat/domain/services/presence_service.dart';
 import 'package:vanish_link/features/chat/presentation/bloc/presence/presence_bloc.dart';
+import 'package:vanish_link/core/utils/device_identifier_provider.dart';
 
 class FakePresenceRepository implements PresenceRepository {
   final StreamController<PresenceStatus> _presenceController = StreamController<PresenceStatus>.broadcast();
@@ -59,6 +60,20 @@ class FakePresenceRepository implements PresenceRepository {
   @override
   Stream<bool> watchConnectionState() => Stream.value(true);
 
+  @override
+  Future<void> updateDevicePushToken({
+    required String userId,
+    required String deviceId,
+    required String token,
+    required String platform,
+    required bool notificationPermission,
+    required bool microphonePermission,
+    required bool cameraPermission,
+  }) async {}
+
+  @override
+  Future<void> removeDevicePushToken(String userId, String deviceId) async {}
+
   void dispose() {
     _presenceController.close();
   }
@@ -69,6 +84,14 @@ class FakeUser extends Fake implements User {
   final String uid;
 
   FakeUser(this.uid);
+}
+
+class FakeDeviceIdentifierProvider implements DeviceIdentifierProvider {
+  @override
+  Future<String> getIdentifier() async => 'test_device_id';
+
+  @override
+  Future<String> getPlatform() async => 'android';
 }
 
 class FakeFirebaseAuth extends Fake implements FirebaseAuth {
@@ -154,6 +177,7 @@ void main() {
       fakeAuth = FakeFirebaseAuth();
       presenceService = PresenceService(
         presenceRepository: fakeRepository,
+        deviceIdentifierProvider: FakeDeviceIdentifierProvider(),
         auth: fakeAuth,
       );
     });

@@ -1,7 +1,7 @@
 import 'dart:async';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/widgets.dart';
-import 'package:permission_handler/permission_handler.dart';
+import 'package:vanish_link/core/services/permission_manager.dart';
 import 'package:vanish_link/core/di/injection.dart';
 import 'package:vanish_link/core/utils/app_toast.dart';
 import 'package:vanish_link/features/chat/domain/entities/call_model.dart';
@@ -171,15 +171,17 @@ class CallCoordinator {
 
   /// Request microphone permission for voice calls
   Future<bool> _requestMicrophonePermission() async {
-    final status = await Permission.microphone.request();
-    return status.isGranted;
+    final pm = getIt<PermissionManager>();
+    final status = await pm.requestPermission(VanishPermissionType.microphone);
+    return status == VanishPermissionStatus.granted;
   }
 
   /// Request camera permission for video calls
   Future<bool> _requestCameraPermission() async {
-    final micStatus = await Permission.microphone.request();
-    final camStatus = await Permission.camera.request();
-    return micStatus.isGranted && camStatus.isGranted;
+    final pm = getIt<PermissionManager>();
+    final micStatus = await pm.requestPermission(VanishPermissionType.microphone);
+    final camStatus = await pm.requestPermission(VanishPermissionType.camera);
+    return micStatus == VanishPermissionStatus.granted && camStatus == VanishPermissionStatus.granted;
   }
 
   /// Initiates a new voice call with presence validation and permission check.
@@ -203,12 +205,9 @@ class CallCoordinator {
       return;
     }
 
-    // 2. Presence validation: check if receiver is online
+    // 2. Presence check is informational only
     final isOnline = await _isUserOnline(receiverId);
-    if (!isOnline) {
-      showErrorToast(message: 'User is offline.');
-      return;
-    }
+    debugPrint('[CallCoordinator] Receiver presence online status: $isOnline (Initiating call anyway via push delivery model)');
 
     // 3. Request permissions dynamically
     bool permissionGranted = false;

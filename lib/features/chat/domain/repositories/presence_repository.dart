@@ -21,4 +21,18 @@ abstract class PresenceRepository {
 
   /// Watch connection state of the client to the database
   Stream<bool> watchConnectionState();
+
+  /// Updates the device's push token registration details and permission flags in RTDB
+  Future<void> updateDevicePushToken({
+    required String userId,
+    required String deviceId,
+    required String token,
+    required String platform,
+    required bool notificationPermission,
+    required bool microphonePermission,
+    required bool cameraPermission,
+  });
+
+  /// Deletes the device's push token registration from the user record
+  Future<void> removeDevicePushToken(String userId, String deviceId);
 }
