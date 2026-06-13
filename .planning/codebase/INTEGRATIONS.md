@@ -1,86 +1,83 @@
-# Integrations - VanishLink
+# Core Integrations
 
-This document details how external service platforms, native OS call handling packages, audio media components, and permission handlers are integrated within the VanishLink codebase.
-
----
-
-## 1. Firebase Integration
-VanishLink relies extensively on Firebase services to handle authentication, permanent user records, and real-time operations (signaling, presence tracking, messaging).
-
-### A. Firebase Authentication (`firebase_auth`)
-- **Initialization**: Triggered during bootstrap in `lib/main.dart` with environment configurations mapped via `firebase_options.dart`.
-- **Purpose**: Authenticates user credentials, generates JWT tokens, and exposes state streams (`authStateChanges()`).
-- **Usage**:
-  - `AuthBloc` registers hooks to monitor changes in sign-in states.
-  - `GoRouter` reads authorization status to dynamically redirect unauthenticated users to `/signin` / `/signup` pages and authenticated users to `/chats`.
-
-### B. Firebase Realtime Database (`firebase_database`)
-Low-latency sync is required for real-time signaling, typing indicators, read status counters, and presence trackers.
-
-1. **Presence Monitoring (`presence/$userId`)**
-   - **Fields**: `{ online: bool, lastSeen: timestamp }`
-   - **Mechanics**:
-     - Tracks user active status using Flutter's `WidgetsBindingObserver` to detect app lifecycle changes (`paused`, `resumed`, `detached`).
-     - Listens to `.info/connected` status on RTDB.
-     - Registers a `setupOnDisconnect()` listener, utilizing `onDisconnect().update(...)` to automatically switch status to `online: false` and set a final `lastSeen` timestamp when the socket connection drops.
-
-2. **Call Signaling & Setup (`calls/$callId`)**
-   - **Fields**: `{ callId, callerId, receiverId, type, status, createdAt, acceptedAt, endedAt, duration }`
-   - **Mechanics**:
-     - Establishes calls in `CallRepositoryImpl.createCall()` using `calls/$callId` nodes.
-     - Updates states like `calling`, `ringing`, `accepted`, `declined`, `cancelled`, `ended`, or `busy`.
-     - Watches incoming entries via `.orderByChild('receiverId').equalTo(userId)` to detect incoming calls.
-
-3. **Message Sync (`messages/$chatId/$messageId`)**
-   - **Fields**: `{ messageId, chatId, senderId, receiverId, type, content, createdAt, expiresAt, status, replies, reactions }`
-   - **Mechanics**:
-     - Pushes text messages directly under chat channels.
-     - Handles ephemeral expirations (6-hour lifespan defaults) dynamically checked before displaying.
-     - Performs real-time typing indicators (`typing/$chatId/$userId` sub-nodes) and increments/resets unread message logs (`unreadCounts/$userId/$chatId` nodes).
-
-### C. Cloud Firestore (`cloud_firestore`)
-Firestore is utilized for permanent data persistence.
-- **`users` Collection**: Stores persistent user profile schemas (ID, Vanish ID, username, displayName, photoUrl, custom status logs).
-- **`callHistory` Collection**: When calls terminate, call metadata logs are saved permanently under the Firestore `callHistory` collection for record audits.
+VanishLink coordinates several real-time services, external APIs, and hardware peripherals. This document explains the integration flow for Firebase, WebRTC, CallKit, and Audio components.
 
 ---
 
-## 2. Calling & Notification Services
+## 1. Firebase Suite
 
-### A. CallKit Integration (`flutter_callkit_incoming`)
-To enable native call-screen UI overlays during call states when the device is locked or the app is running in the background.
-- **`CallPresentationAdapter` Pattern**:
-  - Defines platform-specific behaviors.
-  - **`AndroidCallAdapter`**: Emits `CallKitParams` configuring ringtone assets, colors, and dynamic label buttons (`Accept`, `Decline`).
-  - **`IOSCallAdapter`**: Passes `IOSParams` controlling custom ringtone paths, audio session configuration (44.1kHz sample rate, custom preferred buffer durations), and multigroup configurations.
-  - **`WebCallAdapter` & `DesktopCallAdapter`**: Stub implementations that rely on responsive in-app screen widgets.
-- **Event Mappings**: Listens to native `FlutterCallkitIncoming.onEvent` stream and dispatches BLoC events:
-  - `CallEventActionCallAccept` -> `CallEvent.acceptCall()`
-  - `CallEventActionCallDecline` / `CallEventActionCallTimeout` -> `CallEvent.declineCall()`
-  - `CallEventActionCallEnded` -> `CallEvent.endCall()`
+VanishLink relies on Firebase as its primary backend, split across Authentication, Cloud Firestore, Realtime Database (RTDB), and Cloud Messaging.
 
-### B. Local Notifications (`flutter_local_notifications`)
-Provides notification system integration for call states.
-- **Service**: `CallNotificationService`
-- **Incoming Calls**: Shows high-importance notifications configured with `fullScreenIntent` and category `AndroidNotificationCategory.call`.
-- **Missed Calls**: Presents missed call info channels with priority high flags when calls expire or get declined.
-- **Cleanups**: Dynamically triggers `cancel(id)` when calls connect or end.
+### Firebase Authentication
+- **Purpose**: Authenticates user credentials.
+- **Flow**:
+  - `AuthRemoteDataSource` signs in / signs up users via email/password.
+  - On sign-up, `AuthRepositoryImpl` creates a corresponding profile document in Firestore and generates a random unique `vanishId` (e.g., `vanish_XXXXXX`).
+
+### Cloud Firestore
+- **Purpose**: Persistent transactional document storage for profiles and relationships.
+- **Key Collections**:
+  - `users`: Stores user status, username, display name, photo URL, public keys, and the unique `vanishId`.
+  - `friend_requests`: Stores pending, accepted, or declined incoming/outgoing friendship requests.
+
+### Firebase Realtime Database (RTDB)
+- **Purpose**: High-speed, real-time sync for messaging, signaling, call status, and presence.
+- **Data Nodes**:
+  - `/presence/$userId`:
+    - Tracks user connectivity status (`online`, `background`, `offline`).
+    - Maps `lastSeen` timestamps and registers active device push tokens/permission statuses.
+    - Utilizes `onDisconnect` handlers to automatically set user presence to offline when the socket connection drops.
+  - `/signaling/$sessionId`:
+    - Handles WebRTC SDP exchanges (`offer` and `answer`) and coordinates candidate pools (`callerCandidates` and `receiverCandidates`).
+  - `/calls/$callId`:
+    - Synchronizes call states (`created`, `ringing`, `accepted`, `declined`, `ended`, `busy`, `cancelled`).
+    - Stores timestamps (`createdAt`, `acceptedAt`, `endedAt`) and final call `duration`.
+  - `/messages/$chatId`:
+    - Stores ephemeral message objects.
+    - Messages contain `expiresAt` timestamps.
+    - **Message Expiration**: The repository layer filters out messages whose `expiresAt` is in the past. Real database deletion is planned via a scheduled Firebase Cloud Function (run hourly) or client-side batch sweep on launch.
+  - `/unreadCounts/$userId/$chatId`:
+    - Counters incremented during message sends and reset upon reading a chat.
+
+### Firebase Cloud Messaging (FCM)
+- **Purpose**: Delivers foreground and background notifications for incoming messages and calls.
+- **Flow**:
+  - Managed by `NotificationService`.
+  - Registers FCM tokens on login and token refresh, passing permission states to the presence registry.
+  - Listens to foreground (`onMessage`), background tap (`onMessageOpenedApp`), and cold-launch (`getInitialMessage`) notifications.
 
 ---
 
-## 3. Audio Support (`audioplayers`)
-Audio playback integration for local ringing and dial tones.
+## 2. WebRTC Integration (`flutter_webrtc`)
+
+WebRTC enables real-time peer-to-peer audio and video calls.
+
+- **Service**: `WebRtcService`
+- **Negotiation Flow**:
+  1. Caller creates a peer connection, registers local audio/video tracks, generates an SDP offer, and uploads it to `/signaling/$sessionId`.
+  2. Receiver watches `/signaling/$sessionId` for the offer, applies it, registers local tracks, generates an SDP answer, and uploads it.
+  3. Both parties listen for ICE candidate additions under `/signaling/$sessionId/callerCandidates` or `receiverCandidates` and add them to their respective peer connections.
+- **Media**: Configured dynamically based on call type (audio-only or video/audio). Renders local and remote video streams using `RTCVideoRenderer` UI widgets.
+
+---
+
+## 3. CallKit Integration (`flutter_callkit_incoming`)
+
+CallKit provides system-level incoming call interfaces on mobile devices.
+
+- **Adapters**: Dynamic adapter resolution via `CallPresentationAdapter`:
+  - **Android**: `AndroidCallAdapter` registers `AndroidParams` (logo, custom ringtone path, background color, accept/decline action text).
+  - **iOS**: `IOSCallAdapter` configures `IOSParams` (system iconName, handleType, supportsVideo, audioSessionMode, ringtonePath).
+  - **Web/Desktop**: Custom overlay widgets handle UI updates reactively.
+- **Coordination**: `CallCoordinator` listens to event streams from `FlutterCallkitIncoming.onEvent` (e.g., accept call, decline call, mute/unmute, timeout) and triggers corresponding actions in `CallBloc` and RTDB `/calls/$callId`.
+
+---
+
+## 4. Audio Playback (`audioplayers`)
+
+Handles custom ringtones and dialing feedback when the app is active.
+
 - **Service**: `RingtoneService`
-- **Mechanics**:
-  - Configures an loop release mode (`ReleaseMode.loop`).
-  - Plays `audio/ringtone.mp3` for incoming calls when the app is active in the foreground (`CallAudioType.incomingRingtone`).
-  - Plays `audio/dialing_tone.mp3` for outgoing dials (`CallAudioType.outgoingDialTone`).
-  - Automatically releases/stops resources when calls change status to connected, declined, ended, or failed.
-
----
-
-## 4. Hardware Permissions (`permission_handler`)
-System-level authorization request triggers before call initiations.
-- **Audio Calls**: Dynamically checks and requests `Permission.microphone`.
-- **Video Calls**: Dynamically checks and requests both `Permission.microphone` and `Permission.camera`.
-- Prevents database call record creations if the caller does not grant required device permissions.
+- **Assets**:
+  - `assets/audio/ringtone.mp3`: Looped for incoming calls if the device is not handled by the system ringtone engine.
+  - `assets/audio/dialing_tone.mp3`: Looped for outgoing call state until the receiver answers or declines.
