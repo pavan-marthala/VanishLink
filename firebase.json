@@ -1,1 +1,55 @@
-{"flutter":{"platforms":{"android":{"default":{"projectId":"vanishlink-app","appId":"1:971935809948:android:57c771e4f7426ec2bec859","fileOutput":"android/app/google-services.json"}},"ios":{"default":{"projectId":"vanishlink-app","appId":"1:971935809948:ios:38223b6f0bd27ed9bec859","uploadDebugSymbols":false,"fileOutput":"ios/Runner/GoogleService-Info.plist"}},"macos":{"default":{"projectId":"vanishlink-app","appId":"1:971935809948:ios:38223b6f0bd27ed9bec859","uploadDebugSymbols":false,"fileOutput":"macos/Runner/GoogleService-Info.plist"}},"dart":{"lib/firebase_options.dart":{"projectId":"vanishlink-app","configurations":{"android":"1:971935809948:android:57c771e4f7426ec2bec859","ios":"1:971935809948:ios:38223b6f0bd27ed9bec859","macos":"1:971935809948:ios:38223b6f0bd27ed9bec859","web":"1:971935809948:web:4e37cd438e407226bec859","windows":"1:971935809948:web:7de03072b0af5726bec859"}}}}}}
+{
+  "flutter": {
+    "platforms": {
+      "android": {
+        "default": {
+          "projectId": "vanishlink-app",
+          "appId": "1:971935809948:android:57c771e4f7426ec2bec859",
+          "fileOutput": "android/app/google-services.json"
+        }
+      },
+      "ios": {
+        "default": {
+          "projectId": "vanishlink-app",
+          "appId": "1:971935809948:ios:38223b6f0bd27ed9bec859",
+          "uploadDebugSymbols": false,
+          "fileOutput": "ios/Runner/GoogleService-Info.plist"
+        }
+      },
+      "macos": {
+        "default": {
+          "projectId": "vanishlink-app",
+          "appId": "1:971935809948:ios:38223b6f0bd27ed9bec859",
+          "uploadDebugSymbols": false,
+          "fileOutput": "macos/Runner/GoogleService-Info.plist"
+        }
+      },
+      "dart": {
+        "lib/firebase_options.dart": {
+          "projectId": "vanishlink-app",
+          "configurations": {
+            "android": "1:971935809948:android:57c771e4f7426ec2bec859",
+            "ios": "1:971935809948:ios:38223b6f0bd27ed9bec859",
+            "macos": "1:971935809948:ios:38223b6f0bd27ed9bec859",
+            "web": "1:971935809948:web:4e37cd438e407226bec859",
+            "windows": "1:971935809948:web:7de03072b0af5726bec859"
+          }
+        }
+      }
+    }
+  },
+  "hosting": {
+    "public": "/build/web",
+    "ignore": [
+      "firebase.json",
+      "**/.*",
+      "**/node_modules/**"
+    ],
+    "rewrites": [
+      {
+        "source": "**",
+        "destination": "/index.html"
+      }
+    ]
+  }
+}

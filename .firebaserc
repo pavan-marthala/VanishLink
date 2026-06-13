@@ -1,0 +1,8 @@
+{
+  "projects": {
+    "vanish_chat": "vanishlink-app",
+    "default": "vanishlink-app"
+  },
+  "targets": {},
+  "etags": {}
+}
