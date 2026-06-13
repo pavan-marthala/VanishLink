@@ -60,6 +60,8 @@ class WebRtcBloc extends Bloc<WebRtcEvent, WebRtcState> {
       switch (event.state) {
         case 'new':
         case 'connecting':
+        case 'negotiating':
+        case 'reconnecting':
           emit(WebRtcState.connecting(
             sessionId: sessionId,
             connectionState: event.state,

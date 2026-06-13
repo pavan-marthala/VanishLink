@@ -34,6 +34,7 @@ class CallBloc extends Bloc<CallEvent, CallState> {
   int get callDuration => _callDuration;
 
   Future<void> _onCreateCall(CreateCall event, Emitter<CallState> emit) async {
+    debugPrint('[CALL-LIFECYCLE] CallBloc: CreateCall event received (callerId=${event.callerId}, receiverId=${event.receiverId})');
     final hasActive = state.maybeMap(
       calling: (_) => true,
       incomingCall: (_) => true,
@@ -45,6 +46,7 @@ class CallBloc extends Bloc<CallEvent, CallState> {
       return;
     }
     try {
+      _callDuration = 0; // Reset duration on call start
       final call = await _callRepository.createCall(
         callerId: event.callerId,
         receiverId: event.receiverId,
@@ -58,19 +60,33 @@ class CallBloc extends Bloc<CallEvent, CallState> {
   }
 
   void _onListenToCall(ListenToCall event, Emitter<CallState> emit) {
+    debugPrint('[CALL-LIFECYCLE] CallBloc: ListenToCall event received for callId=${event.callId}');
+    _callDuration = 0; // Reset duration on call start
     _callSubscription?.cancel();
-    _callSubscription = _callRepository.watchCall(event.callId).listen((call) {
-      if (isClosed) return;
-      add(CallEvent.callUpdated(call));
-    });
+    _callSubscription = _callRepository.watchCall(event.callId).listen(
+      (dynamic incomingCallData) {
+        if (isClosed) return;
+        if (incomingCallData != null && incomingCallData is! CallModel) {
+          // Guard against raw Firebase payload / JS objects leaking through
+          return;
+        }
+        add(CallEvent.callUpdated(incomingCallData as CallModel?));
+      },
+      onError: (dynamic error) {
+        // Defensive stream exception handling to prevent infinite loops
+      },
+      cancelOnError: false,
+    );
   }
 
   Future<void> _onCallUpdated(CallUpdated event, Emitter<CallState> emit) async {
     final call = event.callModel;
     if (call == null) {
+      debugPrint('[CALL-LIFECYCLE] CallBloc: CallUpdated state mapping: status=null -> initial');
       emit(const CallState.initial());
       return;
     }
+    debugPrint('[CALL-LIFECYCLE] CallBloc: CallUpdated state mapping: status=${call.status}');
 
     switch (call.status) {
       case 'created':
@@ -110,18 +126,24 @@ class CallBloc extends Bloc<CallEvent, CallState> {
       case 'declined':
         _cancelDeliveryTimers();
         _stopDurationTimer();
+        _callSubscription?.cancel();
+        _callSubscription = null;
         emit(CallState.declined(call));
         await _callRepository.storeCallHistory(call);
         break;
       case 'busy':
         _cancelDeliveryTimers();
         _stopDurationTimer();
+        _callSubscription?.cancel();
+        _callSubscription = null;
         emit(CallState.failed(call, 'User is busy'));
         await _callRepository.storeCallHistory(call);
         break;
       case 'missed':
         _cancelDeliveryTimers();
         _stopDurationTimer();
+        _callSubscription?.cancel();
+        _callSubscription = null;
         emit(CallState.missed(call));
         await _callRepository.storeCallHistory(call);
         getIt<CallDeliveryNotificationTrigger>().triggerMissedCallPush(call);
@@ -129,6 +151,8 @@ class CallBloc extends Bloc<CallEvent, CallState> {
       case 'unreachable':
         _cancelDeliveryTimers();
         _stopDurationTimer();
+        _callSubscription?.cancel();
+        _callSubscription = null;
         emit(CallState.failed(call, 'User is unreachable'));
         await _callRepository.storeCallHistory(call);
         getIt<CallDeliveryNotificationTrigger>().triggerTimeoutCallPush(call);
@@ -136,6 +160,8 @@ class CallBloc extends Bloc<CallEvent, CallState> {
       case 'timeout':
         _cancelDeliveryTimers();
         _stopDurationTimer();
+        _callSubscription?.cancel();
+        _callSubscription = null;
         emit(CallState.failed(call, 'Call Timeout'));
         await _callRepository.storeCallHistory(call);
         getIt<CallDeliveryNotificationTrigger>().triggerTimeoutCallPush(call);
@@ -143,18 +169,24 @@ class CallBloc extends Bloc<CallEvent, CallState> {
       case 'ended':
         _cancelDeliveryTimers();
         _stopDurationTimer();
+        _callSubscription?.cancel();
+        _callSubscription = null;
         emit(CallState.ended(call));
         await _callRepository.storeCallHistory(call);
         break;
       case 'failed':
         _cancelDeliveryTimers();
         _stopDurationTimer();
+        _callSubscription?.cancel();
+        _callSubscription = null;
         emit(CallState.failed(call, 'Call Failed'));
         await _callRepository.storeCallHistory(call);
         break;
       case 'cancelled':
         _cancelDeliveryTimers();
         _stopDurationTimer();
+        _callSubscription?.cancel();
+        _callSubscription = null;
         emit(CallState.ended(call)); // Map cancelled to ended for screen pop
         await _callRepository.storeCallHistory(call);
         break;
@@ -164,6 +196,7 @@ class CallBloc extends Bloc<CallEvent, CallState> {
   Future<void> _onAcceptCall(AcceptCall event, Emitter<CallState> emit) async {
     final callId = event.callId ?? _getActiveCall()?.callId;
     if (callId == null) return;
+    debugPrint('[CALL-LIFECYCLE] CallBloc: AcceptCall event received for callId=$callId');
 
     final call = _getActiveCall();
     if (call != null) {
@@ -194,18 +227,21 @@ class CallBloc extends Bloc<CallEvent, CallState> {
   Future<void> _onDeclineCall(DeclineCall event, Emitter<CallState> emit) async {
     final call = _getActiveCall();
     if (call == null) return;
+    debugPrint('[CALL-LIFECYCLE] CallBloc: DeclineCall event received for callId=${call.callId}');
     await _callRepository.declineCall(call.callId);
   }
 
   Future<void> _onCancelCall(CancelCall event, Emitter<CallState> emit) async {
     final call = _getActiveCall();
     if (call == null) return;
+    debugPrint('[CALL-LIFECYCLE] CallBloc: CancelCall event received for callId=${call.callId}');
     await _callRepository.cancelCall(call.callId);
   }
 
   Future<void> _onEndCall(EndCall event, Emitter<CallState> emit) async {
     final call = _getActiveCall();
     if (call == null) return;
+    debugPrint('[CALL-LIFECYCLE] CallBloc: EndCall event received for callId=${call.callId}');
     await _callRepository.endCall(call.callId, _callDuration);
   }
 

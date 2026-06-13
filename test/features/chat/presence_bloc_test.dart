@@ -1,12 +1,26 @@
 import 'dart:async';
 import 'package:flutter/widgets.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:get_it/get_it.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:vanish_link/core/services/permission_manager.dart';
 import 'package:vanish_link/features/chat/domain/entities/presence_status.dart';
 import 'package:vanish_link/features/chat/domain/repositories/presence_repository.dart';
 import 'package:vanish_link/features/chat/domain/services/presence_service.dart';
 import 'package:vanish_link/features/chat/presentation/bloc/presence/presence_bloc.dart';
 import 'package:vanish_link/core/utils/device_identifier_provider.dart';
+
+class FakePermissionManager extends Fake implements PermissionManager {
+  @override
+  Future<VanishPermissionStatus> checkPermissionStatus(VanishPermissionType type) async {
+    return VanishPermissionStatus.granted;
+  }
+
+  @override
+  Future<VanishPermissionStatus> requestPermission(VanishPermissionType type) async {
+    return VanishPermissionStatus.granted;
+  }
+}
 
 class FakePresenceRepository implements PresenceRepository {
   final StreamController<PresenceStatus> _presenceController = StreamController<PresenceStatus>.broadcast();
@@ -44,10 +58,10 @@ class FakePresenceRepository implements PresenceRepository {
 
   @override
   Future<void> setUserStatus(String userId, PresenceStatusType status) async {
-    if (status != PresenceStatusType.offline) {
+    if (status == PresenceStatusType.online) {
       onlineUserUpdates.add(userId);
     } else {
-      onlineUserUpdates.add('$userId:offline');
+      onlineUserUpdates.add('$userId:${status.name}');
     }
   }
 
@@ -73,6 +87,9 @@ class FakePresenceRepository implements PresenceRepository {
 
   @override
   Future<void> removeDevicePushToken(String userId, String deviceId) async {}
+
+  @override
+  Future<void> setUserBusy(String userId, bool busy) async {}
 
   void dispose() {
     _presenceController.close();
@@ -173,6 +190,10 @@ void main() {
     late PresenceService presenceService;
 
     setUp(() {
+      final getIt = GetIt.instance;
+      if (!getIt.isRegistered<PermissionManager>()) {
+        getIt.registerSingleton<PermissionManager>(FakePermissionManager());
+      }
       fakeRepository = FakePresenceRepository();
       fakeAuth = FakeFirebaseAuth();
       presenceService = PresenceService(
@@ -186,6 +207,7 @@ void main() {
       presenceService.stopMonitoring();
       fakeAuth.dispose();
       fakeRepository.dispose();
+      GetIt.instance.reset();
     });
 
     test('Auth sign-in triggers setUserOnline(true) and setupOnDisconnect', () async {
@@ -225,11 +247,13 @@ void main() {
 
       // Go background
       presenceService.didChangeAppLifecycleState(AppLifecycleState.paused);
-      expect(fakeRepository.onlineUserUpdates, contains('user_123:offline'));
+      await Future.delayed(Duration.zero);
+      expect(fakeRepository.onlineUserUpdates, contains('user_123:background'));
       fakeRepository.onlineUserUpdates.clear();
 
       // Go foreground
       presenceService.didChangeAppLifecycleState(AppLifecycleState.resumed);
+      await Future.delayed(Duration.zero);
       expect(fakeRepository.onlineUserUpdates, contains('user_123'));
     });
   });

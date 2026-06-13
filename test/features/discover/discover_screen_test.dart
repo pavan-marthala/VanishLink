@@ -51,6 +51,9 @@ class FakePresenceRepository implements PresenceRepository {
 
   @override
   Future<void> removeDevicePushToken(String userId, String deviceId) async {}
+
+  @override
+  Future<void> setUserBusy(String userId, bool busy) async {}
 }
 
 void main() {

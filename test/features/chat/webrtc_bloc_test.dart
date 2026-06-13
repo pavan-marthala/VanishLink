@@ -1,10 +1,31 @@
 import 'dart:async';
+import 'package:flutter/services.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:flutter_webrtc/flutter_webrtc.dart';
 import 'package:vanish_link/features/chat/domain/repositories/webrtc_repository.dart';
 import 'package:vanish_link/features/chat/domain/repositories/signaling_repository.dart';
 import 'package:vanish_link/features/chat/domain/services/webrtc_service.dart';
 import 'package:vanish_link/features/chat/presentation/bloc/webrtc/webrtc_bloc.dart';
+
+class FakeMediaStreamTrack extends Fake implements MediaStreamTrack {
+  @override
+  String get kind => 'audio';
+  @override
+  String get id => 'remote_audio_track';
+  @override
+  set enabled(bool value) {}
+  @override
+  bool get enabled => true;
+}
+
+class FakeMediaStream extends Fake implements MediaStream {
+  @override
+  String get id => 'remote_stream';
+}
+
+class FakeRTCRtpReceiver extends Fake implements RTCRtpReceiver {}
+class FakeRTCRtpTransceiver extends Fake implements RTCRtpTransceiver {}
 
 class FakeRTCDataChannel extends Fake implements RTCDataChannel {
   bool closeCalled = false;
@@ -27,6 +48,9 @@ class FakeRTCPeerConnection extends Fake implements RTCPeerConnection {
 
   @override
   Function(RTCDataChannel)? onDataChannel;
+
+  @override
+  Function(RTCTrackEvent)? onTrack;
 
   bool closeCalled = false;
   bool disposeCalled = false;
@@ -78,18 +102,21 @@ class FakeWebRtcRepository implements WebRtcRepository {
 
   @override
   Future<RTCPeerConnection> createPeerConnectionInstance() async {
+    debugPrint('DEBUG: createPeerConnectionInstance entered');
     createPeerConnectionCalled = true;
     return fakeConnection;
   }
 
   @override
   Future<RTCSessionDescription> createOffer(RTCPeerConnection pc) async {
+    debugPrint('DEBUG: createOffer entered');
     createOfferCalled = true;
     return RTCSessionDescription('sdp_offer', 'offer');
   }
 
   @override
   Future<RTCSessionDescription> createAnswer(RTCPeerConnection pc) async {
+    debugPrint('DEBUG: createAnswer entered');
     createAnswerCalled = true;
     return RTCSessionDescription('sdp_answer', 'answer');
   }
@@ -182,6 +209,28 @@ void main() {
     late WebRtcBloc webRtcBloc;
 
     setUp(() {
+      const channel = MethodChannel('FlutterWebRTC.Method');
+      TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
+          .setMockMethodCallHandler(channel, (MethodCall methodCall) async {
+        if (methodCall.method == 'initialize') {
+          return null;
+        }
+        if (methodCall.method == 'getUserMedia') {
+          return {
+            'streamId': 'mock_stream_id',
+            'tracks': [
+              {
+                'id': 'mock_track_id',
+                'label': 'mock_track_label',
+                'kind': 'audio',
+                'enabled': true,
+                'muted': false,
+              }
+            ],
+          };
+        }
+        return null;
+      });
       fakeWebRtcRepository = FakeWebRtcRepository();
       fakeSignalingRepository = FakeSignalingRepository();
       webRtcService = WebRtcService(
@@ -192,6 +241,9 @@ void main() {
     });
 
     tearDown(() async {
+      const channel = MethodChannel('FlutterWebRTC.Method');
+      TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
+          .setMockMethodCallHandler(channel, null);
       await webRtcBloc.close();
       fakeSignalingRepository.dispose();
     });
@@ -207,14 +259,14 @@ void main() {
         peerUserId: 'userB',
       ));
 
-      // Wait a tick for watchSession stream listener to activate
-      await Future.delayed(Duration.zero);
+      // Wait for watchSession stream listener to activate
+      await Future.delayed(const Duration(milliseconds: 20));
 
       // Emit empty map indicating signaling session does not exist
       fakeSignalingRepository.emitSessionData({});
 
-      // Wait a tick to trigger caller setup
-      await Future.delayed(Duration.zero);
+      // Wait to trigger caller setup
+      await Future.delayed(const Duration(milliseconds: 50));
 
       expect(fakeWebRtcRepository.createPeerConnectionCalled, isTrue);
       expect(fakeWebRtcRepository.createOfferCalled, isTrue);
@@ -226,7 +278,7 @@ void main() {
         webRtcBloc.state,
         const WebRtcState.connecting(
           sessionId: 'userA_userB',
-          connectionState: 'new',
+          connectionState: 'negotiating',
           candidateCount: 0,
           offerCreated: true,
           answerReceived: false,
@@ -241,7 +293,7 @@ void main() {
         peerUserId: 'userA',
       ));
 
-      await Future.delayed(Duration.zero);
+      await Future.delayed(const Duration(milliseconds: 20));
 
       // Emit existing offer data indicating peer (userA) is the caller
       fakeSignalingRepository.emitSessionData({
@@ -253,7 +305,7 @@ void main() {
         },
       });
 
-      await Future.delayed(Duration.zero);
+      await Future.delayed(const Duration(milliseconds: 50));
 
       expect(fakeWebRtcRepository.createPeerConnectionCalled, isTrue);
       expect(fakeWebRtcRepository.createAnswerCalled, isTrue);
@@ -263,7 +315,7 @@ void main() {
         webRtcBloc.state,
         const WebRtcState.connecting(
           sessionId: 'userA_userB',
-          connectionState: 'new',
+          connectionState: 'negotiating',
           candidateCount: 0,
           offerCreated: false,
           answerReceived: false,
@@ -277,17 +329,28 @@ void main() {
         currentUserId: 'userA',
         peerUserId: 'userB',
       ));
-      await Future.delayed(Duration.zero);
+      await Future.delayed(const Duration(milliseconds: 20));
       fakeSignalingRepository.emitSessionData({});
       
       // Wait for peer connection initialization to complete
-      await Future.delayed(const Duration(milliseconds: 20));
+      await Future.delayed(const Duration(milliseconds: 50));
       
+      // Simulate remote audio track event to satisfy Phase 1's validation check
+      fakeWebRtcRepository.fakeConnection.onTrack?.call(
+        RTCTrackEvent(
+          track: FakeMediaStreamTrack(),
+          receiver: FakeRTCRtpReceiver(),
+          transceiver: FakeRTCRtpTransceiver(),
+          streams: [FakeMediaStream()],
+        ),
+      );
+      await Future.delayed(const Duration(milliseconds: 20));
+
       // Simulate connected state callback on peer connection
       fakeWebRtcRepository.fakeConnection.onConnectionState?.call(
         RTCPeerConnectionState.RTCPeerConnectionStateConnected,
       );
-      await Future.delayed(Duration.zero);
+      await Future.delayed(const Duration(milliseconds: 50));
 
       expect(
         webRtcBloc.state,
@@ -304,12 +367,12 @@ void main() {
         currentUserId: 'userA',
         peerUserId: 'userB',
       ));
-      await Future.delayed(Duration.zero);
+      await Future.delayed(const Duration(milliseconds: 20));
       fakeSignalingRepository.emitSessionData({});
-      await Future.delayed(Duration.zero);
+      await Future.delayed(const Duration(milliseconds: 50));
 
       webRtcBloc.add(const WebRtcEvent.closeConnection());
-      await Future.delayed(Duration.zero);
+      await Future.delayed(const Duration(milliseconds: 50));
 
       expect(fakeWebRtcRepository.fakeConnection.closeCalled, isTrue);
       expect(fakeWebRtcRepository.fakeConnection.disposeCalled, isTrue);

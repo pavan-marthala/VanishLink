@@ -3,13 +3,20 @@ import 'package:freezed_annotation/freezed_annotation.dart';
 part 'call_model.freezed.dart';
 part 'call_model.g.dart';
 
+enum CallType {
+  @JsonValue('voice')
+  audio,
+  @JsonValue('video')
+  video,
+}
+
 @freezed
 class CallModel with _$CallModel {
   const factory CallModel({
     required String callId,
     required String callerId,
     required String receiverId,
-    required String type, // 'voice', 'video'
+    required CallType type,
     required String status, // 'calling', 'ringing', 'accepted', 'declined', 'missed', 'ended', 'cancelled'
     required int createdAt, // Milliseconds since epoch
     int? acceptedAt, // Milliseconds since epoch

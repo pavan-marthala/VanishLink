@@ -18,4 +18,5 @@ abstract class CallRepository {
   Future<void> setReadyStatus(String callId, String userId);
   Stream<Map<String, dynamic>> watchReadyStatus(String callId);
   Future<void> clearReadyStatuses(String callId);
+  Future<CallModel?> getCall(String callId);
 }

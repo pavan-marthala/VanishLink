@@ -1,6 +1,8 @@
 import 'dart:async';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/widgets.dart';
+import 'package:flutter/foundation.dart';
+import 'package:flutter_webrtc/flutter_webrtc.dart';
 import 'package:vanish_link/core/services/permission_manager.dart';
 import 'package:vanish_link/core/di/injection.dart';
 import 'package:vanish_link/core/utils/app_toast.dart';
@@ -37,6 +39,20 @@ class CallCoordinator {
   AppLifecycleState _appLifecycleState = AppLifecycleState.resumed;
   CallState? _previousState;
 
+  bool _localReadySent = false;
+  bool _activePromotionSent = false;
+  String? _currentCallId;
+  bool _isBusy = false;
+  bool _callInProgress = false;
+  CallModel? _activeCall;
+  bool _hadWiredHeadset = false;
+  bool _hadBluetooth = false;
+
+  String? get currentCallId => _currentCallId;
+  bool get isBusy => _isBusy;
+  bool get callInProgress => _callInProgress;
+  CallModel? get activeCall => _activeCall;
+
   CallCoordinator({
     required CallRepository callRepository,
     required PresenceRepository presenceRepository,
@@ -64,6 +80,20 @@ class CallCoordinator {
     // Listen to CallKit events
     _callKitSubscription?.cancel();
     _callKitSubscription = _callKitAdapter.onEvent?.listen(_handleCallKitEvent);
+
+    // Headset and Bluetooth handling
+    navigator.mediaDevices.ondevicechange = (event) {
+      navigator.mediaDevices.enumerateDevices().then((devices) {
+        _checkAudioDeviceChanges(devices);
+      }).catchError((e) {
+        debugPrint('[AUDIO-SESSION] Error enumerating devices on change: $e');
+      });
+    };
+    navigator.mediaDevices.enumerateDevices().then((devices) {
+      _checkAudioDeviceChanges(devices);
+    }).catchError((e) {
+      debugPrint('[AUDIO-SESSION] Error enumerating initial devices: $e');
+    });
   }
 
   void dispose() {
@@ -73,8 +103,32 @@ class CallCoordinator {
     _ringtoneService.stop();
   }
 
+  void dumpDiagnostics() {
+    debugPrint('[DIAGNOSTICS] --- CallCoordinator Dump ---');
+    debugPrint('[DIAGNOSTICS] Current Call ID: $_currentCallId');
+    debugPrint('[DIAGNOSTICS] Busy Flag (_isBusy): $_isBusy');
+    debugPrint('[DIAGNOSTICS] Call In Progress (_callInProgress): $_callInProgress');
+    debugPrint('[DIAGNOSTICS] Active Call Model status: ${_activeCall?.status}');
+    debugPrint('[DIAGNOSTICS] Local Ready Sent (_localReadySent): $_localReadySent');
+    debugPrint('[DIAGNOSTICS] Active Promotion Sent (_activePromotionSent): $_activePromotionSent');
+    debugPrint('[DIAGNOSTICS] Auth Subscription active: ${_blocSubscription != null}');
+    debugPrint('[DIAGNOSTICS] CallKit Subscription active: ${_callKitSubscription != null}');
+    debugPrint('[DIAGNOSTICS] WebRTC State Subscription active: ${_webRtcStateSub != null}');
+    debugPrint('[DIAGNOSTICS] Ready States Subscription active: ${_readyStatesSub != null}');
+    debugPrint('[DIAGNOSTICS] App Lifecycle State: $_appLifecycleState');
+    debugPrint('[DIAGNOSTICS] -------------------------------------');
+  }
+
   void _handleLifecycleStateChanged(AppLifecycleState state) {
     _appLifecycleState = state;
+    if (state == AppLifecycleState.paused || state == AppLifecycleState.inactive) {
+      debugPrint('[AUDIO-SESSION] App backgrounded');
+      if (_callInProgress) {
+        debugPrint('[AUDIO-SESSION] Call session preserved');
+      }
+    } else if (state == AppLifecycleState.resumed) {
+      debugPrint('[AUDIO-SESSION] App resumed');
+    }
   }
 
   Future<void> _handleCallStateChanged(CallState state) async {
@@ -123,6 +177,15 @@ class CallCoordinator {
       final currentUserId = FirebaseAuth.instance.currentUser?.uid;
       final role = callModel.callerId == currentUserId ? 'caller' : 'receiver';
       debugPrint('[CALL-TRACE] callId=${callModel.callId} role=$role $prevStateStr -> $currentStateStr');
+
+      _currentCallId = callModel.callId;
+      _isBusy = true;
+      _callInProgress = true;
+      _activeCall = callModel;
+
+      if (currentUserId != null) {
+        _presenceRepository.setUserBusy(currentUserId, true);
+      }
     }
     _previousState = state;
 
@@ -191,6 +254,10 @@ class CallCoordinator {
       missed: (s) => _cleanupCall(s.callModel),
       ended: (s) => _cleanupCall(s.callModel),
       failed: (s) => _cleanupCall(s.callModel, s.message),
+      error: (s) {
+        debugPrint('[CALL-LIFECYCLE] CallCoordinator received error: ${s.message}');
+        _cleanupCall(null, s.message);
+      },
       orElse: () {},
     );
   }
@@ -207,8 +274,11 @@ class CallCoordinator {
       debugPrint('[WEBRTC] ConnectionState stream update in CallCoordinator: $state');
       if (state == 'connected') {
         debugPrint('[WEBRTC] PeerConnection connected. Setting local ready status.');
-        debugPrint('[WEBRTC] Local peer ready');
-        await _callRepository.setReadyStatus(call.callId, currentUserId);
+        if (!_localReadySent) {
+          _localReadySent = true;
+          debugPrint('[WEBRTC] Local peer ready');
+          await _callRepository.setReadyStatus(call.callId, currentUserId);
+        }
       } else if (state == 'failed') {
         debugPrint('[WEBRTC] PeerConnection failed. Terminating call.');
         await _callRepository.updateCallStatus(call.callId, 'failed');
@@ -221,18 +291,18 @@ class CallCoordinator {
       final localReady = readyMap[currentUserId] != null;
       final remoteReady = readyMap[peerId] != null;
       
-      if (localReady) {
-        debugPrint('[WEBRTC] Local peer ready');
-      }
-      if (remoteReady) {
-        debugPrint('[WEBRTC] Remote peer ready');
-      }
-      
       if (localReady && remoteReady) {
-        debugPrint('[WEBRTC] Both peers ready');
-        if (call.callerId == currentUserId) {
-          debugPrint('[WEBRTC] Promoting call to ACTIVE');
-          await _callRepository.updateCallStatus(call.callId, 'active');
+        if (!_activePromotionSent) {
+          _activePromotionSent = true;
+          debugPrint('[WEBRTC] Local peer ready');
+          debugPrint('[WEBRTC] Remote peer ready');
+          debugPrint('[WEBRTC] Both peers ready');
+          if (call.callerId == currentUserId) {
+            debugPrint('[WEBRTC] Promoting call to ACTIVE');
+            await _callRepository.updateCallStatus(call.callId, 'active');
+          }
+        } else {
+          debugPrint('[CALL-GUARD] Duplicate promotion prevented');
         }
       }
     });
@@ -242,9 +312,25 @@ class CallCoordinator {
     _webRtcService.connect(call.callId, currentUserId, peerId, isCaller);
   }
 
-  Future<void> _cleanupCall(CallModel call, [String? errorMessage]) async {
+  Future<void> _cleanupCall(CallModel? call, [String? errorMessage]) async {
+    final targetCall = call ?? _activeCall;
+    final targetCallId = targetCall?.callId ?? _currentCallId;
+
+    if (targetCallId == null) {
+      debugPrint('[CALL-GUARD] Duplicate cleanup prevented (No current or target call ID)');
+      // Re-force clearing memory flags just in case they were left dirty
+      _isBusy = false;
+      _callInProgress = false;
+      _activeCall = null;
+      _localReadySent = false;
+      _activePromotionSent = false;
+      return;
+    }
+    debugPrint('[CALL-LIFECYCLE] _cleanupCall invoked for callId=$targetCallId');
+    _currentCallId = null;
+
     await _ringtoneService.stop();
-    await _callKitAdapter.endCall(call.callId);
+    await _callKitAdapter.endCall(targetCallId);
 
     // Cancel WebRTC subscriptions
     _webRtcStateSub?.cancel();
@@ -253,31 +339,65 @@ class CallCoordinator {
     _readyStatesSub = null;
 
     // Dispose local media stream and peer connection
-    await _webRtcService.closeConnection(call.callId);
-    await _callRepository.clearReadyStatuses(call.callId);
+    await _webRtcService.closeConnection(targetCallId);
+    await _callRepository.clearReadyStatuses(targetCallId);
+
+    // Reset coordinator memory variables
+    _isBusy = false;
+    _callInProgress = false;
+    _activeCall = null;
+    _localReadySent = false;
+    _activePromotionSent = false;
+
+    // Reset presence busy status
+    final currentUserId = FirebaseAuth.instance.currentUser?.uid;
+    if (currentUserId != null) {
+      await _presenceRepository.setUserBusy(currentUserId, false);
+    }
 
     debugPrint('[CLEANUP] Current call cleared');
     debugPrint('[CLEANUP] Busy flag cleared');
 
-    await _notificationService.showCallEndedNotification(
-      callId: call.callId,
-      callerName: '',
-      type: call.type,
-    );
-    
-    if (call.status == 'missed') {
-      final callerProfile = await _fetchUserProfile(call.callerId);
-      final callerName = callerProfile?.displayName ?? callerProfile?.username ?? 'VanishLink User';
-      await _notificationService.showMissedCallNotification(
-        callId: call.callId,
-        callerName: callerName,
-        type: call.type,
+    if (targetCall != null) {
+      // Force database call status updates if they are still in a non-terminal state
+      try {
+        final latestCall = await _callRepository.getCall(targetCall.callId);
+        if (latestCall != null) {
+          final status = latestCall.status;
+          if (status == 'created' || status == 'delivering' || status == 'calling' || status == 'ringing' || status == 'connecting' || status == 'active') {
+            final targetStatus = targetCall.status == 'failed' ? 'failed' : 'ended';
+            debugPrint('[CLEANUP] Database call status is still $status. Forcing status update to $targetStatus.');
+            await _callRepository.updateCallStatus(targetCall.callId, targetStatus);
+          }
+        }
+      } catch (e) {
+        debugPrint('[CLEANUP] Error checking/forcing database call status: $e');
+      }
+
+      await _notificationService.showCallEndedNotification(
+        callId: targetCall.callId,
+        callerName: '',
+        type: targetCall.type,
       );
+      
+      if (targetCall.status == 'missed') {
+        final callerProfile = await _fetchUserProfile(targetCall.callerId);
+        final callerName = callerProfile?.displayName ?? callerProfile?.username ?? 'VanishLink User';
+        await _notificationService.showMissedCallNotification(
+          callId: targetCall.callId,
+          callerName: callerName,
+          type: targetCall.type,
+        );
+      }
     }
   }
 
-  void _handleCallKitEvent(ck.CallEvent? event) {
+  void _handleCallKitEvent(dynamic event) {
     if (event == null) return;
+    if (event is! ck.CallEvent) {
+      debugPrint('[CallCoordinator] Ignoring non-CallKit event: $event');
+      return;
+    }
     switch (event) {
       case ck.CallEventActionCallAccept(:final id):
         getIt<CallBloc>().add(CallEvent.listenToCall(id));
@@ -318,8 +438,26 @@ class CallCoordinator {
     required String receiverId,
     required String type,
   }) async {
-    // 1. Check Busy Handling: Single active call policy
+    debugPrint('[CALL-LIFECYCLE] startCall() initiated via CallCoordinator.initiateCall');
+    dumpDiagnostics();
+
+    // Self-healing: if currentCallId is non-null but CallBloc.state is terminated, automatically heal coordinator state.
     final callBloc = getIt<CallBloc>();
+    final isBlocTerminated = callBloc.state.maybeMap(
+      initial: (_) => true,
+      error: (_) => true,
+      declined: (_) => true,
+      missed: (_) => true,
+      ended: (_) => true,
+      failed: (_) => true,
+      orElse: () => false,
+    );
+    if (isBlocTerminated && (_currentCallId != null || _isBusy || _callInProgress)) {
+      debugPrint('[CALL-LIFECYCLE] Self-healing trigger: CallBloc state is terminated but coordinator had active call ID ($_currentCallId) or busy flags. Forcing cleanup.');
+      await _cleanupCall(null);
+    }
+
+    // 1. Check Busy Handling: Single active call policy
     final hasActive = callBloc.state.maybeMap(
       calling: (_) => true,
       incomingCall: (_) => true,
@@ -329,6 +467,7 @@ class CallCoordinator {
       orElse: () => false,
     );
     if (hasActive) {
+      debugPrint('[CALL-LIFECYCLE] initiateCall aborted: CallBloc already has an active call state.');
       showWarningToast(message: 'You already have an active call.');
       return;
     }
@@ -346,11 +485,13 @@ class CallCoordinator {
     }
     
     if (!permissionGranted) {
+      debugPrint('[CALL-LIFECYCLE] initiateCall aborted: Permissions denied.');
       showErrorToast(message: 'Call permissions denied.');
       return;
     }
 
     // 4. Dispatch call initiation
+    debugPrint('[CALL-LIFECYCLE] initiateCall: Dispatching CreateCall event to CallBloc');
     callBloc.add(CallEvent.createCall(
       callerId: callerId,
       receiverId: receiverId,
@@ -387,5 +528,47 @@ class CallCoordinator {
       }
     } catch (_) {}
     return null;
+  }
+
+  void setMicrophoneMuted(bool muted) {
+    _webRtcService.setMicrophoneMuted(muted);
+  }
+
+  Future<void> setSpeakerphoneOn(bool enabled) async {
+    if (kIsWeb) {
+      debugPrint('[AUDIO-SESSION] Speaker routing ignored on Web platform.');
+      return;
+    }
+    await _webRtcService.setSpeakerphoneOn(enabled);
+  }
+
+  void _checkAudioDeviceChanges(List<MediaDeviceInfo> devices) {
+    bool hasWired = false;
+    bool hasBluetooth = false;
+
+    for (final device in devices) {
+      final label = device.label.toLowerCase();
+      if (label.contains('wired') || label.contains('headphone') || label.contains('jack') || label.contains('headset') && !label.contains('bluetooth') && !label.contains('bt')) {
+        hasWired = true;
+      }
+      if (label.contains('bluetooth') || label.contains('bt ') || label.contains('airpods') || label.contains('buds') || label.contains('handsfree')) {
+        hasBluetooth = true;
+      }
+    }
+
+    if (hasWired && !_hadWiredHeadset) {
+      debugPrint('[AUDIO-SESSION] Wired headset connected');
+    } else if (!hasWired && _hadWiredHeadset) {
+      debugPrint('[AUDIO-SESSION] Wired headset disconnected');
+    }
+
+    if (hasBluetooth && !_hadBluetooth) {
+      debugPrint('[AUDIO-SESSION] Bluetooth route selected');
+    } else if (!hasBluetooth && _hadBluetooth) {
+      debugPrint('[AUDIO-SESSION] Bluetooth route removed');
+    }
+
+    _hadWiredHeadset = hasWired;
+    _hadBluetooth = hasBluetooth;
   }
 }

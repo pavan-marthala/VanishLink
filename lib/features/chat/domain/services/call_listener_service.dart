@@ -30,8 +30,14 @@ class CallListenerService {
 
   void _listenForIncomingCalls(String userId) {
     _callSubscription?.cancel();
-    _callSubscription = _callRepository.watchIncomingCalls(userId).listen((call) {
-      if (call != null) {
+    _callSubscription = _callRepository.watchIncomingCalls(userId).listen(
+      (dynamic incomingData) {
+        if (incomingData == null) return;
+        if (incomingData is! CallModel) {
+          // Guard against raw Firebase payload / JS objects leaking through
+          return;
+        }
+        final CallModel call = incomingData;
         final callBloc = getIt<CallBloc>();
         final hasActive = callBloc.state.maybeMap(
           calling: (_) => true,
@@ -54,8 +60,12 @@ class CallListenerService {
             call.status == 'calling') {
           _callRepository.updateCallStatus(call.callId, 'ringing');
         }
-      }
-    });
+      },
+      onError: (dynamic error) {
+        // Defensive stream exception handling to prevent infinite loops
+      },
+      cancelOnError: false,
+    );
   }
 
   void _stopListening() {

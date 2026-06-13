@@ -2,6 +2,7 @@ import 'dart:async';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
 import 'package:vanish_link/core/di/injection.dart';
@@ -13,6 +14,7 @@ import 'package:vanish_link/features/chat/presentation/bloc/call/call_state.dart
 import 'package:vanish_link/features/chat/presentation/widgets/incoming_call_view.dart';
 import 'package:vanish_link/features/chat/presentation/widgets/outgoing_call_view.dart';
 import 'package:vanish_link/features/chat/presentation/widgets/call_widgets.dart';
+import 'package:vanish_link/features/chat/domain/services/call_coordinator.dart';
 
 class CallScreen extends StatefulWidget {
   final String callId;
@@ -114,7 +116,6 @@ class _CallScreenState extends State<CallScreen> {
           connected: (s) {
             final otherId = s.callModel.callerId == currentUserId ? s.callModel.receiverId : s.callModel.callerId;
             _loadOtherUserProfile(otherId);
-            _startLocalTimer();
           },
           active: (s) {
             final otherId = s.callModel.callerId == currentUserId ? s.callModel.receiverId : s.callModel.callerId;
@@ -248,6 +249,7 @@ class _CallScreenState extends State<CallScreen> {
                   setState(() {
                     _isMuted = !_isMuted;
                   });
+                  getIt<CallCoordinator>().setMicrophoneMuted(_isMuted);
                 },
               ),
               // End Call Button
@@ -262,17 +264,19 @@ class _CallScreenState extends State<CallScreen> {
                 label: 'End Call',
                 size: 72,
               ),
-              // Speaker Button
-              IconButton(
-                iconSize: 32,
-                color: _isSpeakerOn ? colors.primary : colors.textSecondary,
-                icon: Icon(_isSpeakerOn ? Icons.volume_up_rounded : Icons.volume_down_rounded),
-                onPressed: () {
-                  setState(() {
-                    _isSpeakerOn = !_isSpeakerOn;
-                  });
-                },
-              ),
+               // Speaker Button
+              if (!kIsWeb)
+                IconButton(
+                  iconSize: 32,
+                  color: _isSpeakerOn ? colors.primary : colors.textSecondary,
+                  icon: Icon(_isSpeakerOn ? Icons.volume_up_rounded : Icons.volume_down_rounded),
+                  onPressed: () {
+                    setState(() {
+                      _isSpeakerOn = !_isSpeakerOn;
+                    });
+                    getIt<CallCoordinator>().setSpeakerphoneOn(_isSpeakerOn);
+                  },
+                ),
             ],
           ),
         ],

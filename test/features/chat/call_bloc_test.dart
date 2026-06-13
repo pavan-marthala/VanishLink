@@ -1,10 +1,24 @@
 import 'dart:async';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:get_it/get_it.dart';
+import 'package:vanish_link/core/services/permission_manager.dart';
 import 'package:vanish_link/features/chat/domain/entities/call_model.dart';
 import 'package:vanish_link/features/chat/domain/repositories/call_repository.dart';
 import 'package:vanish_link/features/chat/presentation/bloc/call/call_bloc.dart';
 import 'package:vanish_link/features/chat/presentation/bloc/call/call_event.dart';
 import 'package:vanish_link/features/chat/presentation/bloc/call/call_state.dart';
+
+class FakePermissionManager extends Fake implements PermissionManager {
+  @override
+  Future<VanishPermissionStatus> checkPermissionStatus(VanishPermissionType type) async {
+    return VanishPermissionStatus.granted;
+  }
+
+  @override
+  Future<VanishPermissionStatus> requestPermission(VanishPermissionType type) async {
+    return VanishPermissionStatus.granted;
+  }
+}
 
 class FakeCallRepository implements CallRepository {
   final StreamController<CallModel?> _callController = StreamController<CallModel?>.broadcast();
@@ -88,6 +102,11 @@ class FakeCallRepository implements CallRepository {
   @override
   Future<void> clearReadyStatuses(String callId) async {}
 
+  @override
+  Future<CallModel?> getCall(String callId) async {
+    return null;
+  }
+
   void dispose() {
     _callController.close();
   }
@@ -99,6 +118,10 @@ void main() {
     late CallBloc callBloc;
 
     setUp(() {
+      final getIt = GetIt.instance;
+      if (!getIt.isRegistered<PermissionManager>()) {
+        getIt.registerSingleton<PermissionManager>(FakePermissionManager());
+      }
       fakeRepository = FakeCallRepository();
       callBloc = CallBloc(callRepository: fakeRepository);
     });
@@ -106,6 +129,7 @@ void main() {
     tearDown(() {
       callBloc.close();
       fakeRepository.dispose();
+      GetIt.instance.reset();
     });
 
     test('Initial state is CallState.initial()', () {

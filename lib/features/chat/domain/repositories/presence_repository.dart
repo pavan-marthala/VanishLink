@@ -35,4 +35,7 @@ abstract class PresenceRepository {
 
   /// Deletes the device's push token registration from the user record
   Future<void> removeDevicePushToken(String userId, String deviceId);
+
+  /// Set the user's busy status flag
+  Future<void> setUserBusy(String userId, bool busy);
 }

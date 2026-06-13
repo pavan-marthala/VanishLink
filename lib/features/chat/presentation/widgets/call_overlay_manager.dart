@@ -2,6 +2,7 @@ import 'dart:async';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:vanish_link/core/di/injection.dart';
 import 'package:vanish_link/core/theme/app_theme.dart';
@@ -11,6 +12,7 @@ import 'package:vanish_link/features/chat/presentation/bloc/call/call_event.dart
 import 'package:vanish_link/features/chat/presentation/bloc/call/call_state.dart';
 import 'package:vanish_link/features/chat/presentation/widgets/call_widgets.dart';
 import 'package:vanish_link/core/utils/sized_context.dart';
+import 'package:vanish_link/features/chat/domain/services/call_coordinator.dart';
 
 class CallOverlayManager extends StatefulWidget {
   final Widget? child;
@@ -106,6 +108,9 @@ class _CallOverlayManagerState extends State<CallOverlayManager> {
           _isMinimized = false;
           _minimizedX = -1.0;
           _minimizedY = -1.0;
+          _isMuted = false;
+          _isSpeakerOn = false;
+          _elapsedSeconds = 0;
         });
         getIt<CallBloc>().add(const CallEvent.callUpdated(null));
       }
@@ -126,36 +131,65 @@ class _CallOverlayManagerState extends State<CallOverlayManager> {
 
     return BlocListener<CallBloc, CallState>(
       listener: (context, state) {
+        debugPrint('[CALL-LIFECYCLE] CallOverlayManager: listener received state: $state');
         state.maybeMap(
+          initial: (_) {
+            if (_otherUser != null || _loadedUserId != null || _elapsedSeconds != 0) {
+              debugPrint('[CALL-LIFECYCLE] Self-healing trigger in CallOverlayManager: CallBloc is initial but overlay state had stale variables. Resetting variables silently.');
+              _stopDurationTimer();
+              setState(() {
+                _otherUser = null;
+                _loadedUserId = null;
+                _isMinimized = false;
+                _minimizedX = -1.0;
+                _minimizedY = -1.0;
+                _isMuted = false;
+                _isSpeakerOn = false;
+                _elapsedSeconds = 0;
+                _lastTerminatedMessage = null;
+              });
+            }
+          },
           calling: (s) {
-            debugPrint('[CALL-UI] Showing call screen');
+            debugPrint('[CALL-UI] Showing call screen for calling status');
+            setState(() {
+              _isMuted = false;
+              _isSpeakerOn = false;
+              _elapsedSeconds = 0;
+            });
             final otherId = s.callModel.callerId == currentUserId
                 ? s.callModel.receiverId
                 : s.callModel.callerId;
             _loadOtherUserProfile(otherId);
           },
           incomingCall: (s) {
-            debugPrint('[CALL-UI] Showing call screen');
+            debugPrint('[CALL-UI] Showing call screen for incomingCall status');
+            setState(() {
+              _isMuted = false;
+              _isSpeakerOn = false;
+              _elapsedSeconds = 0;
+            });
             final otherId = s.callModel.callerId == currentUserId
                 ? s.callModel.receiverId
                 : s.callModel.callerId;
             _loadOtherUserProfile(otherId);
           },
           connecting: (s) {
-            debugPrint('[CALL-UI] Keeping call screen during connecting');
+            debugPrint('[CALL-UI] Keeping call screen during connecting status');
             final otherId = s.callModel.callerId == currentUserId
                 ? s.callModel.receiverId
                 : s.callModel.callerId;
             _loadOtherUserProfile(otherId);
           },
           connected: (s) {
+            debugPrint('[CALL-UI] Keeping call screen during connected status');
             final otherId = s.callModel.callerId == currentUserId
                 ? s.callModel.receiverId
                 : s.callModel.callerId;
             _loadOtherUserProfile(otherId);
-            _startDurationTimer();
           },
           active: (s) {
+            debugPrint('[CALL-UI] Keeping call screen during active status');
             final otherId = s.callModel.callerId == currentUserId
                 ? s.callModel.receiverId
                 : s.callModel.callerId;
@@ -163,23 +197,23 @@ class _CallOverlayManagerState extends State<CallOverlayManager> {
             _startDurationTimer();
           },
           declined: (_) {
-            debugPrint('[CALL-UI] Closing call screen');
+            debugPrint('[CALL-UI] Closing call screen: declined');
             _handleTermination('Call Declined');
           },
           missed: (_) {
-            debugPrint('[CALL-UI] Closing call screen');
+            debugPrint('[CALL-UI] Closing call screen: missed');
             _handleTermination('Call Missed');
           },
           ended: (_) {
-            debugPrint('[CALL-UI] Closing call screen');
+            debugPrint('[CALL-UI] Closing call screen: ended');
             _handleTermination('Call Ended');
           },
           failed: (s) {
-            debugPrint('[CALL-UI] Closing call screen');
+            debugPrint('[CALL-UI] Closing call screen: failed. Message: ${s.message}');
             _handleTermination(s.message);
           },
           error: (s) {
-            debugPrint('[CALL-UI] Closing call screen');
+            debugPrint('[CALL-UI] Closing call screen: error. Message: ${s.message}');
             _handleTermination(s.message);
           },
           orElse: () {},
@@ -231,11 +265,18 @@ class _CallOverlayManagerState extends State<CallOverlayManager> {
             );
           } else {
             overlayWidget = state.map(
-              initial: (_) => const SizedBox.shrink(),
-              error: (_) => const SizedBox.shrink(),
+              initial: (_) {
+                debugPrint('[CALL-UI] Building initial: returning SizedBox.shrink');
+                return const SizedBox.shrink();
+              },
+              error: (s) {
+                debugPrint('[CALL-UI] Building error (message=${s.message}): returning SizedBox.shrink');
+                return const SizedBox.shrink();
+              },
               calling: (s) {
                 final isCaller = s.callModel.callerId == currentUserId;
                 if (!isCaller) {
+                  debugPrint('[CALL-UI] Building calling (isCaller=false): skipping presentation (returning SizedBox.shrink)');
                   return const SizedBox.shrink();
                 }
                 if (_isMinimized) {
@@ -310,9 +351,14 @@ class _CallOverlayManagerState extends State<CallOverlayManager> {
                     durationText: _formatDuration(_elapsedSeconds),
                     isMuted: _isMuted,
                     isSpeakerOn: _isSpeakerOn,
-                    onMuteToggle: () => setState(() => _isMuted = !_isMuted),
-                    onSpeakerToggle: () =>
-                        setState(() => _isSpeakerOn = !_isSpeakerOn),
+                    onMuteToggle: () {
+                      setState(() => _isMuted = !_isMuted);
+                      getIt<CallCoordinator>().setMicrophoneMuted(_isMuted);
+                    },
+                    onSpeakerToggle: () {
+                      setState(() => _isSpeakerOn = !_isSpeakerOn);
+                      getIt<CallCoordinator>().setSpeakerphoneOn(_isSpeakerOn);
+                    },
                     onMinimize: () => setState(() => _isMinimized = true),
                     onEnd: () {
                       _stopDurationTimer();
@@ -331,9 +377,14 @@ class _CallOverlayManagerState extends State<CallOverlayManager> {
                     durationText: _formatDuration(_elapsedSeconds),
                     isMuted: _isMuted,
                     isSpeakerOn: _isSpeakerOn,
-                    onMuteToggle: () => setState(() => _isMuted = !_isMuted),
-                    onSpeakerToggle: () =>
-                        setState(() => _isSpeakerOn = !_isSpeakerOn),
+                    onMuteToggle: () {
+                      setState(() => _isMuted = !_isMuted);
+                      getIt<CallCoordinator>().setMicrophoneMuted(_isMuted);
+                    },
+                    onSpeakerToggle: () {
+                      setState(() => _isSpeakerOn = !_isSpeakerOn);
+                      getIt<CallCoordinator>().setSpeakerphoneOn(_isSpeakerOn);
+                    },
                     onMinimize: () => setState(() => _isMinimized = true),
                     onEnd: () {
                       _stopDurationTimer();
@@ -740,16 +791,17 @@ class ActiveCallOverlay extends StatelessWidget {
                     label: 'End Call',
                     size: 72,
                   ),
-                  IconButton(
-                    iconSize: 32,
-                    color: isSpeakerOn ? colors.primary : colors.textSecondary,
-                    icon: Icon(
-                      isSpeakerOn
-                          ? Icons.volume_up_rounded
-                          : Icons.volume_down_rounded,
+                  if (!kIsWeb)
+                    IconButton(
+                      iconSize: 32,
+                      color: isSpeakerOn ? colors.primary : colors.textSecondary,
+                      icon: Icon(
+                        isSpeakerOn
+                            ? Icons.volume_up_rounded
+                            : Icons.volume_down_rounded,
+                      ),
+                      onPressed: onSpeakerToggle,
                     ),
-                    onPressed: onSpeakerToggle,
-                  ),
                 ],
               ),
             ],

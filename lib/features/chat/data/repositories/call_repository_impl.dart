@@ -169,4 +169,18 @@ class CallRepositoryImpl implements CallRepository {
   Future<void> clearReadyStatuses(String callId) async {
     await _database.ref('calls/$callId/ready').remove();
   }
+
+  @override
+  Future<CallModel?> getCall(String callId) async {
+    if (callId.isEmpty) return null;
+    final snapshot = await _database.ref('calls/$callId').get();
+    if (!snapshot.exists || snapshot.value == null) return null;
+    try {
+      final map = safeMapCast(snapshot.value);
+      if (map == null) return null;
+      return CallModel.fromJson(map);
+    } catch (_) {
+      return null;
+    }
+  }
 }

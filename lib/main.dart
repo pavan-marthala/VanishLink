@@ -2,6 +2,7 @@ import 'dart:async';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:go_router/go_router.dart';
 import 'package:vanish_link/core/di/injection.dart';
 import 'package:vanish_link/core/routes/app_routes.dart';
@@ -49,6 +50,8 @@ void main() async {
 
   // Remove debugTransformDebugCreator to prevent LegacyJavaScriptObject casting issues in Flutter Web Inspector
   FlutterErrorDetails.propertiesTransformers.remove(debugTransformDebugCreator);
+
+  await dotenv.load(fileName: ".env");
 
   await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
   await configureDependencies();
@@ -137,7 +140,8 @@ class _MyAppState extends State<MyApp> {
             return null;
           },
           authenticated: (_) {
-            final onboardingCompleted = getIt<PermissionManager>().isOnboardingCompletedSync();
+            final onboardingCompleted = getIt<PermissionManager>()
+                .isOnboardingCompletedSync();
             if (!onboardingCompleted) {
               if (matchedLocation != AppRoutes.onboarding) {
                 return AppRoutes.onboarding;
@@ -280,6 +284,7 @@ class _MyAppState extends State<MyApp> {
         theme: AppTheme.light,
         darkTheme: AppTheme.dark,
         themeMode: ThemeMode.system,
+        debugShowCheckedModeBanner: false,
         builder: (context, child) {
           return CallOverlayManager(child: child);
         },

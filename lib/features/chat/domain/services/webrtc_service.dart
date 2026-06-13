@@ -12,6 +12,9 @@ class WebRtcService {
   MediaStream? _localStream;
   StreamSubscription<Map<String, dynamic>>? _signalingSub;
   Timer? _connectionTimeoutTimer;
+  Timer? _reconnectTimer;
+  Timer? _statsTimer;
+  RTCVideoRenderer? _remoteRenderer;
 
   final _connectionStateController = StreamController<String>.broadcast();
   final _candidateCountController = StreamController<int>.broadcast();
@@ -131,6 +134,7 @@ class WebRtcService {
     pc.onConnectionState = (state) {
       final mapped = _mapConnectionState(state);
       debugPrint('[WEBRTC] ConnectionStateChanged: $mapped');
+      debugPrint('[CALL-STATS] Peer Connection State: $mapped');
       if (mapped == 'connected') {
         debugPrint('[WEBRTC] Peer connected');
       }
@@ -140,6 +144,8 @@ class WebRtcService {
     pc.onIceConnectionState = (state) {
       final mapped = _mapIceConnectionState(state);
       debugPrint('[WEBRTC] IceConnectionStateChanged: $mapped');
+      final iceStateStr = _mapIceStateString(state);
+      debugPrint('[CALL-STATS] ICE State: $iceStateStr');
       if (mapped == 'connected') {
         debugPrint('[WEBRTC] ICE connected');
       }
@@ -150,10 +156,11 @@ class WebRtcService {
     debugPrint('[WEBRTC] [_initiateAsCaller] Accessing microphone...');
     try {
       _localStream = await navigator.mediaDevices.getUserMedia({'audio': true, 'video': false});
-      _localStream!.getTracks().forEach((track) {
-        pc.addTrack(track, _localStream!);
+      for (final track in _localStream!.getTracks()) {
+        await pc.addTrack(track, _localStream!);
         debugPrint('[WEBRTC] Added local track: ${track.id}, kind: ${track.kind}');
-      });
+      }
+      await _setupLocalAudioDiagnostics(pc);
     } catch (e) {
       debugPrint('[WEBRTC] Error acquiring local audio stream: $e');
       _updateState('failed');
@@ -161,15 +168,7 @@ class WebRtcService {
     }
 
     // Handle remote track arrivals
-    pc.onTrack = (event) {
-      debugPrint('[WEBRTC] [_initiateAsCaller] onTrack received: streams count: ${event.streams.length}');
-      if (event.track.kind == 'audio') {
-        event.track.enabled = true;
-        _remoteAudioReceived = true;
-        debugPrint('[WEBRTC] Remote audio track verified & enabled successfully: ${event.track.id}');
-        _checkAndEmitConnected();
-      }
-    };
+    pc.onTrack = _handleRemoteTrack;
 
     // Setup RTDB disconnect hook so server-side deletes session if client drops
     await _signalingRepository.setupOnDisconnect(sessionId);
@@ -253,6 +252,7 @@ class WebRtcService {
     pc.onConnectionState = (state) {
       final mapped = _mapConnectionState(state);
       debugPrint('[WEBRTC] ConnectionStateChanged: $mapped');
+      debugPrint('[CALL-STATS] Peer Connection State: $mapped');
       if (mapped == 'connected') {
         debugPrint('[WEBRTC] Peer connected');
       }
@@ -262,6 +262,8 @@ class WebRtcService {
     pc.onIceConnectionState = (state) {
       final mapped = _mapIceConnectionState(state);
       debugPrint('[WEBRTC] IceConnectionStateChanged: $mapped');
+      final iceStateStr = _mapIceStateString(state);
+      debugPrint('[CALL-STATS] ICE State: $iceStateStr');
       if (mapped == 'connected') {
         debugPrint('[WEBRTC] ICE connected');
       }
@@ -272,10 +274,11 @@ class WebRtcService {
     debugPrint('[WEBRTC] [_initiateAsReceiver] Accessing microphone...');
     try {
       _localStream = await navigator.mediaDevices.getUserMedia({'audio': true, 'video': false});
-      _localStream!.getTracks().forEach((track) {
-        pc.addTrack(track, _localStream!);
+      for (final track in _localStream!.getTracks()) {
+        await pc.addTrack(track, _localStream!);
         debugPrint('[WEBRTC] Added local track: ${track.id}, kind: ${track.kind}');
-      });
+      }
+      await _setupLocalAudioDiagnostics(pc);
     } catch (e) {
       debugPrint('[WEBRTC] Error acquiring local audio stream: $e');
       _updateState('failed');
@@ -283,15 +286,7 @@ class WebRtcService {
     }
 
     // Handle remote track arrivals
-    pc.onTrack = (event) {
-      debugPrint('[WEBRTC] [_initiateAsReceiver] onTrack received: streams count: ${event.streams.length}');
-      if (event.track.kind == 'audio') {
-        event.track.enabled = true;
-        _remoteAudioReceived = true;
-        debugPrint('[WEBRTC] Remote audio track verified & enabled successfully: ${event.track.id}');
-        _checkAndEmitConnected();
-      }
-    };
+    pc.onTrack = _handleRemoteTrack;
 
     // Push local candidate parameters to DB as receiver
     pc.onIceCandidate = (candidate) {
@@ -368,8 +363,44 @@ class WebRtcService {
 
   void _updateState(String state) {
     if (state == 'connected') {
+      if (_reconnectTimer != null) {
+        _reconnectTimer?.cancel();
+        _reconnectTimer = null;
+        debugPrint('[WEBRTC] Reconnected successfully');
+      }
       _rtcConnected = true;
       _checkAndEmitConnected();
+      _startStatsMonitoring();
+    } else if (state == 'disconnected') {
+      debugPrint('[WEBRTC] Connection disconnected');
+      _statsTimer?.cancel();
+      _statsTimer = null;
+      if (_reconnectTimer == null) {
+        debugPrint('[WEBRTC] Starting reconnect timer');
+        _currentConnectionState = 'reconnecting';
+        _connectionStateController.add('reconnecting');
+        _reconnectTimer = Timer(const Duration(seconds: 15), () async {
+          debugPrint('[WEBRTC] Reconnect timeout expired');
+          _reconnectTimer = null;
+          _currentConnectionState = 'failed';
+          _connectionStateController.add('failed');
+        });
+      }
+    } else if (state == 'failed') {
+      _reconnectTimer?.cancel();
+      _reconnectTimer = null;
+      _statsTimer?.cancel();
+      _statsTimer = null;
+      debugPrint('[WEBRTC] Connection failed');
+      _currentConnectionState = 'failed';
+      _connectionStateController.add('failed');
+    } else if (state == 'closed') {
+      _reconnectTimer?.cancel();
+      _reconnectTimer = null;
+      _statsTimer?.cancel();
+      _statsTimer = null;
+      _currentConnectionState = 'closed';
+      _connectionStateController.add('closed');
     } else {
       _currentConnectionState = state;
       _connectionStateController.add(state);
@@ -395,6 +426,20 @@ class WebRtcService {
     _connectionTimeoutTimer?.cancel();
     _connectionTimeoutTimer = null;
 
+    _reconnectTimer?.cancel();
+    _reconnectTimer = null;
+
+    _statsTimer?.cancel();
+    _statsTimer = null;
+
+    if (_remoteRenderer != null) {
+      try {
+        _remoteRenderer!.srcObject = null;
+        await _remoteRenderer!.dispose();
+      } catch (_) {}
+      _remoteRenderer = null;
+    }
+
     if (_localStream != null) {
       debugPrint('[WEBRTC] Disposing local media stream tracks.');
       _localStream!.getTracks().forEach((track) {
@@ -417,6 +462,13 @@ class WebRtcService {
 
     _currentConnectionState = 'closed';
     _connectionStateController.add('closed');
+
+    // Reset negotiation metrics and connection status flags
+    _candidateCount = 0;
+    _offerCreated = false;
+    _answerReceived = false;
+    _rtcConnected = false;
+    _remoteAudioReceived = false;
 
     // Fully clean signaling node on database
     await _signalingRepository.deleteSession(sessionId);
@@ -448,6 +500,150 @@ class WebRtcService {
       case RTCIceConnectionState.RTCIceConnectionStateConnected:
       case RTCIceConnectionState.RTCIceConnectionStateCompleted:
         return 'connected';
+      case RTCIceConnectionState.RTCIceConnectionStateDisconnected:
+        return 'disconnected';
+      case RTCIceConnectionState.RTCIceConnectionStateFailed:
+        return 'failed';
+      case RTCIceConnectionState.RTCIceConnectionStateClosed:
+        return 'closed';
+      default:
+        return 'new';
+    }
+  }
+
+  Future<void> _setupLocalAudioDiagnostics(RTCPeerConnection pc) async {
+    if (_localStream != null) {
+      for (final track in _localStream!.getTracks()) {
+        if (track.kind == 'audio') {
+          debugPrint('[AUDIO] Local track enabled: ${track.enabled}');
+          debugPrint('[AUDIO] Local track muted: ${track.muted}');
+        }
+      }
+    }
+    try {
+      final senders = await pc.getSenders();
+      debugPrint('[AUDIO] Sender count: ${senders.length}');
+      final hasAudioSender = senders.any((s) => s.track?.kind == 'audio');
+      debugPrint('[AUDIO] Audio sender attached: $hasAudioSender');
+    } catch (e) {
+      debugPrint('[AUDIO] Error getting senders: $e');
+    }
+  }
+
+  Future<void> _handleRemoteTrack(RTCTrackEvent event) async {
+    debugPrint('[WEBRTC] onTrack received: streams count: ${event.streams.length}');
+    if (event.track.kind == 'audio') {
+      event.track.enabled = true;
+      _remoteAudioReceived = true;
+      debugPrint('[WEBRTC] Remote audio track verified & enabled successfully: ${event.track.id}');
+      
+      if (kIsWeb) {
+        debugPrint('[WEB-AUDIO] Remote stream received');
+        try {
+          if (_remoteRenderer == null) {
+            _remoteRenderer = RTCVideoRenderer();
+            await _remoteRenderer!.initialize();
+          }
+          if (event.streams.isNotEmpty) {
+            final remoteStream = event.streams.first;
+            _remoteRenderer!.srcObject = remoteStream;
+            debugPrint('[WEB-AUDIO] Remote renderer attached');
+            debugPrint('[WEB-AUDIO] Playback started');
+          } else {
+            debugPrint('[WEB-AUDIO] Warning: streams list empty, creating manual MediaStream from track');
+            final mediaStream = await navigator.mediaDevices.getUserMedia({'audio': true, 'video': false});
+            mediaStream.addTrack(event.track);
+            _remoteRenderer!.srcObject = mediaStream;
+            debugPrint('[WEB-AUDIO] Remote renderer attached');
+            debugPrint('[WEB-AUDIO] Playback started');
+          }
+        } catch (e) {
+          debugPrint('[WEB-AUDIO] Error during playback initialization: $e');
+          if (e.toString().contains('autoplay') || e.toString().contains('NotAllowedError')) {
+            debugPrint('[WEB-AUDIO] Autoplay blocked / play() failed / User gesture required');
+          }
+        }
+      }
+      
+      _checkAndEmitConnected();
+    }
+  }
+
+  void setMicrophoneMuted(bool muted) {
+    if (_localStream != null) {
+      for (final track in _localStream!.getAudioTracks()) {
+        track.enabled = !muted;
+      }
+      if (muted) {
+        debugPrint('[CALL-CONTROL] Microphone muted');
+      } else {
+        debugPrint('[CALL-CONTROL] Microphone unmuted');
+      }
+    }
+  }
+
+  Future<void> setSpeakerphoneOn(bool enabled) async {
+    if (kIsWeb) {
+      debugPrint('[WEBRTC] setSpeakerphoneOn ignored on Web platform.');
+      return;
+    }
+    try {
+      await Helper.setSpeakerphoneOn(enabled);
+      if (enabled) {
+        debugPrint('[CALL-CONTROL] Speaker enabled');
+      } else {
+        debugPrint('[CALL-CONTROL] Speaker disabled');
+      }
+    } catch (e) {
+      debugPrint('[CALL-CONTROL] Error setting speakerphone: $e');
+    }
+  }
+
+  void _startStatsMonitoring() {
+    _statsTimer?.cancel();
+    _statsTimer = Timer.periodic(const Duration(seconds: 4), (timer) async {
+      if (_peerConnection == null || _currentConnectionState != 'connected') {
+        _statsTimer?.cancel();
+        _statsTimer = null;
+        return;
+      }
+      try {
+        final reports = await _peerConnection!.getStats();
+        for (final report in reports) {
+          if (report.type == 'candidate-pair' || report.type == 'googCandidatePair') {
+            final rtt = report.values['currentRoundTripTime'] ?? report.values['googCurrentRoundTripTime'];
+            if (rtt != null) {
+              final rttVal = (double.tryParse(rtt.toString()) ?? 0.0) * 1000.0;
+              debugPrint('[CALL-STATS] RTT=${rttVal.toStringAsFixed(0)} ms');
+            }
+          }
+          if (report.type == 'inbound-rtp' || report.type == 'inboundrtp') {
+            final packetsLost = report.values['packetsLost'];
+            final jitter = report.values['jitter'];
+            if (packetsLost != null) {
+              debugPrint('[CALL-STATS] PacketLoss=$packetsLost%');
+            }
+            if (jitter != null) {
+              debugPrint('[CALL-STATS] Jitter=$jitter');
+            }
+          }
+        }
+      } catch (e) {
+        debugPrint('[CALL-STATS] Error fetching WebRTC statistics: $e');
+      }
+    });
+  }
+
+  String _mapIceStateString(RTCIceConnectionState state) {
+    switch (state) {
+      case RTCIceConnectionState.RTCIceConnectionStateNew:
+        return 'new';
+      case RTCIceConnectionState.RTCIceConnectionStateChecking:
+        return 'checking';
+      case RTCIceConnectionState.RTCIceConnectionStateConnected:
+        return 'connected';
+      case RTCIceConnectionState.RTCIceConnectionStateCompleted:
+        return 'completed';
       case RTCIceConnectionState.RTCIceConnectionStateDisconnected:
         return 'disconnected';
       case RTCIceConnectionState.RTCIceConnectionStateFailed:

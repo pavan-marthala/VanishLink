@@ -94,6 +94,15 @@ class PresenceRepositoryImpl implements PresenceRepository {
       'status': PresenceStatusType.offline.name,
       'online': false,
       'lastSeen': ServerValue.timestamp,
+      'busy': false,
+    });
+  }
+
+  @override
+  Future<void> setUserBusy(String userId, bool busy) async {
+    if (userId.isEmpty) return;
+    await _database.ref('presence/$userId').update({
+      'busy': busy,
     });
   }
 
