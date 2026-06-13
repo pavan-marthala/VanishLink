@@ -4,7 +4,7 @@ abstract class CallRepository {
   Future<CallModel> createCall({
     required String callerId,
     required String receiverId,
-    required String type,
+    required CallType type,
   });
 
   Future<void> acceptCall(String callId);

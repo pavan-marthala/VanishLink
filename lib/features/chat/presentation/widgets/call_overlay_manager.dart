@@ -13,6 +13,9 @@ import 'package:vanish_link/features/chat/presentation/bloc/call/call_state.dart
 import 'package:vanish_link/features/chat/presentation/widgets/call_widgets.dart';
 import 'package:vanish_link/core/utils/sized_context.dart';
 import 'package:vanish_link/features/chat/domain/services/call_coordinator.dart';
+import 'package:flutter_webrtc/flutter_webrtc.dart';
+import 'package:vanish_link/features/chat/domain/services/webrtc_service.dart';
+import 'package:vanish_link/features/chat/domain/entities/call_model.dart';
 
 class CallOverlayManager extends StatefulWidget {
   final Widget? child;
@@ -27,6 +30,7 @@ class _CallOverlayManagerState extends State<CallOverlayManager> {
   String? _loadedUserId;
   bool _isMuted = false;
   bool _isSpeakerOn = false;
+  bool _isCameraOn = true;
   bool _isMinimized = false;
   double _minimizedX = -1.0;
   double _minimizedY = -1.0;
@@ -34,6 +38,7 @@ class _CallOverlayManagerState extends State<CallOverlayManager> {
   int _elapsedSeconds = 0;
   String? _lastTerminatedMessage;
   StreamSubscription<User?>? _authSubscription;
+  CallType _activeCallType = CallType.audio;
 
   @override
   void initState() {
@@ -110,6 +115,7 @@ class _CallOverlayManagerState extends State<CallOverlayManager> {
           _minimizedY = -1.0;
           _isMuted = false;
           _isSpeakerOn = false;
+          _isCameraOn = true;
           _elapsedSeconds = 0;
         });
         getIt<CallBloc>().add(const CallEvent.callUpdated(null));
@@ -145,6 +151,7 @@ class _CallOverlayManagerState extends State<CallOverlayManager> {
                 _minimizedY = -1.0;
                 _isMuted = false;
                 _isSpeakerOn = false;
+                _isCameraOn = true;
                 _elapsedSeconds = 0;
                 _lastTerminatedMessage = null;
               });
@@ -155,7 +162,9 @@ class _CallOverlayManagerState extends State<CallOverlayManager> {
             setState(() {
               _isMuted = false;
               _isSpeakerOn = false;
+              _isCameraOn = true;
               _elapsedSeconds = 0;
+              _activeCallType = s.callModel.type;
             });
             final otherId = s.callModel.callerId == currentUserId
                 ? s.callModel.receiverId
@@ -167,7 +176,9 @@ class _CallOverlayManagerState extends State<CallOverlayManager> {
             setState(() {
               _isMuted = false;
               _isSpeakerOn = false;
+              _isCameraOn = true;
               _elapsedSeconds = 0;
+              _activeCallType = s.callModel.type;
             });
             final otherId = s.callModel.callerId == currentUserId
                 ? s.callModel.receiverId
@@ -316,6 +327,7 @@ class _CallOverlayManagerState extends State<CallOverlayManager> {
                 }
                 return IncomingCallOverlay(
                   contact: _otherUser,
+                  callType: s.callModel.type,
                   onAccept: () {
                     context.read<CallBloc>().add(const CallEvent.acceptCall());
                   },
@@ -345,6 +357,9 @@ class _CallOverlayManagerState extends State<CallOverlayManager> {
                 if (_isMinimized) {
                   return _buildMinimizedWidget('connected');
                 }
+                if (_activeCallType == CallType.video) {
+                  return _buildVideoCallOverlay(context);
+                }
                 return _buildFullscreenBackdrop(
                   child: ActiveCallOverlay(
                     contact: _otherUser,
@@ -370,6 +385,9 @@ class _CallOverlayManagerState extends State<CallOverlayManager> {
               active: (s) {
                 if (_isMinimized) {
                   return _buildMinimizedWidget('connected');
+                }
+                if (_activeCallType == CallType.video) {
+                  return _buildVideoCallOverlay(context);
                 }
                 return _buildFullscreenBackdrop(
                   child: ActiveCallOverlay(
@@ -420,6 +438,36 @@ class _CallOverlayManagerState extends State<CallOverlayManager> {
     );
   }
 
+  /// Builds the full-screen video call overlay using [ActiveVideoCallOverlay].
+  /// Accesses [WebRtcService] renderers directly from the service locator.
+  Widget _buildVideoCallOverlay(BuildContext context) {
+    final webRtcService = getIt<WebRtcService>();
+    return ActiveVideoCallOverlay(
+      contact: _otherUser,
+      durationText: _formatDuration(_elapsedSeconds),
+      isMuted: _isMuted,
+      isCameraOn: _isCameraOn,
+      localRenderer: webRtcService.localRenderer,
+      remoteRenderer: webRtcService.remoteRenderer,
+      onMuteToggle: () {
+        setState(() => _isMuted = !_isMuted);
+        getIt<CallCoordinator>().setMicrophoneMuted(_isMuted);
+      },
+      onCameraToggle: () {
+        setState(() => _isCameraOn = !_isCameraOn);
+        getIt<CallCoordinator>().toggleCamera(_isCameraOn);
+      },
+      onSwitchCamera: () {
+        getIt<CallCoordinator>().switchCamera();
+      },
+      onMinimize: () => setState(() => _isMinimized = true),
+      onEnd: () {
+        _stopDurationTimer();
+        context.read<CallBloc>().add(const CallEvent.endCall());
+      },
+    );
+  }
+
   Widget _buildMinimizedWidget(String status) {
     final double screenWidth = context.widthPx;
     final double screenHeight = context.heightPx;
@@ -458,6 +506,7 @@ class _CallOverlayManagerState extends State<CallOverlayManager> {
           child: DraggableCallOverlay(
             contact: _otherUser,
             status: status,
+            callType: _activeCallType,
             durationText: _formatDuration(_elapsedSeconds),
             onTap: () => setState(() => _isMinimized = false),
             onEnd: () {
@@ -475,12 +524,14 @@ class IncomingCallOverlay extends StatelessWidget {
   final UserProfile? contact;
   final VoidCallback onAccept;
   final VoidCallback onDecline;
+  final CallType callType;
 
   const IncomingCallOverlay({
     super.key,
     required this.contact,
     required this.onAccept,
     required this.onDecline,
+    this.callType = CallType.audio,
   });
 
   @override
@@ -490,6 +541,7 @@ class IncomingCallOverlay extends StatelessWidget {
     final topPadding = MediaQuery.paddingOf(context).top;
     final double topSpacing = topPadding > 0 ? topPadding + 10.0 : 20.0;
     final double screenWidth = context.widthPx;
+    final bool isVideoCall = callType == CallType.video;
 
     // Desktop: Compact FaceTime-style floating card in the top-right
     // Mobile: Fully responsive width respecting borders
@@ -549,11 +601,25 @@ class IncomingCallOverlay extends StatelessWidget {
                           overflow: TextOverflow.ellipsis,
                         ),
                         const SizedBox(height: 4),
-                        Text(
-                          'Incoming Voice Call...',
-                          style: context.appTypography.bodyMedium.copyWith(
-                            color: colors.textSecondary,
-                          ),
+                        Row(
+                          children: [
+                            Icon(
+                              isVideoCall
+                                  ? Icons.videocam_rounded
+                                  : Icons.phone_rounded,
+                              size: 14,
+                              color: colors.textSecondary,
+                            ),
+                            const SizedBox(width: 4),
+                            Text(
+                              isVideoCall
+                                  ? 'Incoming Video Call...'
+                                  : 'Incoming Voice Call...',
+                              style: context.appTypography.bodyMedium.copyWith(
+                                color: colors.textSecondary,
+                              ),
+                            ),
+                          ],
                         ),
                       ],
                     ),
@@ -599,7 +665,12 @@ class IncomingCallOverlay extends StatelessWidget {
                           borderRadius: BorderRadius.circular(12),
                         ),
                       ),
-                      icon: const Icon(Icons.phone_rounded, size: 18),
+                      icon: Icon(
+                        isVideoCall
+                            ? Icons.videocam_rounded
+                            : Icons.phone_rounded,
+                        size: 18,
+                      ),
                       label: Text(
                         'Accept',
                         style: context.appTypography.bodyMedium.copyWith(
@@ -812,9 +883,269 @@ class ActiveCallOverlay extends StatelessWidget {
   }
 }
 
+/// ────────────────────────────────────────────────────────────────────────────
+/// Active Video Call Overlay
+/// Full-screen video layout: remote video background, local PiP, controls.
+/// ────────────────────────────────────────────────────────────────────────────
+class ActiveVideoCallOverlay extends StatelessWidget {
+  final UserProfile? contact;
+  final String durationText;
+  final bool isMuted;
+  final bool isCameraOn;
+  final RTCVideoRenderer? localRenderer;
+  final RTCVideoRenderer? remoteRenderer;
+  final VoidCallback onMuteToggle;
+  final VoidCallback onCameraToggle;
+  final VoidCallback onSwitchCamera;
+  final VoidCallback onMinimize;
+  final VoidCallback onEnd;
+
+  const ActiveVideoCallOverlay({
+    super.key,
+    required this.contact,
+    required this.durationText,
+    required this.isMuted,
+    required this.isCameraOn,
+    required this.localRenderer,
+    required this.remoteRenderer,
+    required this.onMuteToggle,
+    required this.onCameraToggle,
+    required this.onSwitchCamera,
+    required this.onMinimize,
+    required this.onEnd,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final topPadding = MediaQuery.paddingOf(context).top;
+    final bottomPadding = MediaQuery.paddingOf(context).bottom;
+
+    return Material(
+      type: MaterialType.transparency,
+      child: Stack(
+        fit: StackFit.expand,
+        children: [
+          // ── Remote video (full background) ──────────────────────────────
+          Container(color: Colors.black),
+          if (remoteRenderer != null)
+            RTCVideoView(
+              remoteRenderer!,
+              objectFit: RTCVideoViewObjectFit.RTCVideoViewObjectFitCover,
+              mirror: false,
+            )
+          else
+            // Fallback when remote video not yet connected
+            Center(
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  CircleAvatar(
+                    radius: 64,
+                    backgroundImage: contact?.photoUrl.isNotEmpty == true
+                        ? NetworkImage(contact!.photoUrl)
+                        : null,
+                    backgroundColor: Colors.white10,
+                    child: contact?.photoUrl.isNotEmpty != true
+                        ? const Icon(
+                            Icons.person_rounded,
+                            color: Colors.white54,
+                            size: 64,
+                          )
+                        : null,
+                  ),
+                  const SizedBox(height: 16),
+                  Text(
+                    contact?.displayName ?? contact?.username ?? 'VanishLink User',
+                    style: const TextStyle(
+                      color: Colors.white,
+                      fontSize: 22,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+
+          // ── Top bar: duration + minimize ────────────────────────────────
+          Positioned(
+            top: topPadding + 8,
+            left: 16,
+            right: 16,
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                  decoration: BoxDecoration(
+                    color: Colors.black38,
+                    borderRadius: BorderRadius.circular(20),
+                  ),
+                  child: Text(
+                    durationText,
+                    style: const TextStyle(
+                      color: Colors.white,
+                      fontSize: 14,
+                      fontFeatures: [FontFeature.tabularFigures()],
+                    ),
+                  ),
+                ),
+                IconButton(
+                  icon: const Icon(
+                    Icons.close_fullscreen_rounded,
+                    color: Colors.white,
+                  ),
+                  style: IconButton.styleFrom(
+                    backgroundColor: Colors.black38,
+                  ),
+                  onPressed: onMinimize,
+                ),
+              ],
+            ),
+          ),
+
+          // ── Local camera PiP (top-right corner) ─────────────────────────
+          Positioned(
+            top: topPadding + 64,
+            right: 16,
+            child: ClipRRect(
+              borderRadius: BorderRadius.circular(12),
+              child: SizedBox(
+                width: 96,
+                height: 128,
+                child: isCameraOn && localRenderer != null
+                    ? RTCVideoView(
+                        localRenderer!,
+                        objectFit:
+                            RTCVideoViewObjectFit.RTCVideoViewObjectFitCover,
+                        mirror: true,
+                      )
+                    : Container(
+                        color: Colors.black54,
+                        child: const Center(
+                          child: Icon(
+                            Icons.videocam_off_rounded,
+                            color: Colors.white54,
+                            size: 32,
+                          ),
+                        ),
+                      ),
+              ),
+            ),
+          ),
+
+          // ── Bottom control bar ──────────────────────────────────────────
+          Positioned(
+            bottom: bottomPadding + 24,
+            left: 0,
+            right: 0,
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+              children: [
+                // Mute
+                _VideoControlButton(
+                  icon: isMuted ? Icons.mic_off_rounded : Icons.mic_rounded,
+                  label: isMuted ? 'Unmute' : 'Mute',
+                  active: isMuted,
+                  onTap: onMuteToggle,
+                ),
+                // End call
+                _VideoControlButton(
+                  icon: Icons.call_end_rounded,
+                  label: 'End',
+                  isEndCall: true,
+                  onTap: onEnd,
+                ),
+                // Camera toggle
+                _VideoControlButton(
+                  icon: isCameraOn
+                      ? Icons.videocam_rounded
+                      : Icons.videocam_off_rounded,
+                  label: isCameraOn ? 'Camera On' : 'Camera Off',
+                  active: !isCameraOn,
+                  onTap: onCameraToggle,
+                ),
+                // Switch camera (native only)
+                if (!kIsWeb)
+                  _VideoControlButton(
+                    icon: Icons.flip_camera_ios_rounded,
+                    label: 'Flip',
+                    onTap: onSwitchCamera,
+                  ),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+/// Small circular button used in [ActiveVideoCallOverlay]'s control bar.
+class _VideoControlButton extends StatelessWidget {
+  final IconData icon;
+  final String label;
+  final VoidCallback onTap;
+  final bool active;
+  final bool isEndCall;
+
+  const _VideoControlButton({
+    required this.icon,
+    required this.label,
+    required this.onTap,
+    this.active = false,
+    this.isEndCall = false,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final Color bg = isEndCall
+        ? Colors.red
+        : active
+            ? Colors.white
+            : Colors.black45;
+    final Color iconColor = isEndCall
+        ? Colors.white
+        : active
+            ? Colors.black87
+            : Colors.white;
+
+    return Column(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        GestureDetector(
+          onTap: onTap,
+          child: Container(
+            width: 56,
+            height: 56,
+            decoration: BoxDecoration(
+              color: bg,
+              shape: BoxShape.circle,
+            ),
+            child: Icon(icon, color: iconColor, size: 26),
+          ),
+        ),
+        const SizedBox(height: 6),
+        Text(
+          label,
+          style: const TextStyle(
+            color: Colors.white,
+            fontSize: 11,
+            shadows: [
+              Shadow(color: Colors.black54, blurRadius: 4),
+            ],
+          ),
+        ),
+      ],
+    );
+  }
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+
 class DraggableCallOverlay extends StatelessWidget {
   final UserProfile? contact;
   final String status;
+  final CallType callType;
   final String durationText;
   final VoidCallback onTap;
   final VoidCallback onEnd;
@@ -826,12 +1157,14 @@ class DraggableCallOverlay extends StatelessWidget {
     required this.durationText,
     required this.onTap,
     required this.onEnd,
+    this.callType = CallType.audio,
   });
 
   @override
   Widget build(BuildContext context) {
     final colors = context.appColors;
     final typography = context.appTypography;
+    final bool isVideo = callType == CallType.video;
 
     return GestureDetector(
       onTap: onTap,
@@ -879,7 +1212,7 @@ class DraggableCallOverlay extends StatelessWidget {
                       overflow: TextOverflow.ellipsis,
                     ),
                     Text(
-                      'Voice Call • ${status == 'connected' ? durationText : 'Calling...'}',
+                      '${isVideo ? 'Video' : 'Voice'} Call • ${status == 'connected' ? durationText : 'Calling...'}',
                       style: typography.bodySmall.copyWith(
                         color: colors.textSecondary,
                       ),

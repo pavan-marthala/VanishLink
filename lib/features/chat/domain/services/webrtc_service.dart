@@ -3,6 +3,7 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter_webrtc/flutter_webrtc.dart';
 import 'package:vanish_link/features/chat/domain/repositories/webrtc_repository.dart';
 import 'package:vanish_link/features/chat/domain/repositories/signaling_repository.dart';
+import 'package:vanish_link/features/chat/domain/entities/call_model.dart';
 
 class WebRtcService {
   final WebRtcRepository _webRtcRepository;
@@ -14,6 +15,7 @@ class WebRtcService {
   Timer? _connectionTimeoutTimer;
   Timer? _reconnectTimer;
   Timer? _statsTimer;
+  RTCVideoRenderer? _localRenderer;
   RTCVideoRenderer? _remoteRenderer;
 
   final _connectionStateController = StreamController<String>.broadcast();
@@ -36,21 +38,60 @@ class WebRtcService {
   bool get answerReceived => _answerReceived;
   String get currentConnectionState => _currentConnectionState;
 
+  RTCVideoRenderer? get localRenderer => _localRenderer;
+  RTCVideoRenderer? get remoteRenderer => _remoteRenderer;
+
   WebRtcService({
     required WebRtcRepository webRtcRepository,
     required SignalingRepository signalingRepository,
   })  : _webRtcRepository = webRtcRepository,
         _signalingRepository = signalingRepository;
 
+  Future<void> initializeRenderers() async {
+    debugPrint('[WEBRTC] initializeRenderers() invoked');
+    if (_localRenderer == null) {
+      _localRenderer = RTCVideoRenderer();
+      await _localRenderer!.initialize();
+    }
+    if (_remoteRenderer == null) {
+      _remoteRenderer = RTCVideoRenderer();
+      await _remoteRenderer!.initialize();
+    }
+  }
+
+  Future<void> disposeRenderers() async {
+    debugPrint('[WEBRTC] disposeRenderers() invoked');
+    if (_localRenderer != null) {
+      try {
+        _localRenderer!.srcObject = null;
+        await _localRenderer!.dispose();
+      } catch (e) {
+        debugPrint('[WEBRTC] Error disposing local renderer: $e');
+      }
+      _localRenderer = null;
+    }
+    if (_remoteRenderer != null) {
+      try {
+        _remoteRenderer!.srcObject = null;
+        await _remoteRenderer!.dispose();
+      } catch (e) {
+        debugPrint('[WEBRTC] Error disposing remote renderer: $e');
+      }
+      _remoteRenderer = null;
+    }
+  }
+
   /// Starts connection negotiation for caller or receiver role
   Future<void> connect(
     String sessionId,
     String currentUserId,
     String peerUserId, [
+    CallType type = CallType.audio,
     bool? isCaller,
   ]) async {
-    debugPrint('[WEBRTC] connect() invoked for session: $sessionId, isCaller: $isCaller');
+    debugPrint('[WEBRTC] connect() invoked for session: $sessionId, type: $type, isCaller: $isCaller');
     await closeConnection(sessionId);
+    await initializeRenderers();
 
     _candidateCount = 0;
     _offerCreated = false;
@@ -76,7 +117,7 @@ class WebRtcService {
     if (isCaller != null) {
       if (isCaller) {
         debugPrint('[WEBRTC] Initiating as CALLER (Deterministic).');
-        await _initiateAsCaller(sessionId, currentUserId, peerUserId);
+        await _initiateAsCaller(sessionId, currentUserId, peerUserId, type);
       } else {
         debugPrint('[WEBRTC] Watching session data to initiate as RECEIVER (Deterministic).');
         _signalingSub = _signalingRepository.watchSession(sessionId).listen((data) async {
@@ -84,7 +125,7 @@ class WebRtcService {
           if (offerData is Map && _peerConnection == null) {
             _signalingSub?.cancel();
             debugPrint('[WEBRTC] Offer detected in signaling channel. Initiating as RECEIVER.');
-            await _initiateAsReceiver(sessionId, data);
+            await _initiateAsReceiver(sessionId, data, type);
           }
         });
       }
@@ -94,7 +135,7 @@ class WebRtcService {
         if (data.isEmpty) {
           _signalingSub?.cancel();
           debugPrint('[WEBRTC] Session data empty. Initiating as CALLER.');
-          await _initiateAsCaller(sessionId, currentUserId, peerUserId);
+          await _initiateAsCaller(sessionId, currentUserId, peerUserId, type);
         } else {
           final callerId = data['callerId'] as String?;
           if (callerId == null) return;
@@ -105,7 +146,7 @@ class WebRtcService {
             await _reconnectAsCaller(sessionId, data);
           } else {
             debugPrint('[WEBRTC] Session data exists. Initiating as RECEIVER.');
-            await _initiateAsReceiver(sessionId, data);
+            await _initiateAsReceiver(sessionId, data, type);
           }
         }
       });
@@ -124,6 +165,7 @@ class WebRtcService {
     String sessionId,
     String currentUserId,
     String peerUserId,
+    CallType type,
   ) async {
     debugPrint('[WEBRTC] [_initiateAsCaller] Creating PeerConnection...');
     _peerConnection = await _webRtcRepository.createPeerConnectionInstance();
@@ -152,17 +194,32 @@ class WebRtcService {
       _updateState(mapped);
     };
 
-    // Obtain local audio stream
-    debugPrint('[WEBRTC] [_initiateAsCaller] Accessing microphone...');
+    // Obtain local media stream
+    final mediaConstraints = {
+      'audio': true,
+      'video': type == CallType.video ? {
+        'facingMode': 'user',
+        'width': {'ideal': 640},
+        'height': {'ideal': 480},
+      } : false,
+    };
+    if (type == CallType.video) {
+      debugPrint('[WEBRTC] camera acquisition');
+    }
+    debugPrint('[WEBRTC] Accessing media streams with constraints: $mediaConstraints');
     try {
-      _localStream = await navigator.mediaDevices.getUserMedia({'audio': true, 'video': false});
+      _localStream = await navigator.mediaDevices.getUserMedia(mediaConstraints);
+      if (type == CallType.video && _localRenderer != null) {
+        _localRenderer!.srcObject = _localStream;
+        debugPrint('[WEBRTC] Local video track attached');
+      }
       for (final track in _localStream!.getTracks()) {
         await pc.addTrack(track, _localStream!);
         debugPrint('[WEBRTC] Added local track: ${track.id}, kind: ${track.kind}');
       }
       await _setupLocalAudioDiagnostics(pc);
     } catch (e) {
-      debugPrint('[WEBRTC] Error acquiring local audio stream: $e');
+      debugPrint('[WEBRTC] Error acquiring local media stream: $e');
       _updateState('failed');
       return;
     }
@@ -242,6 +299,7 @@ class WebRtcService {
   Future<void> _initiateAsReceiver(
     String sessionId,
     Map<String, dynamic> data,
+    CallType type,
   ) async {
     debugPrint('[WEBRTC] [_initiateAsReceiver] Creating PeerConnection...');
     _peerConnection = await _webRtcRepository.createPeerConnectionInstance();
@@ -270,17 +328,32 @@ class WebRtcService {
       _updateState(mapped);
     };
 
-    // Obtain local audio stream
-    debugPrint('[WEBRTC] [_initiateAsReceiver] Accessing microphone...');
+    // Obtain local media stream
+    final mediaConstraints = {
+      'audio': true,
+      'video': type == CallType.video ? {
+        'facingMode': 'user',
+        'width': {'ideal': 640},
+        'height': {'ideal': 480},
+      } : false,
+    };
+    if (type == CallType.video) {
+      debugPrint('[WEBRTC] camera acquisition');
+    }
+    debugPrint('[WEBRTC] Accessing media streams with constraints: $mediaConstraints');
     try {
-      _localStream = await navigator.mediaDevices.getUserMedia({'audio': true, 'video': false});
+      _localStream = await navigator.mediaDevices.getUserMedia(mediaConstraints);
+      if (type == CallType.video && _localRenderer != null) {
+        _localRenderer!.srcObject = _localStream;
+        debugPrint('[WEBRTC] Local video track attached');
+      }
       for (final track in _localStream!.getTracks()) {
         await pc.addTrack(track, _localStream!);
         debugPrint('[WEBRTC] Added local track: ${track.id}, kind: ${track.kind}');
       }
       await _setupLocalAudioDiagnostics(pc);
     } catch (e) {
-      debugPrint('[WEBRTC] Error acquiring local audio stream: $e');
+      debugPrint('[WEBRTC] Error acquiring local media stream: $e');
       _updateState('failed');
       return;
     }
@@ -358,7 +431,9 @@ class WebRtcService {
     debugPrint('[WEBRTC] Reconnecting as caller for session: $sessionId');
     await _signalingRepository.deleteSession(sessionId);
     await Future.delayed(const Duration(milliseconds: 100));
-    await _initiateAsCaller(sessionId, data['callerId'], data['receiverId']);
+    final typeStr = data['type'] as String?;
+    final type = typeStr == 'video' ? CallType.video : CallType.audio;
+    await _initiateAsCaller(sessionId, data['callerId'], data['receiverId'], type);
   }
 
   void _updateState(String state) {
@@ -432,13 +507,7 @@ class WebRtcService {
     _statsTimer?.cancel();
     _statsTimer = null;
 
-    if (_remoteRenderer != null) {
-      try {
-        _remoteRenderer!.srcObject = null;
-        await _remoteRenderer!.dispose();
-      } catch (_) {}
-      _remoteRenderer = null;
-    }
+    await disposeRenderers();
 
     if (_localStream != null) {
       debugPrint('[WEBRTC] Disposing local media stream tracks.');
@@ -566,6 +635,14 @@ class WebRtcService {
       }
       
       _checkAndEmitConnected();
+    } else if (event.track.kind == 'video') {
+      event.track.enabled = true;
+      debugPrint('[WEBRTC] Remote video track received: ${event.track.id}');
+      debugPrint('[WEBRTC] Remote video track received');
+      if (event.streams.isNotEmpty && _remoteRenderer != null) {
+        _remoteRenderer!.srcObject = event.streams.first;
+        debugPrint('[WEBRTC] Remote renderer attached');
+      }
     }
   }
 
@@ -578,6 +655,33 @@ class WebRtcService {
         debugPrint('[CALL-CONTROL] Microphone muted');
       } else {
         debugPrint('[CALL-CONTROL] Microphone unmuted');
+      }
+    }
+  }
+
+  void toggleCamera(bool enabled) {
+    if (_localStream != null) {
+      for (final track in _localStream!.getVideoTracks()) {
+        track.enabled = enabled;
+      }
+      if (enabled) {
+        debugPrint('[WEBRTC] Camera enabled');
+      } else {
+        debugPrint('[WEBRTC] Camera disabled');
+      }
+    }
+  }
+
+  Future<void> switchCamera() async {
+    if (_localStream != null) {
+      final videoTracks = _localStream!.getVideoTracks();
+      if (videoTracks.isNotEmpty) {
+        try {
+          await Helper.switchCamera(videoTracks.first);
+          debugPrint('[WEBRTC] Camera switched');
+        } catch (e) {
+          debugPrint('[WEBRTC] Error switching camera: $e');
+        }
       }
     }
   }

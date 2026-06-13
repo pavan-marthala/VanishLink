@@ -23,7 +23,7 @@ mixin _$CallModel {
   String get callId => throw _privateConstructorUsedError;
   String get callerId => throw _privateConstructorUsedError;
   String get receiverId => throw _privateConstructorUsedError;
-  String get type => throw _privateConstructorUsedError; // 'voice', 'video'
+  CallType get type => throw _privateConstructorUsedError;
   String get status =>
       throw _privateConstructorUsedError; // 'calling', 'ringing', 'accepted', 'declined', 'missed', 'ended', 'cancelled'
   int get createdAt =>
@@ -49,7 +49,7 @@ abstract class $CallModelCopyWith<$Res> {
       {String callId,
       String callerId,
       String receiverId,
-      String type,
+      CallType type,
       String status,
       int createdAt,
       int? acceptedAt,
@@ -96,7 +96,7 @@ class _$CallModelCopyWithImpl<$Res, $Val extends CallModel>
       type: null == type
           ? _value.type
           : type // ignore: cast_nullable_to_non_nullable
-              as String,
+              as CallType,
       status: null == status
           ? _value.status
           : status // ignore: cast_nullable_to_non_nullable
@@ -133,7 +133,7 @@ abstract class _$$CallModelImplCopyWith<$Res>
       {String callId,
       String callerId,
       String receiverId,
-      String type,
+      CallType type,
       String status,
       int createdAt,
       int? acceptedAt,
@@ -178,7 +178,7 @@ class __$$CallModelImplCopyWithImpl<$Res>
       type: null == type
           ? _value.type
           : type // ignore: cast_nullable_to_non_nullable
-              as String,
+              as CallType,
       status: null == status
           ? _value.status
           : status // ignore: cast_nullable_to_non_nullable
@@ -227,8 +227,7 @@ class _$CallModelImpl implements _CallModel {
   @override
   final String receiverId;
   @override
-  final String type;
-// 'voice', 'video'
+  final CallType type;
   @override
   final String status;
 // 'calling', 'ringing', 'accepted', 'declined', 'missed', 'ended', 'cancelled'
@@ -295,7 +294,7 @@ abstract class _CallModel implements CallModel {
       {required final String callId,
       required final String callerId,
       required final String receiverId,
-      required final String type,
+      required final CallType type,
       required final String status,
       required final int createdAt,
       final int? acceptedAt,
@@ -312,8 +311,8 @@ abstract class _CallModel implements CallModel {
   @override
   String get receiverId;
   @override
-  String get type;
-  @override // 'voice', 'video'
+  CallType get type;
+  @override
   String get status;
   @override // 'calling', 'ringing', 'accepted', 'declined', 'missed', 'ended', 'cancelled'
   int get createdAt;

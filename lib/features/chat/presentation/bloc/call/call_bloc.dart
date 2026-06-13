@@ -8,6 +8,7 @@ import 'package:vanish_link/features/chat/domain/services/call_delivery_contract
 import 'package:vanish_link/core/di/injection.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:vanish_link/core/services/permission_manager.dart';
+import 'package:vanish_link/features/chat/domain/services/call_coordinator.dart';
 import 'call_event.dart';
 import 'call_state.dart';
 
@@ -29,6 +30,8 @@ class CallBloc extends Bloc<CallEvent, CallState> {
     on<EndCall>(_onEndCall);
     on<ListenToCall>(_onListenToCall);
     on<CallUpdated>(_onCallUpdated);
+    on<ToggleCamera>(_onToggleCamera);
+    on<SwitchCamera>(_onSwitchCamera);
   }
 
   int get callDuration => _callDuration;
@@ -206,7 +209,7 @@ class CallBloc extends Bloc<CallEvent, CallState> {
 
       // If video call, request camera permission too
       bool camGranted = true;
-      if (call.type == 'video') {
+      if (call.type == CallType.video) {
         final camStatus = await pm.requestPermission(VanishPermissionType.camera);
         camGranted = camStatus == VanishPermissionStatus.granted;
       }
@@ -312,5 +315,13 @@ class CallBloc extends Bloc<CallEvent, CallState> {
     _cancelDeliveryTimers();
     _durationTimer?.cancel();
     return super.close();
+  }
+
+  void _onToggleCamera(ToggleCamera event, Emitter<CallState> emit) {
+    getIt<CallCoordinator>().toggleCamera(event.enabled);
+  }
+
+  Future<void> _onSwitchCamera(SwitchCamera event, Emitter<CallState> emit) async {
+    await getIt<CallCoordinator>().switchCamera();
   }
 }

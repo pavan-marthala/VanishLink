@@ -19,7 +19,7 @@ class CallRepositoryImpl implements CallRepository {
   Future<CallModel> createCall({
     required String callerId,
     required String receiverId,
-    required String type,
+    required CallType type,
   }) async {
     final ref = _database.ref('calls').push();
     final callId = ref.key!;

@@ -18,7 +18,7 @@ final _privateConstructorUsedError = UnsupportedError(
 mixin _$CallEvent {
   @optionalTypeArgs
   TResult when<TResult extends Object?>({
-    required TResult Function(String callerId, String receiverId, String type)
+    required TResult Function(String callerId, String receiverId, CallType type)
         createCall,
     required TResult Function(String? callId) acceptCall,
     required TResult Function() declineCall,
@@ -26,11 +26,13 @@ mixin _$CallEvent {
     required TResult Function() endCall,
     required TResult Function(String callId) listenToCall,
     required TResult Function(CallModel? callModel) callUpdated,
+    required TResult Function(bool enabled) toggleCamera,
+    required TResult Function() switchCamera,
   }) =>
       throw _privateConstructorUsedError;
   @optionalTypeArgs
   TResult? whenOrNull<TResult extends Object?>({
-    TResult? Function(String callerId, String receiverId, String type)?
+    TResult? Function(String callerId, String receiverId, CallType type)?
         createCall,
     TResult? Function(String? callId)? acceptCall,
     TResult? Function()? declineCall,
@@ -38,11 +40,13 @@ mixin _$CallEvent {
     TResult? Function()? endCall,
     TResult? Function(String callId)? listenToCall,
     TResult? Function(CallModel? callModel)? callUpdated,
+    TResult? Function(bool enabled)? toggleCamera,
+    TResult? Function()? switchCamera,
   }) =>
       throw _privateConstructorUsedError;
   @optionalTypeArgs
   TResult maybeWhen<TResult extends Object?>({
-    TResult Function(String callerId, String receiverId, String type)?
+    TResult Function(String callerId, String receiverId, CallType type)?
         createCall,
     TResult Function(String? callId)? acceptCall,
     TResult Function()? declineCall,
@@ -50,6 +54,8 @@ mixin _$CallEvent {
     TResult Function()? endCall,
     TResult Function(String callId)? listenToCall,
     TResult Function(CallModel? callModel)? callUpdated,
+    TResult Function(bool enabled)? toggleCamera,
+    TResult Function()? switchCamera,
     required TResult orElse(),
   }) =>
       throw _privateConstructorUsedError;
@@ -62,6 +68,8 @@ mixin _$CallEvent {
     required TResult Function(EndCall value) endCall,
     required TResult Function(ListenToCall value) listenToCall,
     required TResult Function(CallUpdated value) callUpdated,
+    required TResult Function(ToggleCamera value) toggleCamera,
+    required TResult Function(SwitchCamera value) switchCamera,
   }) =>
       throw _privateConstructorUsedError;
   @optionalTypeArgs
@@ -73,6 +81,8 @@ mixin _$CallEvent {
     TResult? Function(EndCall value)? endCall,
     TResult? Function(ListenToCall value)? listenToCall,
     TResult? Function(CallUpdated value)? callUpdated,
+    TResult? Function(ToggleCamera value)? toggleCamera,
+    TResult? Function(SwitchCamera value)? switchCamera,
   }) =>
       throw _privateConstructorUsedError;
   @optionalTypeArgs
@@ -84,6 +94,8 @@ mixin _$CallEvent {
     TResult Function(EndCall value)? endCall,
     TResult Function(ListenToCall value)? listenToCall,
     TResult Function(CallUpdated value)? callUpdated,
+    TResult Function(ToggleCamera value)? toggleCamera,
+    TResult Function(SwitchCamera value)? switchCamera,
     required TResult orElse(),
   }) =>
       throw _privateConstructorUsedError;
@@ -112,7 +124,7 @@ abstract class _$$CreateCallImplCopyWith<$Res> {
           _$CreateCallImpl value, $Res Function(_$CreateCallImpl) then) =
       __$$CreateCallImplCopyWithImpl<$Res>;
   @useResult
-  $Res call({String callerId, String receiverId, String type});
+  $Res call({String callerId, String receiverId, CallType type});
 }
 
 /// @nodoc
@@ -142,7 +154,7 @@ class __$$CreateCallImplCopyWithImpl<$Res>
       type: null == type
           ? _value.type
           : type // ignore: cast_nullable_to_non_nullable
-              as String,
+              as CallType,
     ));
   }
 }
@@ -158,7 +170,7 @@ class _$CreateCallImpl implements CreateCall {
   @override
   final String receiverId;
   @override
-  final String type;
+  final CallType type;
 
   @override
   String toString() {
@@ -189,7 +201,7 @@ class _$CreateCallImpl implements CreateCall {
   @override
   @optionalTypeArgs
   TResult when<TResult extends Object?>({
-    required TResult Function(String callerId, String receiverId, String type)
+    required TResult Function(String callerId, String receiverId, CallType type)
         createCall,
     required TResult Function(String? callId) acceptCall,
     required TResult Function() declineCall,
@@ -197,6 +209,8 @@ class _$CreateCallImpl implements CreateCall {
     required TResult Function() endCall,
     required TResult Function(String callId) listenToCall,
     required TResult Function(CallModel? callModel) callUpdated,
+    required TResult Function(bool enabled) toggleCamera,
+    required TResult Function() switchCamera,
   }) {
     return createCall(callerId, receiverId, type);
   }
@@ -204,7 +218,7 @@ class _$CreateCallImpl implements CreateCall {
   @override
   @optionalTypeArgs
   TResult? whenOrNull<TResult extends Object?>({
-    TResult? Function(String callerId, String receiverId, String type)?
+    TResult? Function(String callerId, String receiverId, CallType type)?
         createCall,
     TResult? Function(String? callId)? acceptCall,
     TResult? Function()? declineCall,
@@ -212,6 +226,8 @@ class _$CreateCallImpl implements CreateCall {
     TResult? Function()? endCall,
     TResult? Function(String callId)? listenToCall,
     TResult? Function(CallModel? callModel)? callUpdated,
+    TResult? Function(bool enabled)? toggleCamera,
+    TResult? Function()? switchCamera,
   }) {
     return createCall?.call(callerId, receiverId, type);
   }
@@ -219,7 +235,7 @@ class _$CreateCallImpl implements CreateCall {
   @override
   @optionalTypeArgs
   TResult maybeWhen<TResult extends Object?>({
-    TResult Function(String callerId, String receiverId, String type)?
+    TResult Function(String callerId, String receiverId, CallType type)?
         createCall,
     TResult Function(String? callId)? acceptCall,
     TResult Function()? declineCall,
@@ -227,6 +243,8 @@ class _$CreateCallImpl implements CreateCall {
     TResult Function()? endCall,
     TResult Function(String callId)? listenToCall,
     TResult Function(CallModel? callModel)? callUpdated,
+    TResult Function(bool enabled)? toggleCamera,
+    TResult Function()? switchCamera,
     required TResult orElse(),
   }) {
     if (createCall != null) {
@@ -245,6 +263,8 @@ class _$CreateCallImpl implements CreateCall {
     required TResult Function(EndCall value) endCall,
     required TResult Function(ListenToCall value) listenToCall,
     required TResult Function(CallUpdated value) callUpdated,
+    required TResult Function(ToggleCamera value) toggleCamera,
+    required TResult Function(SwitchCamera value) switchCamera,
   }) {
     return createCall(this);
   }
@@ -259,6 +279,8 @@ class _$CreateCallImpl implements CreateCall {
     TResult? Function(EndCall value)? endCall,
     TResult? Function(ListenToCall value)? listenToCall,
     TResult? Function(CallUpdated value)? callUpdated,
+    TResult? Function(ToggleCamera value)? toggleCamera,
+    TResult? Function(SwitchCamera value)? switchCamera,
   }) {
     return createCall?.call(this);
   }
@@ -273,6 +295,8 @@ class _$CreateCallImpl implements CreateCall {
     TResult Function(EndCall value)? endCall,
     TResult Function(ListenToCall value)? listenToCall,
     TResult Function(CallUpdated value)? callUpdated,
+    TResult Function(ToggleCamera value)? toggleCamera,
+    TResult Function(SwitchCamera value)? switchCamera,
     required TResult orElse(),
   }) {
     if (createCall != null) {
@@ -286,11 +310,11 @@ abstract class CreateCall implements CallEvent {
   const factory CreateCall(
       {required final String callerId,
       required final String receiverId,
-      required final String type}) = _$CreateCallImpl;
+      required final CallType type}) = _$CreateCallImpl;
 
   String get callerId;
   String get receiverId;
-  String get type;
+  CallType get type;
   @JsonKey(ignore: true)
   _$$CreateCallImplCopyWith<_$CreateCallImpl> get copyWith =>
       throw _privateConstructorUsedError;
@@ -360,7 +384,7 @@ class _$AcceptCallImpl implements AcceptCall {
   @override
   @optionalTypeArgs
   TResult when<TResult extends Object?>({
-    required TResult Function(String callerId, String receiverId, String type)
+    required TResult Function(String callerId, String receiverId, CallType type)
         createCall,
     required TResult Function(String? callId) acceptCall,
     required TResult Function() declineCall,
@@ -368,6 +392,8 @@ class _$AcceptCallImpl implements AcceptCall {
     required TResult Function() endCall,
     required TResult Function(String callId) listenToCall,
     required TResult Function(CallModel? callModel) callUpdated,
+    required TResult Function(bool enabled) toggleCamera,
+    required TResult Function() switchCamera,
   }) {
     return acceptCall(callId);
   }
@@ -375,7 +401,7 @@ class _$AcceptCallImpl implements AcceptCall {
   @override
   @optionalTypeArgs
   TResult? whenOrNull<TResult extends Object?>({
-    TResult? Function(String callerId, String receiverId, String type)?
+    TResult? Function(String callerId, String receiverId, CallType type)?
         createCall,
     TResult? Function(String? callId)? acceptCall,
     TResult? Function()? declineCall,
@@ -383,6 +409,8 @@ class _$AcceptCallImpl implements AcceptCall {
     TResult? Function()? endCall,
     TResult? Function(String callId)? listenToCall,
     TResult? Function(CallModel? callModel)? callUpdated,
+    TResult? Function(bool enabled)? toggleCamera,
+    TResult? Function()? switchCamera,
   }) {
     return acceptCall?.call(callId);
   }
@@ -390,7 +418,7 @@ class _$AcceptCallImpl implements AcceptCall {
   @override
   @optionalTypeArgs
   TResult maybeWhen<TResult extends Object?>({
-    TResult Function(String callerId, String receiverId, String type)?
+    TResult Function(String callerId, String receiverId, CallType type)?
         createCall,
     TResult Function(String? callId)? acceptCall,
     TResult Function()? declineCall,
@@ -398,6 +426,8 @@ class _$AcceptCallImpl implements AcceptCall {
     TResult Function()? endCall,
     TResult Function(String callId)? listenToCall,
     TResult Function(CallModel? callModel)? callUpdated,
+    TResult Function(bool enabled)? toggleCamera,
+    TResult Function()? switchCamera,
     required TResult orElse(),
   }) {
     if (acceptCall != null) {
@@ -416,6 +446,8 @@ class _$AcceptCallImpl implements AcceptCall {
     required TResult Function(EndCall value) endCall,
     required TResult Function(ListenToCall value) listenToCall,
     required TResult Function(CallUpdated value) callUpdated,
+    required TResult Function(ToggleCamera value) toggleCamera,
+    required TResult Function(SwitchCamera value) switchCamera,
   }) {
     return acceptCall(this);
   }
@@ -430,6 +462,8 @@ class _$AcceptCallImpl implements AcceptCall {
     TResult? Function(EndCall value)? endCall,
     TResult? Function(ListenToCall value)? listenToCall,
     TResult? Function(CallUpdated value)? callUpdated,
+    TResult? Function(ToggleCamera value)? toggleCamera,
+    TResult? Function(SwitchCamera value)? switchCamera,
   }) {
     return acceptCall?.call(this);
   }
@@ -444,6 +478,8 @@ class _$AcceptCallImpl implements AcceptCall {
     TResult Function(EndCall value)? endCall,
     TResult Function(ListenToCall value)? listenToCall,
     TResult Function(CallUpdated value)? callUpdated,
+    TResult Function(ToggleCamera value)? toggleCamera,
+    TResult Function(SwitchCamera value)? switchCamera,
     required TResult orElse(),
   }) {
     if (acceptCall != null) {
@@ -500,7 +536,7 @@ class _$DeclineCallImpl implements DeclineCall {
   @override
   @optionalTypeArgs
   TResult when<TResult extends Object?>({
-    required TResult Function(String callerId, String receiverId, String type)
+    required TResult Function(String callerId, String receiverId, CallType type)
         createCall,
     required TResult Function(String? callId) acceptCall,
     required TResult Function() declineCall,
@@ -508,6 +544,8 @@ class _$DeclineCallImpl implements DeclineCall {
     required TResult Function() endCall,
     required TResult Function(String callId) listenToCall,
     required TResult Function(CallModel? callModel) callUpdated,
+    required TResult Function(bool enabled) toggleCamera,
+    required TResult Function() switchCamera,
   }) {
     return declineCall();
   }
@@ -515,7 +553,7 @@ class _$DeclineCallImpl implements DeclineCall {
   @override
   @optionalTypeArgs
   TResult? whenOrNull<TResult extends Object?>({
-    TResult? Function(String callerId, String receiverId, String type)?
+    TResult? Function(String callerId, String receiverId, CallType type)?
         createCall,
     TResult? Function(String? callId)? acceptCall,
     TResult? Function()? declineCall,
@@ -523,6 +561,8 @@ class _$DeclineCallImpl implements DeclineCall {
     TResult? Function()? endCall,
     TResult? Function(String callId)? listenToCall,
     TResult? Function(CallModel? callModel)? callUpdated,
+    TResult? Function(bool enabled)? toggleCamera,
+    TResult? Function()? switchCamera,
   }) {
     return declineCall?.call();
   }
@@ -530,7 +570,7 @@ class _$DeclineCallImpl implements DeclineCall {
   @override
   @optionalTypeArgs
   TResult maybeWhen<TResult extends Object?>({
-    TResult Function(String callerId, String receiverId, String type)?
+    TResult Function(String callerId, String receiverId, CallType type)?
         createCall,
     TResult Function(String? callId)? acceptCall,
     TResult Function()? declineCall,
@@ -538,6 +578,8 @@ class _$DeclineCallImpl implements DeclineCall {
     TResult Function()? endCall,
     TResult Function(String callId)? listenToCall,
     TResult Function(CallModel? callModel)? callUpdated,
+    TResult Function(bool enabled)? toggleCamera,
+    TResult Function()? switchCamera,
     required TResult orElse(),
   }) {
     if (declineCall != null) {
@@ -556,6 +598,8 @@ class _$DeclineCallImpl implements DeclineCall {
     required TResult Function(EndCall value) endCall,
     required TResult Function(ListenToCall value) listenToCall,
     required TResult Function(CallUpdated value) callUpdated,
+    required TResult Function(ToggleCamera value) toggleCamera,
+    required TResult Function(SwitchCamera value) switchCamera,
   }) {
     return declineCall(this);
   }
@@ -570,6 +614,8 @@ class _$DeclineCallImpl implements DeclineCall {
     TResult? Function(EndCall value)? endCall,
     TResult? Function(ListenToCall value)? listenToCall,
     TResult? Function(CallUpdated value)? callUpdated,
+    TResult? Function(ToggleCamera value)? toggleCamera,
+    TResult? Function(SwitchCamera value)? switchCamera,
   }) {
     return declineCall?.call(this);
   }
@@ -584,6 +630,8 @@ class _$DeclineCallImpl implements DeclineCall {
     TResult Function(EndCall value)? endCall,
     TResult Function(ListenToCall value)? listenToCall,
     TResult Function(CallUpdated value)? callUpdated,
+    TResult Function(ToggleCamera value)? toggleCamera,
+    TResult Function(SwitchCamera value)? switchCamera,
     required TResult orElse(),
   }) {
     if (declineCall != null) {
@@ -635,7 +683,7 @@ class _$CancelCallImpl implements CancelCall {
   @override
   @optionalTypeArgs
   TResult when<TResult extends Object?>({
-    required TResult Function(String callerId, String receiverId, String type)
+    required TResult Function(String callerId, String receiverId, CallType type)
         createCall,
     required TResult Function(String? callId) acceptCall,
     required TResult Function() declineCall,
@@ -643,6 +691,8 @@ class _$CancelCallImpl implements CancelCall {
     required TResult Function() endCall,
     required TResult Function(String callId) listenToCall,
     required TResult Function(CallModel? callModel) callUpdated,
+    required TResult Function(bool enabled) toggleCamera,
+    required TResult Function() switchCamera,
   }) {
     return cancelCall();
   }
@@ -650,7 +700,7 @@ class _$CancelCallImpl implements CancelCall {
   @override
   @optionalTypeArgs
   TResult? whenOrNull<TResult extends Object?>({
-    TResult? Function(String callerId, String receiverId, String type)?
+    TResult? Function(String callerId, String receiverId, CallType type)?
         createCall,
     TResult? Function(String? callId)? acceptCall,
     TResult? Function()? declineCall,
@@ -658,6 +708,8 @@ class _$CancelCallImpl implements CancelCall {
     TResult? Function()? endCall,
     TResult? Function(String callId)? listenToCall,
     TResult? Function(CallModel? callModel)? callUpdated,
+    TResult? Function(bool enabled)? toggleCamera,
+    TResult? Function()? switchCamera,
   }) {
     return cancelCall?.call();
   }
@@ -665,7 +717,7 @@ class _$CancelCallImpl implements CancelCall {
   @override
   @optionalTypeArgs
   TResult maybeWhen<TResult extends Object?>({
-    TResult Function(String callerId, String receiverId, String type)?
+    TResult Function(String callerId, String receiverId, CallType type)?
         createCall,
     TResult Function(String? callId)? acceptCall,
     TResult Function()? declineCall,
@@ -673,6 +725,8 @@ class _$CancelCallImpl implements CancelCall {
     TResult Function()? endCall,
     TResult Function(String callId)? listenToCall,
     TResult Function(CallModel? callModel)? callUpdated,
+    TResult Function(bool enabled)? toggleCamera,
+    TResult Function()? switchCamera,
     required TResult orElse(),
   }) {
     if (cancelCall != null) {
@@ -691,6 +745,8 @@ class _$CancelCallImpl implements CancelCall {
     required TResult Function(EndCall value) endCall,
     required TResult Function(ListenToCall value) listenToCall,
     required TResult Function(CallUpdated value) callUpdated,
+    required TResult Function(ToggleCamera value) toggleCamera,
+    required TResult Function(SwitchCamera value) switchCamera,
   }) {
     return cancelCall(this);
   }
@@ -705,6 +761,8 @@ class _$CancelCallImpl implements CancelCall {
     TResult? Function(EndCall value)? endCall,
     TResult? Function(ListenToCall value)? listenToCall,
     TResult? Function(CallUpdated value)? callUpdated,
+    TResult? Function(ToggleCamera value)? toggleCamera,
+    TResult? Function(SwitchCamera value)? switchCamera,
   }) {
     return cancelCall?.call(this);
   }
@@ -719,6 +777,8 @@ class _$CancelCallImpl implements CancelCall {
     TResult Function(EndCall value)? endCall,
     TResult Function(ListenToCall value)? listenToCall,
     TResult Function(CallUpdated value)? callUpdated,
+    TResult Function(ToggleCamera value)? toggleCamera,
+    TResult Function(SwitchCamera value)? switchCamera,
     required TResult orElse(),
   }) {
     if (cancelCall != null) {
@@ -770,7 +830,7 @@ class _$EndCallImpl implements EndCall {
   @override
   @optionalTypeArgs
   TResult when<TResult extends Object?>({
-    required TResult Function(String callerId, String receiverId, String type)
+    required TResult Function(String callerId, String receiverId, CallType type)
         createCall,
     required TResult Function(String? callId) acceptCall,
     required TResult Function() declineCall,
@@ -778,6 +838,8 @@ class _$EndCallImpl implements EndCall {
     required TResult Function() endCall,
     required TResult Function(String callId) listenToCall,
     required TResult Function(CallModel? callModel) callUpdated,
+    required TResult Function(bool enabled) toggleCamera,
+    required TResult Function() switchCamera,
   }) {
     return endCall();
   }
@@ -785,7 +847,7 @@ class _$EndCallImpl implements EndCall {
   @override
   @optionalTypeArgs
   TResult? whenOrNull<TResult extends Object?>({
-    TResult? Function(String callerId, String receiverId, String type)?
+    TResult? Function(String callerId, String receiverId, CallType type)?
         createCall,
     TResult? Function(String? callId)? acceptCall,
     TResult? Function()? declineCall,
@@ -793,6 +855,8 @@ class _$EndCallImpl implements EndCall {
     TResult? Function()? endCall,
     TResult? Function(String callId)? listenToCall,
     TResult? Function(CallModel? callModel)? callUpdated,
+    TResult? Function(bool enabled)? toggleCamera,
+    TResult? Function()? switchCamera,
   }) {
     return endCall?.call();
   }
@@ -800,7 +864,7 @@ class _$EndCallImpl implements EndCall {
   @override
   @optionalTypeArgs
   TResult maybeWhen<TResult extends Object?>({
-    TResult Function(String callerId, String receiverId, String type)?
+    TResult Function(String callerId, String receiverId, CallType type)?
         createCall,
     TResult Function(String? callId)? acceptCall,
     TResult Function()? declineCall,
@@ -808,6 +872,8 @@ class _$EndCallImpl implements EndCall {
     TResult Function()? endCall,
     TResult Function(String callId)? listenToCall,
     TResult Function(CallModel? callModel)? callUpdated,
+    TResult Function(bool enabled)? toggleCamera,
+    TResult Function()? switchCamera,
     required TResult orElse(),
   }) {
     if (endCall != null) {
@@ -826,6 +892,8 @@ class _$EndCallImpl implements EndCall {
     required TResult Function(EndCall value) endCall,
     required TResult Function(ListenToCall value) listenToCall,
     required TResult Function(CallUpdated value) callUpdated,
+    required TResult Function(ToggleCamera value) toggleCamera,
+    required TResult Function(SwitchCamera value) switchCamera,
   }) {
     return endCall(this);
   }
@@ -840,6 +908,8 @@ class _$EndCallImpl implements EndCall {
     TResult? Function(EndCall value)? endCall,
     TResult? Function(ListenToCall value)? listenToCall,
     TResult? Function(CallUpdated value)? callUpdated,
+    TResult? Function(ToggleCamera value)? toggleCamera,
+    TResult? Function(SwitchCamera value)? switchCamera,
   }) {
     return endCall?.call(this);
   }
@@ -854,6 +924,8 @@ class _$EndCallImpl implements EndCall {
     TResult Function(EndCall value)? endCall,
     TResult Function(ListenToCall value)? listenToCall,
     TResult Function(CallUpdated value)? callUpdated,
+    TResult Function(ToggleCamera value)? toggleCamera,
+    TResult Function(SwitchCamera value)? switchCamera,
     required TResult orElse(),
   }) {
     if (endCall != null) {
@@ -931,7 +1003,7 @@ class _$ListenToCallImpl implements ListenToCall {
   @override
   @optionalTypeArgs
   TResult when<TResult extends Object?>({
-    required TResult Function(String callerId, String receiverId, String type)
+    required TResult Function(String callerId, String receiverId, CallType type)
         createCall,
     required TResult Function(String? callId) acceptCall,
     required TResult Function() declineCall,
@@ -939,6 +1011,8 @@ class _$ListenToCallImpl implements ListenToCall {
     required TResult Function() endCall,
     required TResult Function(String callId) listenToCall,
     required TResult Function(CallModel? callModel) callUpdated,
+    required TResult Function(bool enabled) toggleCamera,
+    required TResult Function() switchCamera,
   }) {
     return listenToCall(callId);
   }
@@ -946,7 +1020,7 @@ class _$ListenToCallImpl implements ListenToCall {
   @override
   @optionalTypeArgs
   TResult? whenOrNull<TResult extends Object?>({
-    TResult? Function(String callerId, String receiverId, String type)?
+    TResult? Function(String callerId, String receiverId, CallType type)?
         createCall,
     TResult? Function(String? callId)? acceptCall,
     TResult? Function()? declineCall,
@@ -954,6 +1028,8 @@ class _$ListenToCallImpl implements ListenToCall {
     TResult? Function()? endCall,
     TResult? Function(String callId)? listenToCall,
     TResult? Function(CallModel? callModel)? callUpdated,
+    TResult? Function(bool enabled)? toggleCamera,
+    TResult? Function()? switchCamera,
   }) {
     return listenToCall?.call(callId);
   }
@@ -961,7 +1037,7 @@ class _$ListenToCallImpl implements ListenToCall {
   @override
   @optionalTypeArgs
   TResult maybeWhen<TResult extends Object?>({
-    TResult Function(String callerId, String receiverId, String type)?
+    TResult Function(String callerId, String receiverId, CallType type)?
         createCall,
     TResult Function(String? callId)? acceptCall,
     TResult Function()? declineCall,
@@ -969,6 +1045,8 @@ class _$ListenToCallImpl implements ListenToCall {
     TResult Function()? endCall,
     TResult Function(String callId)? listenToCall,
     TResult Function(CallModel? callModel)? callUpdated,
+    TResult Function(bool enabled)? toggleCamera,
+    TResult Function()? switchCamera,
     required TResult orElse(),
   }) {
     if (listenToCall != null) {
@@ -987,6 +1065,8 @@ class _$ListenToCallImpl implements ListenToCall {
     required TResult Function(EndCall value) endCall,
     required TResult Function(ListenToCall value) listenToCall,
     required TResult Function(CallUpdated value) callUpdated,
+    required TResult Function(ToggleCamera value) toggleCamera,
+    required TResult Function(SwitchCamera value) switchCamera,
   }) {
     return listenToCall(this);
   }
@@ -1001,6 +1081,8 @@ class _$ListenToCallImpl implements ListenToCall {
     TResult? Function(EndCall value)? endCall,
     TResult? Function(ListenToCall value)? listenToCall,
     TResult? Function(CallUpdated value)? callUpdated,
+    TResult? Function(ToggleCamera value)? toggleCamera,
+    TResult? Function(SwitchCamera value)? switchCamera,
   }) {
     return listenToCall?.call(this);
   }
@@ -1015,6 +1097,8 @@ class _$ListenToCallImpl implements ListenToCall {
     TResult Function(EndCall value)? endCall,
     TResult Function(ListenToCall value)? listenToCall,
     TResult Function(CallUpdated value)? callUpdated,
+    TResult Function(ToggleCamera value)? toggleCamera,
+    TResult Function(SwitchCamera value)? switchCamera,
     required TResult orElse(),
   }) {
     if (listenToCall != null) {
@@ -1112,7 +1196,7 @@ class _$CallUpdatedImpl implements CallUpdated {
   @override
   @optionalTypeArgs
   TResult when<TResult extends Object?>({
-    required TResult Function(String callerId, String receiverId, String type)
+    required TResult Function(String callerId, String receiverId, CallType type)
         createCall,
     required TResult Function(String? callId) acceptCall,
     required TResult Function() declineCall,
@@ -1120,6 +1204,8 @@ class _$CallUpdatedImpl implements CallUpdated {
     required TResult Function() endCall,
     required TResult Function(String callId) listenToCall,
     required TResult Function(CallModel? callModel) callUpdated,
+    required TResult Function(bool enabled) toggleCamera,
+    required TResult Function() switchCamera,
   }) {
     return callUpdated(callModel);
   }
@@ -1127,7 +1213,7 @@ class _$CallUpdatedImpl implements CallUpdated {
   @override
   @optionalTypeArgs
   TResult? whenOrNull<TResult extends Object?>({
-    TResult? Function(String callerId, String receiverId, String type)?
+    TResult? Function(String callerId, String receiverId, CallType type)?
         createCall,
     TResult? Function(String? callId)? acceptCall,
     TResult? Function()? declineCall,
@@ -1135,6 +1221,8 @@ class _$CallUpdatedImpl implements CallUpdated {
     TResult? Function()? endCall,
     TResult? Function(String callId)? listenToCall,
     TResult? Function(CallModel? callModel)? callUpdated,
+    TResult? Function(bool enabled)? toggleCamera,
+    TResult? Function()? switchCamera,
   }) {
     return callUpdated?.call(callModel);
   }
@@ -1142,7 +1230,7 @@ class _$CallUpdatedImpl implements CallUpdated {
   @override
   @optionalTypeArgs
   TResult maybeWhen<TResult extends Object?>({
-    TResult Function(String callerId, String receiverId, String type)?
+    TResult Function(String callerId, String receiverId, CallType type)?
         createCall,
     TResult Function(String? callId)? acceptCall,
     TResult Function()? declineCall,
@@ -1150,6 +1238,8 @@ class _$CallUpdatedImpl implements CallUpdated {
     TResult Function()? endCall,
     TResult Function(String callId)? listenToCall,
     TResult Function(CallModel? callModel)? callUpdated,
+    TResult Function(bool enabled)? toggleCamera,
+    TResult Function()? switchCamera,
     required TResult orElse(),
   }) {
     if (callUpdated != null) {
@@ -1168,6 +1258,8 @@ class _$CallUpdatedImpl implements CallUpdated {
     required TResult Function(EndCall value) endCall,
     required TResult Function(ListenToCall value) listenToCall,
     required TResult Function(CallUpdated value) callUpdated,
+    required TResult Function(ToggleCamera value) toggleCamera,
+    required TResult Function(SwitchCamera value) switchCamera,
   }) {
     return callUpdated(this);
   }
@@ -1182,6 +1274,8 @@ class _$CallUpdatedImpl implements CallUpdated {
     TResult? Function(EndCall value)? endCall,
     TResult? Function(ListenToCall value)? listenToCall,
     TResult? Function(CallUpdated value)? callUpdated,
+    TResult? Function(ToggleCamera value)? toggleCamera,
+    TResult? Function(SwitchCamera value)? switchCamera,
   }) {
     return callUpdated?.call(this);
   }
@@ -1196,6 +1290,8 @@ class _$CallUpdatedImpl implements CallUpdated {
     TResult Function(EndCall value)? endCall,
     TResult Function(ListenToCall value)? listenToCall,
     TResult Function(CallUpdated value)? callUpdated,
+    TResult Function(ToggleCamera value)? toggleCamera,
+    TResult Function(SwitchCamera value)? switchCamera,
     required TResult orElse(),
   }) {
     if (callUpdated != null) {
@@ -1212,4 +1308,329 @@ abstract class CallUpdated implements CallEvent {
   @JsonKey(ignore: true)
   _$$CallUpdatedImplCopyWith<_$CallUpdatedImpl> get copyWith =>
       throw _privateConstructorUsedError;
+}
+
+/// @nodoc
+abstract class _$$ToggleCameraImplCopyWith<$Res> {
+  factory _$$ToggleCameraImplCopyWith(
+          _$ToggleCameraImpl value, $Res Function(_$ToggleCameraImpl) then) =
+      __$$ToggleCameraImplCopyWithImpl<$Res>;
+  @useResult
+  $Res call({bool enabled});
+}
+
+/// @nodoc
+class __$$ToggleCameraImplCopyWithImpl<$Res>
+    extends _$CallEventCopyWithImpl<$Res, _$ToggleCameraImpl>
+    implements _$$ToggleCameraImplCopyWith<$Res> {
+  __$$ToggleCameraImplCopyWithImpl(
+      _$ToggleCameraImpl _value, $Res Function(_$ToggleCameraImpl) _then)
+      : super(_value, _then);
+
+  @pragma('vm:prefer-inline')
+  @override
+  $Res call({
+    Object? enabled = null,
+  }) {
+    return _then(_$ToggleCameraImpl(
+      null == enabled
+          ? _value.enabled
+          : enabled // ignore: cast_nullable_to_non_nullable
+              as bool,
+    ));
+  }
+}
+
+/// @nodoc
+
+class _$ToggleCameraImpl implements ToggleCamera {
+  const _$ToggleCameraImpl(this.enabled);
+
+  @override
+  final bool enabled;
+
+  @override
+  String toString() {
+    return 'CallEvent.toggleCamera(enabled: $enabled)';
+  }
+
+  @override
+  bool operator ==(Object other) {
+    return identical(this, other) ||
+        (other.runtimeType == runtimeType &&
+            other is _$ToggleCameraImpl &&
+            (identical(other.enabled, enabled) || other.enabled == enabled));
+  }
+
+  @override
+  int get hashCode => Object.hash(runtimeType, enabled);
+
+  @JsonKey(ignore: true)
+  @override
+  @pragma('vm:prefer-inline')
+  _$$ToggleCameraImplCopyWith<_$ToggleCameraImpl> get copyWith =>
+      __$$ToggleCameraImplCopyWithImpl<_$ToggleCameraImpl>(this, _$identity);
+
+  @override
+  @optionalTypeArgs
+  TResult when<TResult extends Object?>({
+    required TResult Function(String callerId, String receiverId, CallType type)
+        createCall,
+    required TResult Function(String? callId) acceptCall,
+    required TResult Function() declineCall,
+    required TResult Function() cancelCall,
+    required TResult Function() endCall,
+    required TResult Function(String callId) listenToCall,
+    required TResult Function(CallModel? callModel) callUpdated,
+    required TResult Function(bool enabled) toggleCamera,
+    required TResult Function() switchCamera,
+  }) {
+    return toggleCamera(enabled);
+  }
+
+  @override
+  @optionalTypeArgs
+  TResult? whenOrNull<TResult extends Object?>({
+    TResult? Function(String callerId, String receiverId, CallType type)?
+        createCall,
+    TResult? Function(String? callId)? acceptCall,
+    TResult? Function()? declineCall,
+    TResult? Function()? cancelCall,
+    TResult? Function()? endCall,
+    TResult? Function(String callId)? listenToCall,
+    TResult? Function(CallModel? callModel)? callUpdated,
+    TResult? Function(bool enabled)? toggleCamera,
+    TResult? Function()? switchCamera,
+  }) {
+    return toggleCamera?.call(enabled);
+  }
+
+  @override
+  @optionalTypeArgs
+  TResult maybeWhen<TResult extends Object?>({
+    TResult Function(String callerId, String receiverId, CallType type)?
+        createCall,
+    TResult Function(String? callId)? acceptCall,
+    TResult Function()? declineCall,
+    TResult Function()? cancelCall,
+    TResult Function()? endCall,
+    TResult Function(String callId)? listenToCall,
+    TResult Function(CallModel? callModel)? callUpdated,
+    TResult Function(bool enabled)? toggleCamera,
+    TResult Function()? switchCamera,
+    required TResult orElse(),
+  }) {
+    if (toggleCamera != null) {
+      return toggleCamera(enabled);
+    }
+    return orElse();
+  }
+
+  @override
+  @optionalTypeArgs
+  TResult map<TResult extends Object?>({
+    required TResult Function(CreateCall value) createCall,
+    required TResult Function(AcceptCall value) acceptCall,
+    required TResult Function(DeclineCall value) declineCall,
+    required TResult Function(CancelCall value) cancelCall,
+    required TResult Function(EndCall value) endCall,
+    required TResult Function(ListenToCall value) listenToCall,
+    required TResult Function(CallUpdated value) callUpdated,
+    required TResult Function(ToggleCamera value) toggleCamera,
+    required TResult Function(SwitchCamera value) switchCamera,
+  }) {
+    return toggleCamera(this);
+  }
+
+  @override
+  @optionalTypeArgs
+  TResult? mapOrNull<TResult extends Object?>({
+    TResult? Function(CreateCall value)? createCall,
+    TResult? Function(AcceptCall value)? acceptCall,
+    TResult? Function(DeclineCall value)? declineCall,
+    TResult? Function(CancelCall value)? cancelCall,
+    TResult? Function(EndCall value)? endCall,
+    TResult? Function(ListenToCall value)? listenToCall,
+    TResult? Function(CallUpdated value)? callUpdated,
+    TResult? Function(ToggleCamera value)? toggleCamera,
+    TResult? Function(SwitchCamera value)? switchCamera,
+  }) {
+    return toggleCamera?.call(this);
+  }
+
+  @override
+  @optionalTypeArgs
+  TResult maybeMap<TResult extends Object?>({
+    TResult Function(CreateCall value)? createCall,
+    TResult Function(AcceptCall value)? acceptCall,
+    TResult Function(DeclineCall value)? declineCall,
+    TResult Function(CancelCall value)? cancelCall,
+    TResult Function(EndCall value)? endCall,
+    TResult Function(ListenToCall value)? listenToCall,
+    TResult Function(CallUpdated value)? callUpdated,
+    TResult Function(ToggleCamera value)? toggleCamera,
+    TResult Function(SwitchCamera value)? switchCamera,
+    required TResult orElse(),
+  }) {
+    if (toggleCamera != null) {
+      return toggleCamera(this);
+    }
+    return orElse();
+  }
+}
+
+abstract class ToggleCamera implements CallEvent {
+  const factory ToggleCamera(final bool enabled) = _$ToggleCameraImpl;
+
+  bool get enabled;
+  @JsonKey(ignore: true)
+  _$$ToggleCameraImplCopyWith<_$ToggleCameraImpl> get copyWith =>
+      throw _privateConstructorUsedError;
+}
+
+/// @nodoc
+abstract class _$$SwitchCameraImplCopyWith<$Res> {
+  factory _$$SwitchCameraImplCopyWith(
+          _$SwitchCameraImpl value, $Res Function(_$SwitchCameraImpl) then) =
+      __$$SwitchCameraImplCopyWithImpl<$Res>;
+}
+
+/// @nodoc
+class __$$SwitchCameraImplCopyWithImpl<$Res>
+    extends _$CallEventCopyWithImpl<$Res, _$SwitchCameraImpl>
+    implements _$$SwitchCameraImplCopyWith<$Res> {
+  __$$SwitchCameraImplCopyWithImpl(
+      _$SwitchCameraImpl _value, $Res Function(_$SwitchCameraImpl) _then)
+      : super(_value, _then);
+}
+
+/// @nodoc
+
+class _$SwitchCameraImpl implements SwitchCamera {
+  const _$SwitchCameraImpl();
+
+  @override
+  String toString() {
+    return 'CallEvent.switchCamera()';
+  }
+
+  @override
+  bool operator ==(Object other) {
+    return identical(this, other) ||
+        (other.runtimeType == runtimeType && other is _$SwitchCameraImpl);
+  }
+
+  @override
+  int get hashCode => runtimeType.hashCode;
+
+  @override
+  @optionalTypeArgs
+  TResult when<TResult extends Object?>({
+    required TResult Function(String callerId, String receiverId, CallType type)
+        createCall,
+    required TResult Function(String? callId) acceptCall,
+    required TResult Function() declineCall,
+    required TResult Function() cancelCall,
+    required TResult Function() endCall,
+    required TResult Function(String callId) listenToCall,
+    required TResult Function(CallModel? callModel) callUpdated,
+    required TResult Function(bool enabled) toggleCamera,
+    required TResult Function() switchCamera,
+  }) {
+    return switchCamera();
+  }
+
+  @override
+  @optionalTypeArgs
+  TResult? whenOrNull<TResult extends Object?>({
+    TResult? Function(String callerId, String receiverId, CallType type)?
+        createCall,
+    TResult? Function(String? callId)? acceptCall,
+    TResult? Function()? declineCall,
+    TResult? Function()? cancelCall,
+    TResult? Function()? endCall,
+    TResult? Function(String callId)? listenToCall,
+    TResult? Function(CallModel? callModel)? callUpdated,
+    TResult? Function(bool enabled)? toggleCamera,
+    TResult? Function()? switchCamera,
+  }) {
+    return switchCamera?.call();
+  }
+
+  @override
+  @optionalTypeArgs
+  TResult maybeWhen<TResult extends Object?>({
+    TResult Function(String callerId, String receiverId, CallType type)?
+        createCall,
+    TResult Function(String? callId)? acceptCall,
+    TResult Function()? declineCall,
+    TResult Function()? cancelCall,
+    TResult Function()? endCall,
+    TResult Function(String callId)? listenToCall,
+    TResult Function(CallModel? callModel)? callUpdated,
+    TResult Function(bool enabled)? toggleCamera,
+    TResult Function()? switchCamera,
+    required TResult orElse(),
+  }) {
+    if (switchCamera != null) {
+      return switchCamera();
+    }
+    return orElse();
+  }
+
+  @override
+  @optionalTypeArgs
+  TResult map<TResult extends Object?>({
+    required TResult Function(CreateCall value) createCall,
+    required TResult Function(AcceptCall value) acceptCall,
+    required TResult Function(DeclineCall value) declineCall,
+    required TResult Function(CancelCall value) cancelCall,
+    required TResult Function(EndCall value) endCall,
+    required TResult Function(ListenToCall value) listenToCall,
+    required TResult Function(CallUpdated value) callUpdated,
+    required TResult Function(ToggleCamera value) toggleCamera,
+    required TResult Function(SwitchCamera value) switchCamera,
+  }) {
+    return switchCamera(this);
+  }
+
+  @override
+  @optionalTypeArgs
+  TResult? mapOrNull<TResult extends Object?>({
+    TResult? Function(CreateCall value)? createCall,
+    TResult? Function(AcceptCall value)? acceptCall,
+    TResult? Function(DeclineCall value)? declineCall,
+    TResult? Function(CancelCall value)? cancelCall,
+    TResult? Function(EndCall value)? endCall,
+    TResult? Function(ListenToCall value)? listenToCall,
+    TResult? Function(CallUpdated value)? callUpdated,
+    TResult? Function(ToggleCamera value)? toggleCamera,
+    TResult? Function(SwitchCamera value)? switchCamera,
+  }) {
+    return switchCamera?.call(this);
+  }
+
+  @override
+  @optionalTypeArgs
+  TResult maybeMap<TResult extends Object?>({
+    TResult Function(CreateCall value)? createCall,
+    TResult Function(AcceptCall value)? acceptCall,
+    TResult Function(DeclineCall value)? declineCall,
+    TResult Function(CancelCall value)? cancelCall,
+    TResult Function(EndCall value)? endCall,
+    TResult Function(ListenToCall value)? listenToCall,
+    TResult Function(CallUpdated value)? callUpdated,
+    TResult Function(ToggleCamera value)? toggleCamera,
+    TResult Function(SwitchCamera value)? switchCamera,
+    required TResult orElse(),
+  }) {
+    if (switchCamera != null) {
+      return switchCamera(this);
+    }
+    return orElse();
+  }
+}
+
+abstract class SwitchCamera implements CallEvent {
+  const factory SwitchCamera() = _$SwitchCameraImpl;
 }

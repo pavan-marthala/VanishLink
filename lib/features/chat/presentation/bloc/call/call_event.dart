@@ -8,7 +8,7 @@ class CallEvent with _$CallEvent {
   const factory CallEvent.createCall({
     required String callerId,
     required String receiverId,
-    required String type,
+    required CallType type,
   }) = CreateCall;
 
   const factory CallEvent.acceptCall({String? callId}) = AcceptCall;
@@ -17,4 +17,6 @@ class CallEvent with _$CallEvent {
   const factory CallEvent.endCall() = EndCall;
   const factory CallEvent.listenToCall(String callId) = ListenToCall;
   const factory CallEvent.callUpdated(CallModel? callModel) = CallUpdated;
+  const factory CallEvent.toggleCamera(bool enabled) = ToggleCamera;
+  const factory CallEvent.switchCamera() = SwitchCamera;
 }

@@ -214,7 +214,7 @@ class CallCoordinator {
             await _callKitAdapter.showIncomingCall(
               callId: call.callId,
               callerName: callerName,
-              type: call.type,
+              type: call.type == CallType.video ? 'video' : 'voice',
             );
           }
         } else {
@@ -233,7 +233,7 @@ class CallCoordinator {
         await _notificationService.showCallEndedNotification(
           callId: s.callModel.callId,
           callerName: '',
-          type: s.callModel.type,
+          type: s.callModel.type == CallType.video ? 'video' : 'voice',
         );
 
         final call = s.callModel;
@@ -309,7 +309,7 @@ class CallCoordinator {
 
     // Initiate WebRTC connection
     final isCaller = call.callerId == currentUserId;
-    _webRtcService.connect(call.callId, currentUserId, peerId, isCaller);
+    _webRtcService.connect(call.callId, currentUserId, peerId, call.type, isCaller);
   }
 
   Future<void> _cleanupCall(CallModel? call, [String? errorMessage]) async {
@@ -377,7 +377,7 @@ class CallCoordinator {
       await _notificationService.showCallEndedNotification(
         callId: targetCall.callId,
         callerName: '',
-        type: targetCall.type,
+        type: targetCall.type == CallType.video ? 'video' : 'voice',
       );
       
       if (targetCall.status == 'missed') {
@@ -386,7 +386,7 @@ class CallCoordinator {
         await _notificationService.showMissedCallNotification(
           callId: targetCall.callId,
           callerName: callerName,
-          type: targetCall.type,
+          type: targetCall.type == CallType.video ? 'video' : 'voice',
         );
       }
     }
@@ -432,11 +432,11 @@ class CallCoordinator {
     return micStatus == VanishPermissionStatus.granted && camStatus == VanishPermissionStatus.granted;
   }
 
-  /// Initiates a new voice call with presence validation and permission check.
+  /// Initiates a new call with presence validation and permission check.
   Future<void> initiateCall({
     required String callerId,
     required String receiverId,
-    required String type,
+    required CallType type,
   }) async {
     debugPrint('[CALL-LIFECYCLE] startCall() initiated via CallCoordinator.initiateCall');
     dumpDiagnostics();
@@ -478,9 +478,9 @@ class CallCoordinator {
 
     // 3. Request permissions dynamically
     bool permissionGranted = false;
-    if (type == 'voice') {
+    if (type == CallType.audio) {
       permissionGranted = await _requestMicrophonePermission();
-    } else if (type == 'video') {
+    } else if (type == CallType.video) {
       permissionGranted = await _requestCameraPermission();
     }
     
@@ -532,6 +532,14 @@ class CallCoordinator {
 
   void setMicrophoneMuted(bool muted) {
     _webRtcService.setMicrophoneMuted(muted);
+  }
+
+  void toggleCamera(bool enabled) {
+    _webRtcService.toggleCamera(enabled);
+  }
+
+  Future<void> switchCamera() async {
+    await _webRtcService.switchCamera();
   }
 
   Future<void> setSpeakerphoneOn(bool enabled) async {

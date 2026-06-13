@@ -11,7 +11,7 @@ _$CallModelImpl _$$CallModelImplFromJson(Map<String, dynamic> json) =>
       callId: json['callId'] as String,
       callerId: json['callerId'] as String,
       receiverId: json['receiverId'] as String,
-      type: json['type'] as String,
+      type: $enumDecode(_$CallTypeEnumMap, json['type']),
       status: json['status'] as String,
       createdAt: (json['createdAt'] as num).toInt(),
       acceptedAt: (json['acceptedAt'] as num?)?.toInt(),
@@ -24,10 +24,15 @@ Map<String, dynamic> _$$CallModelImplToJson(_$CallModelImpl instance) =>
       'callId': instance.callId,
       'callerId': instance.callerId,
       'receiverId': instance.receiverId,
-      'type': instance.type,
+      'type': _$CallTypeEnumMap[instance.type]!,
       'status': instance.status,
       'createdAt': instance.createdAt,
       'acceptedAt': instance.acceptedAt,
       'endedAt': instance.endedAt,
       'duration': instance.duration,
     };
+
+const _$CallTypeEnumMap = {
+  CallType.audio: 'voice',
+  CallType.video: 'video',
+};

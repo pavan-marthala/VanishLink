@@ -21,6 +21,7 @@ import 'package:vanish_link/features/chat/domain/entities/message.dart';
 import 'package:vanish_link/core/theme/app_typography.dart';
 import 'package:vanish_link/features/chat/presentation/bloc/message/message_bloc.dart';
 import 'package:vanish_link/features/chat/domain/services/call_coordinator.dart';
+import 'package:vanish_link/features/chat/domain/entities/call_model.dart';
 
 class ChatDetailsScreen extends StatefulWidget {
   final String? chatId;
@@ -238,14 +239,22 @@ class _ChatDetailsScreenState extends State<ChatDetailsScreen> {
                 getIt<CallCoordinator>().initiateCall(
                   callerId: currentUserId,
                   receiverId: contactUserId,
-                  type: 'voice',
+                  type: CallType.audio,
                 );
               }
             },
           ),
           IconButton(
             icon: Icon(CupertinoIcons.video_camera, color: colors.textPrimary),
-            onPressed: () => showInfoToast(message: 'Video calls coming soon!'),
+            onPressed: () {
+              if (contactUserId != null && currentUserId.isNotEmpty) {
+                getIt<CallCoordinator>().initiateCall(
+                  callerId: currentUserId,
+                  receiverId: contactUserId,
+                  type: CallType.video,
+                );
+              }
+            },
           ),
           const SizedBox(width: 8),
         ],
