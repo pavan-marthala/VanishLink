@@ -128,18 +128,21 @@ class _CallOverlayManagerState extends State<CallOverlayManager> {
       listener: (context, state) {
         state.maybeMap(
           calling: (s) {
+            debugPrint('[CALL-UI] Showing call screen');
             final otherId = s.callModel.callerId == currentUserId
                 ? s.callModel.receiverId
                 : s.callModel.callerId;
             _loadOtherUserProfile(otherId);
           },
           incomingCall: (s) {
+            debugPrint('[CALL-UI] Showing call screen');
             final otherId = s.callModel.callerId == currentUserId
                 ? s.callModel.receiverId
                 : s.callModel.callerId;
             _loadOtherUserProfile(otherId);
           },
           connecting: (s) {
+            debugPrint('[CALL-UI] Keeping call screen during connecting');
             final otherId = s.callModel.callerId == currentUserId
                 ? s.callModel.receiverId
                 : s.callModel.callerId;
@@ -159,11 +162,26 @@ class _CallOverlayManagerState extends State<CallOverlayManager> {
             _loadOtherUserProfile(otherId);
             _startDurationTimer();
           },
-          declined: (_) => _handleTermination('Call Declined'),
-          missed: (_) => _handleTermination('Call Missed'),
-          ended: (_) => _handleTermination('Call Ended'),
-          failed: (s) => _handleTermination(s.message),
-          error: (s) => _handleTermination(s.message),
+          declined: (_) {
+            debugPrint('[CALL-UI] Closing call screen');
+            _handleTermination('Call Declined');
+          },
+          missed: (_) {
+            debugPrint('[CALL-UI] Closing call screen');
+            _handleTermination('Call Missed');
+          },
+          ended: (_) {
+            debugPrint('[CALL-UI] Closing call screen');
+            _handleTermination('Call Ended');
+          },
+          failed: (s) {
+            debugPrint('[CALL-UI] Closing call screen');
+            _handleTermination(s.message);
+          },
+          error: (s) {
+            debugPrint('[CALL-UI] Closing call screen');
+            _handleTermination(s.message);
+          },
           orElse: () {},
         );
       },
@@ -266,8 +284,6 @@ class _CallOverlayManagerState extends State<CallOverlayManager> {
                 );
               },
               connecting: (s) {
-                final isCaller = s.callModel.callerId == currentUserId;
-                if (!isCaller) return const SizedBox.shrink();
                 if (_isMinimized) {
                   return _buildMinimizedWidget('connecting');
                 }

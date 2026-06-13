@@ -145,4 +145,28 @@ class CallRepositoryImpl implements CallRepository {
   Future<void> storeCallHistory(CallModel call) async {
     await _firestore.collection('callHistory').doc(call.callId).set(call.toJson());
   }
+
+  @override
+  Future<void> setReadyStatus(String callId, String userId) async {
+    final now = DateTime.now().millisecondsSinceEpoch;
+    await _database.ref('calls/$callId/ready/$userId').set(now);
+  }
+
+  @override
+  Stream<Map<String, dynamic>> watchReadyStatus(String callId) {
+    return _database.ref('calls/$callId/ready').onValue.map((event) {
+      final value = event.snapshot.value;
+      if (value is Map) {
+        return Map<String, dynamic>.from(value.map(
+          (k, v) => MapEntry(k.toString(), v),
+        ));
+      }
+      return {};
+    });
+  }
+
+  @override
+  Future<void> clearReadyStatuses(String callId) async {
+    await _database.ref('calls/$callId/ready').remove();
+  }
 }

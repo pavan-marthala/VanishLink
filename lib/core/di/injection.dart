@@ -27,6 +27,7 @@ import 'package:vanish_link/features/chat/data/repositories/webrtc_repository_im
 import 'package:vanish_link/features/chat/domain/repositories/signaling_repository.dart';
 import 'package:vanish_link/features/chat/data/repositories/signaling_repository_impl.dart';
 import 'package:vanish_link/features/chat/domain/services/webrtc_service.dart';
+import 'package:vanish_link/features/chat/domain/services/webrtc_config_provider.dart';
 import 'package:vanish_link/features/chat/presentation/bloc/webrtc/webrtc_bloc.dart';
 import 'package:vanish_link/features/chat/domain/repositories/message_repository.dart';
 import 'package:vanish_link/features/chat/data/repositories/message_repository_impl.dart';
@@ -110,8 +111,12 @@ Future<void> configureDependencies() async {
     ),
   );
 
+  getIt.registerLazySingleton<WebRtcConfigProvider>(
+    () => WebRtcConfigProviderImpl(),
+  );
+
   getIt.registerLazySingleton<WebRtcRepository>(
-    () => WebRtcRepositoryImpl(),
+    () => WebRtcRepositoryImpl(configProvider: getIt<WebRtcConfigProvider>()),
   );
 
   getIt.registerLazySingleton<SignalingRepository>(
@@ -218,6 +223,7 @@ Future<void> configureDependencies() async {
       ringtoneService: getIt<RingtoneService>(),
       notificationService: getIt<CallNotificationService>(),
       callKitAdapter: getIt<CallPresentationAdapter>(),
+      webRtcService: getIt<WebRtcService>(),
     ),
   );
 

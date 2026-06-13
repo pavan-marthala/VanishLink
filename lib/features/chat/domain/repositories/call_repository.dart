@@ -15,4 +15,7 @@ abstract class CallRepository {
   Stream<CallModel?> watchCall(String callId);
   Stream<CallModel?> watchIncomingCalls(String userId);
   Future<void> storeCallHistory(CallModel call);
+  Future<void> setReadyStatus(String callId, String userId);
+  Stream<Map<String, dynamic>> watchReadyStatus(String callId);
+  Future<void> clearReadyStatuses(String callId);
 }

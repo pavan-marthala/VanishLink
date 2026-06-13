@@ -77,6 +77,17 @@ class FakeCallRepository implements CallRepository {
     storedHistory.add(call);
   }
 
+  @override
+  Future<void> setReadyStatus(String callId, String userId) async {}
+
+  @override
+  Stream<Map<String, dynamic>> watchReadyStatus(String callId) {
+    return Stream.value({});
+  }
+
+  @override
+  Future<void> clearReadyStatuses(String callId) async {}
+
   void dispose() {
     _callController.close();
   }

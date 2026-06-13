@@ -18,6 +18,7 @@ import 'package:vanish_link/features/chat/domain/repositories/call_repository.da
 import 'ringtone_service.dart';
 import 'call_notification_service.dart';
 import 'call_presentation_adapter.dart';
+import 'package:vanish_link/features/chat/domain/services/webrtc_service.dart';
 import 'call_lifecycle_manager.dart';
 
 class CallCoordinator {
@@ -26,11 +27,15 @@ class CallCoordinator {
   final RingtoneService _ringtoneService;
   final CallNotificationService _notificationService;
   final CallPresentationAdapter _callKitAdapter;
+  final WebRtcService _webRtcService;
   late final CallLifecycleManager _lifecycleManager;
   
   StreamSubscription<CallState>? _blocSubscription;
   StreamSubscription<ck.CallEvent?>? _callKitSubscription;
+  StreamSubscription<String>? _webRtcStateSub;
+  StreamSubscription<Map<String, dynamic>>? _readyStatesSub;
   AppLifecycleState _appLifecycleState = AppLifecycleState.resumed;
+  CallState? _previousState;
 
   CallCoordinator({
     required CallRepository callRepository,
@@ -38,11 +43,13 @@ class CallCoordinator {
     required RingtoneService ringtoneService,
     required CallNotificationService notificationService,
     required CallPresentationAdapter callKitAdapter,
+    required WebRtcService webRtcService,
   })  : _callRepository = callRepository,
         _presenceRepository = presenceRepository,
         _ringtoneService = ringtoneService,
         _notificationService = notificationService,
-        _callKitAdapter = callKitAdapter {
+        _callKitAdapter = callKitAdapter,
+        _webRtcService = webRtcService {
     _lifecycleManager = CallLifecycleManager(_handleLifecycleStateChanged);
   }
 
@@ -71,6 +78,54 @@ class CallCoordinator {
   }
 
   Future<void> _handleCallStateChanged(CallState state) async {
+    final prevStateStr = _previousState?.maybeMap(
+      initial: (_) => 'initial',
+      calling: (_) => 'calling',
+      incomingCall: (_) => 'incomingCall',
+      connecting: (_) => 'connecting',
+      connected: (_) => 'connected',
+      active: (_) => 'active',
+      declined: (_) => 'declined',
+      missed: (_) => 'missed',
+      ended: (_) => 'ended',
+      failed: (_) => 'failed',
+      orElse: () => 'unknown',
+    ) ?? 'none';
+
+    final currentStateStr = state.maybeMap(
+      initial: (_) => 'initial',
+      calling: (_) => 'calling',
+      incomingCall: (_) => 'incomingCall',
+      connecting: (_) => 'connecting',
+      connected: (_) => 'connected',
+      active: (_) => 'active',
+      declined: (_) => 'declined',
+      missed: (_) => 'missed',
+      ended: (_) => 'ended',
+      failed: (_) => 'failed',
+      orElse: () => 'unknown',
+    );
+
+    final callModel = state.maybeMap(
+      calling: (s) => s.callModel,
+      incomingCall: (s) => s.callModel,
+      connecting: (s) => s.callModel,
+      connected: (s) => s.callModel,
+      active: (s) => s.callModel,
+      declined: (s) => s.callModel,
+      missed: (s) => s.callModel,
+      ended: (s) => s.callModel,
+      failed: (s) => s.callModel,
+      orElse: () => null,
+    );
+
+    if (callModel != null) {
+      final currentUserId = FirebaseAuth.instance.currentUser?.uid;
+      final role = callModel.callerId == currentUserId ? 'caller' : 'receiver';
+      debugPrint('[CALL-TRACE] callId=${callModel.callId} role=$role $prevStateStr -> $currentStateStr');
+    }
+    _previousState = state;
+
     state.maybeMap(
       calling: (s) async {
         final call = s.callModel;
@@ -108,6 +163,7 @@ class CallCoordinator {
       },
       connecting: (s) async {
         await _ringtoneService.stop();
+        debugPrint('[WEBRTC] Call status is now connecting.');
       },
       connected: (s) async {
         await _ringtoneService.stop();
@@ -116,6 +172,17 @@ class CallCoordinator {
           callerName: '',
           type: s.callModel.type,
         );
+
+        final call = s.callModel;
+        final currentUserId = FirebaseAuth.instance.currentUser?.uid;
+        
+        debugPrint('[WEBRTC] Detects ACCEPTED (connected) status. Starting negotiation for all parties...');
+        _startWebRtcNegotiation(call);
+
+        if (call.callerId == currentUserId) {
+          debugPrint('[WEBRTC] Caller promoting database call status to connecting...');
+          await _callRepository.updateCallStatus(call.callId, 'connecting');
+        }
       },
       active: (s) async {
         await _ringtoneService.stop();
@@ -128,9 +195,70 @@ class CallCoordinator {
     );
   }
 
+  void _startWebRtcNegotiation(CallModel call) {
+    final currentUserId = FirebaseAuth.instance.currentUser?.uid;
+    if (currentUserId == null) return;
+
+    final peerId = call.callerId == currentUserId ? call.receiverId : call.callerId;
+
+    // Listen to WebRtcService state updates
+    _webRtcStateSub?.cancel();
+    _webRtcStateSub = _webRtcService.connectionStateStream.listen((state) async {
+      debugPrint('[WEBRTC] ConnectionState stream update in CallCoordinator: $state');
+      if (state == 'connected') {
+        debugPrint('[WEBRTC] PeerConnection connected. Setting local ready status.');
+        debugPrint('[WEBRTC] Local peer ready');
+        await _callRepository.setReadyStatus(call.callId, currentUserId);
+      } else if (state == 'failed') {
+        debugPrint('[WEBRTC] PeerConnection failed. Terminating call.');
+        await _callRepository.updateCallStatus(call.callId, 'failed');
+      }
+    });
+
+    // Listen to coordinated readiness status in RTDB
+    _readyStatesSub?.cancel();
+    _readyStatesSub = _callRepository.watchReadyStatus(call.callId).listen((readyMap) async {
+      final localReady = readyMap[currentUserId] != null;
+      final remoteReady = readyMap[peerId] != null;
+      
+      if (localReady) {
+        debugPrint('[WEBRTC] Local peer ready');
+      }
+      if (remoteReady) {
+        debugPrint('[WEBRTC] Remote peer ready');
+      }
+      
+      if (localReady && remoteReady) {
+        debugPrint('[WEBRTC] Both peers ready');
+        if (call.callerId == currentUserId) {
+          debugPrint('[WEBRTC] Promoting call to ACTIVE');
+          await _callRepository.updateCallStatus(call.callId, 'active');
+        }
+      }
+    });
+
+    // Initiate WebRTC connection
+    final isCaller = call.callerId == currentUserId;
+    _webRtcService.connect(call.callId, currentUserId, peerId, isCaller);
+  }
+
   Future<void> _cleanupCall(CallModel call, [String? errorMessage]) async {
     await _ringtoneService.stop();
     await _callKitAdapter.endCall(call.callId);
+
+    // Cancel WebRTC subscriptions
+    _webRtcStateSub?.cancel();
+    _webRtcStateSub = null;
+    _readyStatesSub?.cancel();
+    _readyStatesSub = null;
+
+    // Dispose local media stream and peer connection
+    await _webRtcService.closeConnection(call.callId);
+    await _callRepository.clearReadyStatuses(call.callId);
+
+    debugPrint('[CLEANUP] Current call cleared');
+    debugPrint('[CLEANUP] Busy flag cleared');
+
     await _notificationService.showCallEndedNotification(
       callId: call.callId,
       callerName: '',

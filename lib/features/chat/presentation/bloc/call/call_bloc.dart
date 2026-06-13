@@ -184,6 +184,8 @@ class CallBloc extends Bloc<CallEvent, CallState> {
         emit(CallState.failed(call, 'Microphone permission denied'));
         return;
       }
+      // Immediately transition to connecting state visually
+      emit(CallState.connecting(call.copyWith(status: 'connecting')));
     }
 
     await _callRepository.acceptCall(callId);
@@ -243,10 +245,16 @@ class CallBloc extends Bloc<CallEvent, CallState> {
   }
 
   void _cancelDeliveryTimers() {
-    _deliveringTimer?.cancel();
-    _deliveringTimer = null;
-    _ringingTimer?.cancel();
-    _ringingTimer = null;
+    if (_deliveringTimer != null) {
+      _deliveringTimer?.cancel();
+      _deliveringTimer = null;
+      debugPrint('[TIMER] Delivery timer cancelled');
+    }
+    if (_ringingTimer != null) {
+      _ringingTimer?.cancel();
+      _ringingTimer = null;
+      debugPrint('[TIMER] Ringing timer cancelled');
+    }
   }
 
   void _startDurationTimer() {

@@ -1,25 +1,17 @@
 import 'package:flutter_webrtc/flutter_webrtc.dart';
 import 'package:vanish_link/features/chat/domain/repositories/webrtc_repository.dart';
+import 'package:vanish_link/features/chat/domain/services/webrtc_config_provider.dart';
 
 class WebRtcRepositoryImpl implements WebRtcRepository {
+  final WebRtcConfigProvider _configProvider;
+
+  WebRtcRepositoryImpl({required WebRtcConfigProvider configProvider})
+      : _configProvider = configProvider;
+
   @override
   Future<RTCPeerConnection> createPeerConnectionInstance() async {
-    final Map<String, dynamic> configuration = {
-      'iceServers': [
-        {'urls': 'stun:stun.l.google.com:19302'},
-        {'urls': 'stun:stun1.l.google.com:19302'},
-        {'urls': 'stun:stun2.l.google.com:19302'},
-      ],
-      'sdpSemantics': 'unified-plan',
-    };
-
-    final Map<String, dynamic> constraints = {
-      'mandatory': {},
-      'optional': [
-        {'DtlsSrtpKeyAgreement': true},
-      ],
-    };
-
+    final configuration = await _configProvider.getConfiguration();
+    final constraints = await _configProvider.getConstraints();
     return await createPeerConnection(configuration, constraints);
   }
 
@@ -27,7 +19,7 @@ class WebRtcRepositoryImpl implements WebRtcRepository {
   Future<RTCSessionDescription> createOffer(RTCPeerConnection pc) async {
     final Map<String, dynamic> constraints = {
       'mandatory': {
-        'OfferToReceiveAudio': false,
+        'OfferToReceiveAudio': true,
         'OfferToReceiveVideo': false,
       },
       'optional': [],
@@ -39,7 +31,7 @@ class WebRtcRepositoryImpl implements WebRtcRepository {
   Future<RTCSessionDescription> createAnswer(RTCPeerConnection pc) async {
     final Map<String, dynamic> constraints = {
       'mandatory': {
-        'OfferToReceiveAudio': false,
+        'OfferToReceiveAudio': true,
         'OfferToReceiveVideo': false,
       },
       'optional': [],
