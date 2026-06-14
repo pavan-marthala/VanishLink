@@ -30,6 +30,7 @@ class CallCoordinator {
   final CallNotificationService _notificationService;
   final CallPresentationAdapter _callKitAdapter;
   final WebRtcService _webRtcService;
+  final FirebaseAuth _auth;
   late final CallLifecycleManager _lifecycleManager;
   
   StreamSubscription<CallState>? _blocSubscription;
@@ -41,6 +42,7 @@ class CallCoordinator {
 
   bool _localReadySent = false;
   bool _activePromotionSent = false;
+  String? _lastCleanedCallId;
   String? _currentCallId;
   bool _isBusy = false;
   bool _callInProgress = false;
@@ -60,12 +62,14 @@ class CallCoordinator {
     required CallNotificationService notificationService,
     required CallPresentationAdapter callKitAdapter,
     required WebRtcService webRtcService,
+    FirebaseAuth? firebaseAuth,
   })  : _callRepository = callRepository,
         _presenceRepository = presenceRepository,
         _ringtoneService = ringtoneService,
         _notificationService = notificationService,
         _callKitAdapter = callKitAdapter,
-        _webRtcService = webRtcService {
+        _webRtcService = webRtcService,
+        _auth = firebaseAuth ?? getIt<FirebaseAuth>() {
     _lifecycleManager = CallLifecycleManager(_handleLifecycleStateChanged);
   }
 
@@ -106,6 +110,7 @@ class CallCoordinator {
   void dumpDiagnostics() {
     debugPrint('[DIAGNOSTICS] --- CallCoordinator Dump ---');
     debugPrint('[DIAGNOSTICS] Current Call ID: $_currentCallId');
+    debugPrint('[DIAGNOSTICS] Last Cleaned Call ID: $_lastCleanedCallId');
     debugPrint('[DIAGNOSTICS] Busy Flag (_isBusy): $_isBusy');
     debugPrint('[DIAGNOSTICS] Call In Progress (_callInProgress): $_callInProgress');
     debugPrint('[DIAGNOSTICS] Active Call Model status: ${_activeCall?.status}');
@@ -128,6 +133,35 @@ class CallCoordinator {
       }
     } else if (state == AppLifecycleState.resumed) {
       debugPrint('[AUDIO-SESSION] App resumed');
+    }
+  }
+
+  void _logBusyAudit({
+    required String userId,
+    required String callId,
+    required String operation,
+    required String source,
+    required bool currentBusy,
+  }) {
+    final now = DateTime.now().toIso8601String();
+    debugPrint('[BUSY-AUDIT]\nuserId=$userId\ncallId=$callId\noperation=$operation\nsource=$source\ncurrentBusy=$currentBusy\ntimestamp=$now');
+    debugPrint('[BUSY-AUDIT-STATE] currentCall=$_activeCall activeCallId=$_currentCallId presence_busy=$_isBusy');
+  }
+
+  Future<void> _updateBusyState(String userId, String callId, bool newBusy, String source) async {
+    final previousBusy = _isBusy;
+    _isBusy = newBusy;
+    _logBusyAudit(
+      userId: userId,
+      callId: callId,
+      operation: newBusy ? 'SET_BUSY' : 'CLEAR_BUSY',
+      source: source,
+      currentBusy: newBusy,
+    );
+    try {
+      await _presenceRepository.setUserBusy(userId, newBusy);
+    } catch (e) {
+      debugPrint('[BUSY-DIAG] Error updating presence busy state in RTDB: $e');
     }
   }
 
@@ -174,17 +208,39 @@ class CallCoordinator {
     );
 
     if (callModel != null) {
-      final currentUserId = FirebaseAuth.instance.currentUser?.uid;
+      final currentUserId = _auth.currentUser?.uid;
       final role = callModel.callerId == currentUserId ? 'caller' : 'receiver';
       debugPrint('[CALL-TRACE] callId=${callModel.callId} role=$role $prevStateStr -> $currentStateStr');
 
-      _currentCallId = callModel.callId;
-      _isBusy = true;
-      _callInProgress = true;
-      _activeCall = callModel;
+      final isTerminal = state.maybeMap(
+        declined: (_) => true,
+        missed: (_) => true,
+        ended: (_) => true,
+        failed: (_) => true,
+        orElse: () => false,
+      );
 
-      if (currentUserId != null) {
-        _presenceRepository.setUserBusy(currentUserId, true);
+      // Call Lifecycle Tracing
+      if (state.maybeMap(calling: (_) => true, orElse: () => false)) {
+        debugPrint('CALL CREATED');
+      } else if (state.maybeMap(connected: (_) => true, orElse: () => false)) {
+        debugPrint('CALL ACCEPTED');
+      } else if (state.maybeMap(connecting: (_) => true, orElse: () => false)) {
+        debugPrint('CALL CONNECTING');
+      } else if (state.maybeMap(active: (_) => true, orElse: () => false)) {
+        debugPrint('CALL ACTIVE');
+      } else if (isTerminal) {
+        debugPrint('CALL ENDED');
+      }
+
+      if (!isTerminal) {
+        _currentCallId = callModel.callId;
+        _callInProgress = true;
+        _activeCall = callModel;
+
+        if (currentUserId != null) {
+          await _updateBusyState(currentUserId, callModel.callId, true, '_handleCallStateChanged($currentStateStr)');
+        }
       }
     }
     _previousState = state;
@@ -192,7 +248,7 @@ class CallCoordinator {
     state.maybeMap(
       calling: (s) async {
         final call = s.callModel;
-        final currentUserId = FirebaseAuth.instance.currentUser?.uid;
+        final currentUserId = _auth.currentUser?.uid;
         if (call.callerId == currentUserId) {
           if (_appLifecycleState == AppLifecycleState.resumed) {
             await _ringtoneService.play(CallAudioType.outgoingDialTone);
@@ -201,7 +257,7 @@ class CallCoordinator {
       },
       incomingCall: (s) async {
         final call = s.callModel;
-        final currentUserId = FirebaseAuth.instance.currentUser?.uid;
+        final currentUserId = _auth.currentUser?.uid;
         final isReceiver = call.receiverId == currentUserId;
         
         if (isReceiver) {
@@ -237,7 +293,7 @@ class CallCoordinator {
         );
 
         final call = s.callModel;
-        final currentUserId = FirebaseAuth.instance.currentUser?.uid;
+        final currentUserId = _auth.currentUser?.uid;
         
         debugPrint('[WEBRTC] Detects ACCEPTED (connected) status. Starting negotiation for all parties...');
         _startWebRtcNegotiation(call);
@@ -263,7 +319,7 @@ class CallCoordinator {
   }
 
   void _startWebRtcNegotiation(CallModel call) {
-    final currentUserId = FirebaseAuth.instance.currentUser?.uid;
+    final currentUserId = _auth.currentUser?.uid;
     if (currentUserId == null) return;
 
     final peerId = call.callerId == currentUserId ? call.receiverId : call.callerId;
@@ -315,17 +371,22 @@ class CallCoordinator {
   Future<void> _cleanupCall(CallModel? call, [String? errorMessage]) async {
     final targetCall = call ?? _activeCall;
     final targetCallId = targetCall?.callId ?? _currentCallId;
+    final status = targetCall?.status ?? 'unknown';
 
-    if (targetCallId == null) {
-      debugPrint('[CALL-GUARD] Duplicate cleanup prevented (No current or target call ID)');
-      // Re-force clearing memory flags just in case they were left dirty
+    debugPrint('CLEANUP START');
+    debugPrint('[CLEANUP-PATH] Triggered by status=$status, errorMessage=$errorMessage');
+
+    if (targetCallId == null || targetCallId == _lastCleanedCallId) {
+      debugPrint('[CALL-GUARD] Duplicate cleanup prevented for callId=$targetCallId');
       _isBusy = false;
       _callInProgress = false;
       _activeCall = null;
       _localReadySent = false;
       _activePromotionSent = false;
+      debugPrint('CLEANUP COMPLETE');
       return;
     }
+    _lastCleanedCallId = targetCallId;
     debugPrint('[CALL-LIFECYCLE] _cleanupCall invoked for callId=$targetCallId');
     _currentCallId = null;
 
@@ -343,20 +404,24 @@ class CallCoordinator {
     await _callRepository.clearReadyStatuses(targetCallId);
 
     // Reset coordinator memory variables
-    _isBusy = false;
     _callInProgress = false;
     _activeCall = null;
     _localReadySent = false;
     _activePromotionSent = false;
 
-    // Reset presence busy status
-    final currentUserId = FirebaseAuth.instance.currentUser?.uid;
+    // Reset presence busy status via updateBusyState helper
+    final currentUserId = _auth.currentUser?.uid;
+    debugPrint('CLEAR BUSY');
     if (currentUserId != null) {
-      await _presenceRepository.setUserBusy(currentUserId, false);
+      await _updateBusyState(currentUserId, targetCallId, false, '_cleanupCall');
+    } else {
+      debugPrint('[BUSY-DIAG]\nuserId=null\ncallId=$targetCallId\npreviousBusy=$_isBusy\nnewBusy=false\nsource=_cleanupCall');
+      _isBusy = false;
     }
 
     debugPrint('[CLEANUP] Current call cleared');
     debugPrint('[CLEANUP] Busy flag cleared');
+    debugPrint('CLEANUP COMPLETE');
 
     if (targetCall != null) {
       // Force database call status updates if they are still in a non-terminal state

@@ -17,10 +17,18 @@ class WebRtcRepositoryImpl implements WebRtcRepository {
 
   @override
   Future<RTCSessionDescription> createOffer(RTCPeerConnection pc) async {
+    bool hasVideo = false;
+    try {
+      final senders = await pc.getSenders();
+      final receivers = await pc.getReceivers();
+      hasVideo = senders.any((s) => s.track?.kind == 'video') ||
+                 receivers.any((r) => r.track?.kind == 'video');
+    } catch (_) {}
+
     final Map<String, dynamic> constraints = {
       'mandatory': {
         'OfferToReceiveAudio': true,
-        'OfferToReceiveVideo': false,
+        'OfferToReceiveVideo': hasVideo,
       },
       'optional': [],
     };
@@ -29,10 +37,18 @@ class WebRtcRepositoryImpl implements WebRtcRepository {
 
   @override
   Future<RTCSessionDescription> createAnswer(RTCPeerConnection pc) async {
+    bool hasVideo = false;
+    try {
+      final senders = await pc.getSenders();
+      final receivers = await pc.getReceivers();
+      hasVideo = senders.any((s) => s.track?.kind == 'video') ||
+                 receivers.any((r) => r.track?.kind == 'video');
+    } catch (_) {}
+
     final Map<String, dynamic> constraints = {
       'mandatory': {
         'OfferToReceiveAudio': true,
-        'OfferToReceiveVideo': false,
+        'OfferToReceiveVideo': hasVideo,
       },
       'optional': [],
     };

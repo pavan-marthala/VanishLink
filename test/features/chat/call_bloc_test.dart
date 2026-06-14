@@ -38,7 +38,7 @@ class FakeCallRepository implements CallRepository {
   Future<CallModel> createCall({
     required String callerId,
     required String receiverId,
-    required String type,
+    required CallType type,
   }) async {
     return CallModel(
       callId: 'call_123',
@@ -140,7 +140,7 @@ void main() {
       callBloc.add(const CallEvent.createCall(
         callerId: 'user_A',
         receiverId: 'user_B',
-        type: 'voice',
+        type: CallType.audio,
       ));
       await Future.delayed(Duration.zero);
 
@@ -160,7 +160,7 @@ void main() {
         callId: 'call_123',
         callerId: 'user_A',
         receiverId: 'user_B',
-        type: 'voice',
+        type: CallType.audio,
         status: 'calling',
         createdAt: now,
       );
@@ -199,7 +199,7 @@ void main() {
         callId: 'call_123',
         callerId: 'user_A',
         receiverId: 'user_B',
-        type: 'voice',
+        type: CallType.audio,
         status: 'calling',
         createdAt: now,
       );
@@ -233,7 +233,7 @@ void main() {
       callBloc.add(const CallEvent.createCall(
         callerId: 'user_A',
         receiverId: 'user_B',
-        type: 'voice',
+        type: CallType.audio,
       ));
       await Future.delayed(Duration.zero);
 
@@ -249,7 +249,7 @@ void main() {
       callBloc.add(const CallEvent.createCall(
         callerId: 'user_A',
         receiverId: 'user_C',
-        type: 'voice',
+        type: CallType.audio,
       ));
       await Future.delayed(Duration.zero);
 

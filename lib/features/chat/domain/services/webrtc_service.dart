@@ -56,6 +56,10 @@ class WebRtcService {
     if (_remoteRenderer == null) {
       _remoteRenderer = RTCVideoRenderer();
       await _remoteRenderer!.initialize();
+      _remoteRenderer!.onFirstFrameRendered = () {
+        debugPrint('[VIDEO-DIAG]\nFirst frame rendered');
+      };
+      debugPrint('[VIDEO-DIAG]\nRenderer initialized');
     }
   }
 
@@ -638,10 +642,36 @@ class WebRtcService {
     } else if (event.track.kind == 'video') {
       event.track.enabled = true;
       debugPrint('[WEBRTC] Remote video track received: ${event.track.id}');
-      debugPrint('[WEBRTC] Remote video track received');
-      if (event.streams.isNotEmpty && _remoteRenderer != null) {
-        _remoteRenderer!.srcObject = event.streams.first;
+      debugPrint('[VIDEO-DIAG]\nRemote track received');
+
+      if (_remoteRenderer != null) {
+        MediaStream? remoteStream;
+        if (event.streams.isNotEmpty) {
+          remoteStream = event.streams.first;
+          debugPrint('[VIDEO-DIAG]\nRemote stream received');
+        } else {
+          try {
+            if (_peerConnection != null) {
+              final remoteStreams = _peerConnection!.getRemoteStreams();
+              if (remoteStreams.isNotEmpty) {
+                remoteStream = remoteStreams.first;
+                debugPrint('[WEBRTC] Fallback remote stream retrieved from PeerConnection');
+                debugPrint('[VIDEO-DIAG]\nRemote stream received');
+              }
+            }
+          } catch (_) {}
+
+          if (remoteStream == null) {
+            debugPrint('[WEBRTC] Creating fallback MediaStream for remote video track');
+            remoteStream = await createLocalMediaStream('remote_stream_video_fallback');
+            await remoteStream.addTrack(event.track);
+            debugPrint('[VIDEO-DIAG]\nRemote stream received');
+          }
+        }
+
+        _remoteRenderer!.srcObject = remoteStream;
         debugPrint('[WEBRTC] Remote renderer attached');
+        debugPrint('[VIDEO-DIAG]\nRenderer attached');
       }
     }
   }

@@ -5,6 +5,7 @@ import 'package:vanish_link/features/chat/domain/entities/call_model.dart';
 import 'package:vanish_link/features/chat/presentation/bloc/call/call_bloc.dart';
 import 'package:vanish_link/features/chat/presentation/bloc/call/call_event.dart';
 import 'package:vanish_link/core/di/injection.dart';
+import 'package:flutter/foundation.dart';
 
 class CallListenerService {
   final CallRepository _callRepository;
@@ -49,6 +50,10 @@ class CallListenerService {
         );
         if (hasActive) {
           // Reject the call as busy because we are already in another call
+          final currentUserId = _auth.currentUser?.uid;
+          final now = DateTime.now().toIso8601String();
+          debugPrint('[BUSY-AUDIT]\nuserId=$currentUserId\ncallId=${call.callId}\noperation=SET_BUSY\nsource=CallListenerService\ncurrentBusy=true\ntimestamp=$now');
+          debugPrint('[BUSY-AUDIT-STATE] currentCall=hasActive activeCallId=${call.callId} presence_busy=true');
           _callRepository.updateCallStatus(call.callId, 'busy');
           return;
         }

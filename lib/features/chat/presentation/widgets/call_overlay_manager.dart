@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:ui';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
@@ -137,11 +138,17 @@ class _CallOverlayManagerState extends State<CallOverlayManager> {
 
     return BlocListener<CallBloc, CallState>(
       listener: (context, state) {
-        debugPrint('[CALL-LIFECYCLE] CallOverlayManager: listener received state: $state');
+        debugPrint(
+          '[CALL-LIFECYCLE] CallOverlayManager: listener received state: $state',
+        );
         state.maybeMap(
           initial: (_) {
-            if (_otherUser != null || _loadedUserId != null || _elapsedSeconds != 0) {
-              debugPrint('[CALL-LIFECYCLE] Self-healing trigger in CallOverlayManager: CallBloc is initial but overlay state had stale variables. Resetting variables silently.');
+            if (_otherUser != null ||
+                _loadedUserId != null ||
+                _elapsedSeconds != 0) {
+              debugPrint(
+                '[CALL-LIFECYCLE] Self-healing trigger in CallOverlayManager: CallBloc is initial but overlay state had stale variables. Resetting variables silently.',
+              );
               _stopDurationTimer();
               setState(() {
                 _otherUser = null;
@@ -186,7 +193,9 @@ class _CallOverlayManagerState extends State<CallOverlayManager> {
             _loadOtherUserProfile(otherId);
           },
           connecting: (s) {
-            debugPrint('[CALL-UI] Keeping call screen during connecting status');
+            debugPrint(
+              '[CALL-UI] Keeping call screen during connecting status',
+            );
             final otherId = s.callModel.callerId == currentUserId
                 ? s.callModel.receiverId
                 : s.callModel.callerId;
@@ -220,11 +229,15 @@ class _CallOverlayManagerState extends State<CallOverlayManager> {
             _handleTermination('Call Ended');
           },
           failed: (s) {
-            debugPrint('[CALL-UI] Closing call screen: failed. Message: ${s.message}');
+            debugPrint(
+              '[CALL-UI] Closing call screen: failed. Message: ${s.message}',
+            );
             _handleTermination(s.message);
           },
           error: (s) {
-            debugPrint('[CALL-UI] Closing call screen: error. Message: ${s.message}');
+            debugPrint(
+              '[CALL-UI] Closing call screen: error. Message: ${s.message}',
+            );
             _handleTermination(s.message);
           },
           orElse: () {},
@@ -277,17 +290,23 @@ class _CallOverlayManagerState extends State<CallOverlayManager> {
           } else {
             overlayWidget = state.map(
               initial: (_) {
-                debugPrint('[CALL-UI] Building initial: returning SizedBox.shrink');
+                debugPrint(
+                  '[CALL-UI] Building initial: returning SizedBox.shrink',
+                );
                 return const SizedBox.shrink();
               },
               error: (s) {
-                debugPrint('[CALL-UI] Building error (message=${s.message}): returning SizedBox.shrink');
+                debugPrint(
+                  '[CALL-UI] Building error (message=${s.message}): returning SizedBox.shrink',
+                );
                 return const SizedBox.shrink();
               },
               calling: (s) {
                 final isCaller = s.callModel.callerId == currentUserId;
                 if (!isCaller) {
-                  debugPrint('[CALL-UI] Building calling (isCaller=false): skipping presentation (returning SizedBox.shrink)');
+                  debugPrint(
+                    '[CALL-UI] Building calling (isCaller=false): skipping presentation (returning SizedBox.shrink)',
+                  );
                   return const SizedBox.shrink();
                 }
                 if (_isMinimized) {
@@ -472,8 +491,8 @@ class _CallOverlayManagerState extends State<CallOverlayManager> {
     final double screenWidth = context.widthPx;
     final double screenHeight = context.heightPx;
     final double topPadding = MediaQuery.paddingOf(context).top;
-    final double cardWidth = 260.0;
-    final double cardHeight = 72.0;
+    final double cardWidth = _activeCallType == CallType.video ? 120.0 : 260.0;
+    final double cardHeight = _activeCallType == CallType.video ? 180.0 : 72.0;
 
     // Calculate default position
     if (_minimizedX < 0 || _minimizedY < 0) {
@@ -503,16 +522,124 @@ class _CallOverlayManagerState extends State<CallOverlayManager> {
         },
         child: SizedBox(
           width: cardWidth,
-          child: DraggableCallOverlay(
-            contact: _otherUser,
-            status: status,
-            callType: _activeCallType,
-            durationText: _formatDuration(_elapsedSeconds),
-            onTap: () => setState(() => _isMinimized = false),
-            onEnd: () {
-              _stopDurationTimer();
-              context.read<CallBloc>().add(const CallEvent.endCall());
-            },
+          height: cardHeight,
+          child: _activeCallType == CallType.video
+              ? _buildMinimizedVideoSurface()
+              : DraggableCallOverlay(
+                  contact: _otherUser,
+                  status: status,
+                  callType: _activeCallType,
+                  durationText: _formatDuration(_elapsedSeconds),
+                  onTap: () => setState(() => _isMinimized = false),
+                  onEnd: () {
+                    _stopDurationTimer();
+                    context.read<CallBloc>().add(const CallEvent.endCall());
+                  },
+                ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildMinimizedVideoSurface() {
+    final colors = context.appColors;
+    final webRtcService = getIt<WebRtcService>();
+    final remoteRenderer = webRtcService.remoteRenderer;
+
+    return GestureDetector(
+      onTap: () => setState(() => _isMinimized = false),
+      child: Material(
+        color: Colors.transparent,
+        child: Container(
+          decoration: BoxDecoration(
+            color: Colors.black,
+            borderRadius: BorderRadius.circular(16),
+            border: Border.all(
+              color: colors.primary.withValues(alpha: 0.3),
+              width: 2,
+            ),
+            boxShadow: [
+              BoxShadow(
+                color: colors.black.withValues(alpha: 0.3),
+                blurRadius: 12,
+                offset: const Offset(0, 4),
+              ),
+            ],
+          ),
+          clipBehavior: Clip.antiAlias,
+          child: Stack(
+            fit: StackFit.expand,
+            children: [
+              if (remoteRenderer != null)
+                RTCVideoView(
+                  remoteRenderer,
+                  objectFit: RTCVideoViewObjectFit.RTCVideoViewObjectFitCover,
+                  mirror: false,
+                )
+              else
+                Center(
+                  child: CircleAvatar(
+                    radius: 24,
+                    backgroundImage: _otherUser?.photoUrl.isNotEmpty == true
+                        ? NetworkImage(_otherUser!.photoUrl)
+                        : null,
+                    backgroundColor: Colors.white10,
+                    child: _otherUser?.photoUrl.isNotEmpty != true
+                        ? const Icon(
+                            Icons.person,
+                            color: Colors.white54,
+                            size: 24,
+                          )
+                        : null,
+                  ),
+                ),
+              // Floating duration
+              Positioned(
+                top: 8,
+                left: 8,
+                child: Container(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 6,
+                    vertical: 2,
+                  ),
+                  decoration: BoxDecoration(
+                    color: Colors.black54,
+                    borderRadius: BorderRadius.circular(10),
+                  ),
+                  child: Text(
+                    _formatDuration(_elapsedSeconds),
+                    style: const TextStyle(
+                      color: Colors.white,
+                      fontSize: 10,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                ),
+              ),
+              // Floating end-call button
+              Positioned(
+                bottom: 8,
+                right: 8,
+                child: GestureDetector(
+                  onTap: () {
+                    _stopDurationTimer();
+                    context.read<CallBloc>().add(const CallEvent.endCall());
+                  },
+                  child: Container(
+                    padding: const EdgeInsets.all(6),
+                    decoration: const BoxDecoration(
+                      color: Colors.red,
+                      shape: BoxShape.circle,
+                    ),
+                    child: const Icon(
+                      Icons.call_end_rounded,
+                      color: Colors.white,
+                      size: 14,
+                    ),
+                  ),
+                ),
+              ),
+            ],
           ),
         ),
       ),
@@ -865,7 +992,9 @@ class ActiveCallOverlay extends StatelessWidget {
                   if (!kIsWeb)
                     IconButton(
                       iconSize: 32,
-                      color: isSpeakerOn ? colors.primary : colors.textSecondary,
+                      color: isSpeakerOn
+                          ? colors.primary
+                          : colors.textSecondary,
                       icon: Icon(
                         isSpeakerOn
                             ? Icons.volume_up_rounded
@@ -887,7 +1016,7 @@ class ActiveCallOverlay extends StatelessWidget {
 /// Active Video Call Overlay
 /// Full-screen video layout: remote video background, local PiP, controls.
 /// ────────────────────────────────────────────────────────────────────────────
-class ActiveVideoCallOverlay extends StatelessWidget {
+class ActiveVideoCallOverlay extends StatefulWidget {
   final UserProfile? contact;
   final String durationText;
   final bool isMuted;
@@ -916,36 +1045,118 @@ class ActiveVideoCallOverlay extends StatelessWidget {
   });
 
   @override
+  State<ActiveVideoCallOverlay> createState() => _ActiveVideoCallOverlayState();
+}
+
+class _ActiveVideoCallOverlayState extends State<ActiveVideoCallOverlay> {
+  double _pipX = -1.0;
+  double _pipY = -1.0;
+  bool _isSwapped = false;
+  final double _pipWidth = 110.0;
+  final double _pipHeight = 150.0;
+
+  @override
+  void initState() {
+    super.initState();
+    _bindResizeListener();
+  }
+
+  void _bindResizeListener() {
+    widget.remoteRenderer?.onResize = () {
+      if (mounted) {
+        setState(() {});
+      }
+    };
+  }
+
+  @override
+  void didUpdateWidget(ActiveVideoCallOverlay oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (oldWidget.remoteRenderer != widget.remoteRenderer) {
+      oldWidget.remoteRenderer?.onResize = null;
+      _bindResizeListener();
+    }
+  }
+
+  @override
+  void dispose() {
+    widget.remoteRenderer?.onResize = null;
+    super.dispose();
+  }
+
+  @override
   Widget build(BuildContext context) {
     final topPadding = MediaQuery.paddingOf(context).top;
     final bottomPadding = MediaQuery.paddingOf(context).bottom;
+    final screenWidth = MediaQuery.sizeOf(context).width;
+    final screenHeight = MediaQuery.sizeOf(context).height;
+
+    // Calculate default position on first build
+    if (_pipX < 0 || _pipY < 0) {
+      _pipX = screenWidth - _pipWidth - 16.0;
+      _pipY = topPadding + 64.0;
+    }
+
+    // Determine aspect ratio scaling & objectFit for background video
+    final bool isRemotePortrait =
+        widget.remoteRenderer != null &&
+        widget.remoteRenderer!.videoWidth > 0 &&
+        widget.remoteRenderer!.videoHeight > 0 &&
+        widget.remoteRenderer!.videoWidth < widget.remoteRenderer!.videoHeight;
+
+    final bool isDesktopOrTablet = !context.isMobile;
+
+    // Contain portrait remote streams, or any remote stream on desktop/tablet to avoid cropping
+    final RTCVideoViewObjectFit remoteObjectFit =
+        (isRemotePortrait || isDesktopOrTablet)
+        ? RTCVideoViewObjectFit.RTCVideoViewObjectFitContain
+        : RTCVideoViewObjectFit.RTCVideoViewObjectFitCover;
+
+    // Background (large view) renderer logic
+    final RTCVideoRenderer? largeRenderer = _isSwapped
+        ? widget.localRenderer
+        : widget.remoteRenderer;
+    final bool largeMirror = _isSwapped; // mirror local camera only
+    final RTCVideoViewObjectFit largeObjectFit = _isSwapped
+        ? RTCVideoViewObjectFit.RTCVideoViewObjectFitCover
+        : remoteObjectFit;
+
+    // Inset (PiP/small view) renderer logic
+    final RTCVideoRenderer? smallRenderer = _isSwapped
+        ? widget.remoteRenderer
+        : widget.localRenderer;
+    final bool smallMirror = !_isSwapped; // mirror local camera only
+    final RTCVideoViewObjectFit smallObjectFit = _isSwapped
+        ? remoteObjectFit
+        : RTCVideoViewObjectFit.RTCVideoViewObjectFitCover;
 
     return Material(
       type: MaterialType.transparency,
       child: Stack(
         fit: StackFit.expand,
+        alignment: .center,
         children: [
-          // ── Remote video (full background) ──────────────────────────────
+          // ── Background (Large) Video View ──────────────────────────────
           Container(color: Colors.black),
-          if (remoteRenderer != null)
+          if (largeRenderer != null && (!_isSwapped || widget.isCameraOn))
             RTCVideoView(
-              remoteRenderer!,
-              objectFit: RTCVideoViewObjectFit.RTCVideoViewObjectFitCover,
-              mirror: false,
+              largeRenderer,
+              objectFit: largeObjectFit,
+              mirror: largeMirror,
             )
           else
-            // Fallback when remote video not yet connected
+            // Fallback when remote video is loading or camera is off
             Center(
               child: Column(
                 mainAxisSize: MainAxisSize.min,
                 children: [
                   CircleAvatar(
                     radius: 64,
-                    backgroundImage: contact?.photoUrl.isNotEmpty == true
-                        ? NetworkImage(contact!.photoUrl)
+                    backgroundImage: widget.contact?.photoUrl.isNotEmpty == true
+                        ? NetworkImage(widget.contact!.photoUrl)
                         : null,
                     backgroundColor: Colors.white10,
-                    child: contact?.photoUrl.isNotEmpty != true
+                    child: widget.contact?.photoUrl.isNotEmpty != true
                         ? const Icon(
                             Icons.person_rounded,
                             color: Colors.white54,
@@ -955,12 +1166,19 @@ class ActiveVideoCallOverlay extends StatelessWidget {
                   ),
                   const SizedBox(height: 16),
                   Text(
-                    contact?.displayName ?? contact?.username ?? 'VanishLink User',
+                    widget.contact?.displayName ??
+                        widget.contact?.username ??
+                        'VanishLink User',
                     style: const TextStyle(
                       color: Colors.white,
                       fontSize: 22,
                       fontWeight: FontWeight.bold,
                     ),
+                  ),
+                  const SizedBox(height: 8),
+                  Text(
+                    _isSwapped ? 'Camera is off' : 'Connecting video...',
+                    style: const TextStyle(color: Colors.white54, fontSize: 14),
                   ),
                 ],
               ),
@@ -975,13 +1193,16 @@ class ActiveVideoCallOverlay extends StatelessWidget {
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
                 Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 12,
+                    vertical: 6,
+                  ),
                   decoration: BoxDecoration(
                     color: Colors.black38,
                     borderRadius: BorderRadius.circular(20),
                   ),
                   child: Text(
-                    durationText,
+                    widget.durationText,
                     style: const TextStyle(
                       color: Colors.white,
                       fontSize: 14,
@@ -994,41 +1215,71 @@ class ActiveVideoCallOverlay extends StatelessWidget {
                     Icons.close_fullscreen_rounded,
                     color: Colors.white,
                   ),
-                  style: IconButton.styleFrom(
-                    backgroundColor: Colors.black38,
-                  ),
-                  onPressed: onMinimize,
+                  style: IconButton.styleFrom(backgroundColor: Colors.black38),
+                  onPressed: widget.onMinimize,
                 ),
               ],
             ),
           ),
 
-          // ── Local camera PiP (top-right corner) ─────────────────────────
+          // ── Local / Remote camera PiP (Draggable & Tappable) ─────────────────────────
           Positioned(
-            top: topPadding + 64,
-            right: 16,
-            child: ClipRRect(
-              borderRadius: BorderRadius.circular(12),
-              child: SizedBox(
-                width: 96,
-                height: 128,
-                child: isCameraOn && localRenderer != null
-                    ? RTCVideoView(
-                        localRenderer!,
-                        objectFit:
-                            RTCVideoViewObjectFit.RTCVideoViewObjectFitCover,
-                        mirror: true,
-                      )
-                    : Container(
-                        color: Colors.black54,
-                        child: const Center(
-                          child: Icon(
-                            Icons.videocam_off_rounded,
-                            color: Colors.white54,
-                            size: 32,
+            left: _pipX,
+            top: _pipY,
+            child: GestureDetector(
+              onPanUpdate: (details) {
+                setState(() {
+                  _pipX += details.delta.dx;
+                  _pipY += details.delta.dy;
+                  // Clamp to screen bounds
+                  _pipX = _pipX.clamp(16.0, screenWidth - _pipWidth - 16.0);
+                  _pipY = _pipY.clamp(
+                    topPadding + 16.0,
+                    screenHeight -
+                        bottomPadding -
+                        _pipHeight -
+                        110.0, // avoid overlapping control bar
+                  );
+                });
+              },
+              onTap: () {
+                setState(() {
+                  _isSwapped = !_isSwapped;
+                });
+              },
+              child: Container(
+                decoration: BoxDecoration(
+                  borderRadius: BorderRadius.circular(12),
+                  boxShadow: const [
+                    BoxShadow(
+                      color: Colors.black54,
+                      blurRadius: 8,
+                      offset: Offset(0, 2),
+                    ),
+                  ],
+                ),
+                clipBehavior: Clip.antiAlias,
+                child: SizedBox(
+                  width: _pipWidth,
+                  height: _pipHeight,
+                  child:
+                      smallRenderer != null && (_isSwapped || widget.isCameraOn)
+                      ? RTCVideoView(
+                          smallRenderer,
+                          objectFit: smallObjectFit,
+                          mirror: smallMirror,
+                        )
+                      : Container(
+                          color: Colors.black87,
+                          child: const Center(
+                            child: Icon(
+                              Icons.videocam_off_rounded,
+                              color: Colors.white54,
+                              size: 32,
+                            ),
                           ),
                         ),
-                      ),
+                ),
               ),
             ),
           ),
@@ -1036,42 +1287,63 @@ class ActiveVideoCallOverlay extends StatelessWidget {
           // ── Bottom control bar ──────────────────────────────────────────
           Positioned(
             bottom: bottomPadding + 24,
-            left: 0,
-            right: 0,
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-              children: [
-                // Mute
-                _VideoControlButton(
-                  icon: isMuted ? Icons.mic_off_rounded : Icons.mic_rounded,
-                  label: isMuted ? 'Unmute' : 'Mute',
-                  active: isMuted,
-                  onTap: onMuteToggle,
-                ),
-                // End call
-                _VideoControlButton(
-                  icon: Icons.call_end_rounded,
-                  label: 'End',
-                  isEndCall: true,
-                  onTap: onEnd,
-                ),
-                // Camera toggle
-                _VideoControlButton(
-                  icon: isCameraOn
-                      ? Icons.videocam_rounded
-                      : Icons.videocam_off_rounded,
-                  label: isCameraOn ? 'Camera On' : 'Camera Off',
-                  active: !isCameraOn,
-                  onTap: onCameraToggle,
-                ),
-                // Switch camera (native only)
-                if (!kIsWeb)
-                  _VideoControlButton(
-                    icon: Icons.flip_camera_ios_rounded,
-                    label: 'Flip',
-                    onTap: onSwitchCamera,
+            // left: 0,
+            // right: 0,
+            child: ClipRRect(
+              borderRadius: BorderRadius.circular(40),
+              child: BackdropFilter(
+                filter: ImageFilter.blur(sigmaX: 20, sigmaY: 20),
+                child: Container(
+                  padding: .all(8),
+                  decoration: BoxDecoration(
+                    color: Colors.white.withValues(alpha: 0.15),
+                    borderRadius: BorderRadius.circular(40),
+                    border: Border.all(
+                      color: Colors.black.withValues(alpha: 0.15),
+                      width: 1,
+                    ),
                   ),
-              ],
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    mainAxisSize: .min,
+                    spacing: 8,
+                    children: [
+                      // Mute
+                      _VideoControlButton(
+                        icon: widget.isMuted
+                            ? Icons.mic_off_rounded
+                            : Icons.mic_rounded,
+                        label: widget.isMuted ? 'Unmute' : 'Mute',
+                        active: widget.isMuted,
+                        onTap: widget.onMuteToggle,
+                      ),
+                      // End call
+                      _VideoControlButton(
+                        icon: Icons.call_end_rounded,
+                        label: 'End',
+                        isEndCall: true,
+                        onTap: widget.onEnd,
+                      ),
+                      // Camera toggle
+                      _VideoControlButton(
+                        icon: widget.isCameraOn
+                            ? Icons.videocam_rounded
+                            : Icons.videocam_off_rounded,
+                        label: widget.isCameraOn ? 'Camera On' : 'Camera Off',
+                        active: !widget.isCameraOn,
+                        onTap: widget.onCameraToggle,
+                      ),
+                      // Switch camera (native only)
+                      if (!kIsWeb)
+                        _VideoControlButton(
+                          icon: Icons.flip_camera_ios_rounded,
+                          label: 'Flip',
+                          onTap: widget.onSwitchCamera,
+                        ),
+                    ],
+                  ),
+                ),
+              ),
             ),
           ),
         ],
@@ -1087,6 +1359,7 @@ class _VideoControlButton extends StatelessWidget {
   final VoidCallback onTap;
   final bool active;
   final bool isEndCall;
+  final bool showLabel;
 
   const _VideoControlButton({
     required this.icon,
@@ -1094,6 +1367,7 @@ class _VideoControlButton extends StatelessWidget {
     required this.onTap,
     this.active = false,
     this.isEndCall = false,
+    this.showLabel = false,
   });
 
   @override
@@ -1101,13 +1375,13 @@ class _VideoControlButton extends StatelessWidget {
     final Color bg = isEndCall
         ? Colors.red
         : active
-            ? Colors.white
-            : Colors.black45;
+        ? Colors.white
+        : Colors.black45;
     final Color iconColor = isEndCall
         ? Colors.white
         : active
-            ? Colors.black87
-            : Colors.white;
+        ? Colors.black87
+        : Colors.white;
 
     return Column(
       mainAxisSize: MainAxisSize.min,
@@ -1117,24 +1391,20 @@ class _VideoControlButton extends StatelessWidget {
           child: Container(
             width: 56,
             height: 56,
-            decoration: BoxDecoration(
-              color: bg,
-              shape: BoxShape.circle,
-            ),
+            decoration: BoxDecoration(color: bg, shape: BoxShape.circle),
             child: Icon(icon, color: iconColor, size: 26),
           ),
         ),
-        const SizedBox(height: 6),
-        Text(
-          label,
-          style: const TextStyle(
-            color: Colors.white,
-            fontSize: 11,
-            shadows: [
-              Shadow(color: Colors.black54, blurRadius: 4),
-            ],
+        if (showLabel) const SizedBox(height: 6),
+        if (showLabel)
+          Text(
+            label,
+            style: const TextStyle(
+              color: Colors.white,
+              fontSize: 11,
+              shadows: [Shadow(color: Colors.black54, blurRadius: 4)],
+            ),
           ),
-        ),
       ],
     );
   }

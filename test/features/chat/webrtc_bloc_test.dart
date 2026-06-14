@@ -215,6 +215,9 @@ void main() {
         if (methodCall.method == 'initialize') {
           return null;
         }
+        if (methodCall.method == 'createVideoRenderer') {
+          return {'textureId': 1};
+        }
         if (methodCall.method == 'getUserMedia') {
           return {
             'streamId': 'mock_stream_id',
@@ -241,10 +244,10 @@ void main() {
     });
 
     tearDown(() async {
+      await webRtcBloc.close();
       const channel = MethodChannel('FlutterWebRTC.Method');
       TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
           .setMockMethodCallHandler(channel, null);
-      await webRtcBloc.close();
       fakeSignalingRepository.dispose();
     });
 
