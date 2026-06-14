@@ -46,6 +46,9 @@ class FakePresenceRepository implements PresenceRepository {
 
   @override
   Future<void> setUserBusy(String userId, bool busy) async {}
+
+  @override
+  Future<List<String>> getUserDeviceTokens(String userId) async => [];
 }
 
 class FakeMessageRepository implements MessageRepository {

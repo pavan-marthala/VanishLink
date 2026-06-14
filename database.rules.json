@@ -1,5 +1,16 @@
 {
   "rules": {
+    "presence": {
+      "$userId": {
+        ".read": "auth != null",
+        ".write": "auth != null && auth.uid == $userId",
+        "devices": {
+          "$deviceId": {
+            ".write": "auth != null && auth.uid == $userId"
+          }
+        }
+      }
+    },
     "signaling": {
       "$sessionId": {
         ".read": "auth != null && (data.child('callerId').val() == auth.uid || data.child('receiverId').val() == auth.uid || newData.child('callerId').val() == auth.uid || newData.child('receiverId').val() == auth.uid)",
@@ -16,8 +27,24 @@
     "messages": {
       "$chatId": {
         ".indexOn": ["createdAt"],
-        ".read": "auth != null && ($chatId.contains(auth.uid))",
-        ".write": "auth != null && ($chatId.contains(auth.uid))"
+        ".read": "auth != null && $chatId.contains(auth.uid)",
+        ".write": "auth != null && $chatId.contains(auth.uid)"
+      }
+    },
+    "unreadCounts": {
+      "$userId": {
+        ".read": "auth != null && auth.uid == $userId",
+        "$chatId": {
+          ".write": "auth != null && (auth.uid == $userId || $chatId.contains(auth.uid))"
+        }
+      }
+    },
+    "typing": {
+      "$chatId": {
+        ".read": "auth != null && $chatId.contains(auth.uid)",
+        "$userId": {
+          ".write": "auth != null && auth.uid == $userId && $chatId.contains(auth.uid)"
+        }
       }
     }
   }

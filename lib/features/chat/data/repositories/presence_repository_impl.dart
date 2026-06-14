@@ -1,4 +1,5 @@
 import 'package:firebase_database/firebase_database.dart';
+import 'package:flutter/foundation.dart';
 import 'package:vanish_link/features/chat/domain/entities/presence_status.dart';
 import 'package:vanish_link/features/chat/domain/repositories/presence_repository.dart';
 
@@ -151,5 +152,32 @@ class PresenceRepositoryImpl implements PresenceRepository {
     if (userId.isEmpty || deviceId.isEmpty) return;
 
     await _database.ref('presence/$userId/devices/$deviceId').remove();
+  }
+
+  @override
+  Future<List<String>> getUserDeviceTokens(String userId) async {
+    if (userId.isEmpty) return [];
+    try {
+      final snapshot = await _database.ref('presence/$userId/devices').get();
+      if (!snapshot.exists || snapshot.value == null) {
+        return [];
+      }
+      final List<String> tokens = [];
+      if (snapshot.value is Map) {
+        final Map<dynamic, dynamic> devicesMap = snapshot.value as Map;
+        for (final deviceData in devicesMap.values) {
+          if (deviceData is Map) {
+            final token = deviceData['pushToken'] as String?;
+            if (token != null && token.isNotEmpty) {
+              tokens.add(token);
+            }
+          }
+        }
+      }
+      return tokens.toSet().toList(); // Deduplicate
+    } catch (e) {
+      debugPrint('[PresenceRepository] Error fetching device tokens: $e');
+      return [];
+    }
   }
 }

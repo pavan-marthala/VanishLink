@@ -38,4 +38,7 @@ abstract class PresenceRepository {
 
   /// Set the user's busy status flag
   Future<void> setUserBusy(String userId, bool busy);
+
+  /// Aggregates, filters, and deduplicates active push tokens for a given user
+  Future<List<String>> getUserDeviceTokens(String userId);
 }

@@ -129,6 +129,8 @@ class NotificationService {
         return NotificationType.missedCall;
       case 'callDeclined':
         return NotificationType.callDeclined;
+      case 'callEnded':
+        return NotificationType.callEnded;
       case 'newMessage':
         return NotificationType.newMessage;
       case 'messageReaction':

@@ -48,6 +48,7 @@ import 'package:vanish_link/features/chat/domain/services/notification_dispatche
 import 'package:vanish_link/features/chat/domain/services/notification_presenter.dart';
 import 'package:vanish_link/features/chat/domain/services/call_delivery_contracts.dart';
 import 'package:vanish_link/features/chat/domain/services/call_presentation_adapter.dart';
+import 'package:vanish_link/features/chat/domain/services/backend_notification_client.dart';
 import 'package:vanish_link/features/chat/domain/services/call_coordinator.dart';
 import 'package:vanish_link/core/utils/device_identifier_provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -239,12 +240,21 @@ Future<void> configureDependencies() async {
       callCoordinator: getIt<CallCoordinator>(),
     ),
   );
+  getIt.registerLazySingleton<BackendNotificationClient>(
+    () => BackendNotificationClient(),
+  );
+
   getIt.registerLazySingleton<NotificationDispatcher>(
-    () => NotificationDispatcherImpl(),
+    () => NotificationDispatcherImpl(
+      presenceRepository: getIt<PresenceRepository>(),
+      backendClient: getIt<BackendNotificationClient>(),
+    ),
   );
 
   // Call Delivery Trigger
   getIt.registerLazySingleton<CallDeliveryNotificationTrigger>(
-    () => CallDeliveryNotificationTriggerImpl(),
+    () => CallDeliveryNotificationTriggerImpl(
+      dispatcher: getIt<NotificationDispatcher>(),
+    ),
   );
 }

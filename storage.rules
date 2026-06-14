@@ -1,0 +1,29 @@
+rules_version = '2';
+service firebase.storage {
+  match /b/{bucket}/o {
+    
+    function isAuthenticated() {
+      return request.auth != null;
+    }
+
+    // 1. Profile Images
+    match /profile_images/{userId}/{allPaths=**} {
+      // Anyone authenticated can read user profile images
+      allow read: if isAuthenticated();
+      // Only the user owner can upload, resize, or delete their profile image (under 5MB, must be image)
+      allow write: if isAuthenticated() && request.auth.uid == userId
+                   && request.resource.size < 5 * 1024 * 1024
+                   && request.resource.contentType.matches('image/.*');
+    }
+
+    // 2. Chat Attachments (Shared attachments)
+    match /chats/{chatId}/{messageId}/{fileName} {
+      // Read/Write permitted only if the authenticated user is a participant in the chatId (Composite ID check)
+      allow read: if isAuthenticated() && chatId.split('_').hasAny([request.auth.uid]);
+      allow create: if isAuthenticated() && chatId.split('_').hasAny([request.auth.uid])
+                    && request.resource.size < 20 * 1024 * 1024; // 20MB limit
+      // Modifications and deletions of sent attachments are forbidden
+      allow update, delete: if false;
+    }
+  }
+}

@@ -2,6 +2,7 @@ enum NotificationType {
   incomingCall,
   missedCall,
   callDeclined,
+  callEnded,
   newMessage,
   messageReaction,
   mention,
@@ -45,6 +46,9 @@ class NotificationPayload {
         break;
       case 'callDeclined':
         type = NotificationType.callDeclined;
+        break;
+      case 'callEnded':
+        type = NotificationType.callEnded;
         break;
       case 'newMessage':
         type = NotificationType.newMessage;

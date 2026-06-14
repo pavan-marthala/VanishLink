@@ -7,6 +7,7 @@ import 'package:vanish_link/features/chat/domain/repositories/call_repository.da
 import 'package:vanish_link/features/chat/presentation/bloc/call/call_bloc.dart';
 import 'package:vanish_link/features/chat/presentation/bloc/call/call_event.dart';
 import 'package:vanish_link/features/chat/presentation/bloc/call/call_state.dart';
+import 'package:vanish_link/features/chat/domain/services/call_delivery_contracts.dart';
 
 class FakePermissionManager extends Fake implements PermissionManager {
   @override
@@ -112,6 +113,19 @@ class FakeCallRepository implements CallRepository {
   }
 }
 
+class FakeCallDeliveryNotificationTrigger implements CallDeliveryNotificationTrigger {
+  @override
+  Future<void> triggerIncomingCallPush(CallModel call) async {}
+  @override
+  Future<void> triggerMissedCallPush(CallModel call) async {}
+  @override
+  Future<void> triggerTimeoutCallPush(CallModel call) async {}
+  @override
+  Future<void> triggerDeclinedCallPush(CallModel call) async {}
+  @override
+  Future<void> triggerEndedCallPush(CallModel call) async {}
+}
+
 void main() {
   group('CallBloc Tests', () {
     late FakeCallRepository fakeRepository;
@@ -121,6 +135,9 @@ void main() {
       final getIt = GetIt.instance;
       if (!getIt.isRegistered<PermissionManager>()) {
         getIt.registerSingleton<PermissionManager>(FakePermissionManager());
+      }
+      if (!getIt.isRegistered<CallDeliveryNotificationTrigger>()) {
+        getIt.registerSingleton<CallDeliveryNotificationTrigger>(FakeCallDeliveryNotificationTrigger());
       }
       fakeRepository = FakeCallRepository();
       callBloc = CallBloc(callRepository: fakeRepository);

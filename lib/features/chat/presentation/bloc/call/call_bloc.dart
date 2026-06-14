@@ -232,6 +232,7 @@ class CallBloc extends Bloc<CallEvent, CallState> {
     if (call == null) return;
     debugPrint('[CALL-LIFECYCLE] CallBloc: DeclineCall event received for callId=${call.callId}');
     await _callRepository.declineCall(call.callId);
+    getIt<CallDeliveryNotificationTrigger>().triggerDeclinedCallPush(call);
   }
 
   Future<void> _onCancelCall(CancelCall event, Emitter<CallState> emit) async {
@@ -239,6 +240,7 @@ class CallBloc extends Bloc<CallEvent, CallState> {
     if (call == null) return;
     debugPrint('[CALL-LIFECYCLE] CallBloc: CancelCall event received for callId=${call.callId}');
     await _callRepository.cancelCall(call.callId);
+    getIt<CallDeliveryNotificationTrigger>().triggerEndedCallPush(call);
   }
 
   Future<void> _onEndCall(EndCall event, Emitter<CallState> emit) async {
@@ -246,6 +248,7 @@ class CallBloc extends Bloc<CallEvent, CallState> {
     if (call == null) return;
     debugPrint('[CALL-LIFECYCLE] CallBloc: EndCall event received for callId=${call.callId}');
     await _callRepository.endCall(call.callId, _callDuration);
+    getIt<CallDeliveryNotificationTrigger>().triggerEndedCallPush(call);
   }
 
   CallModel? _getActiveCall() {
